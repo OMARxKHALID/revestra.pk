@@ -1,0 +1,42 @@
+export const MOCK_REVIEWS = [
+  {
+    author: "Hina R.",
+    rating: 5,
+    title: "Measurements were exact",
+    body: "Ordered a jacket off the pit-to-pit rather than the label and it fit perfectly. Arrived clean and pressed, no smell at all.",
+    verified: true,
+    createdAt: "2026-06-02T10:00:00.000Z",
+  },
+  {
+    author: "Bilal A.",
+    rating: 4,
+    title: "Honest about the flaws",
+    body: "The listing mentioned a mark on the cuff and there it was, exactly as described. I would rather that than a surprise.",
+    verified: true,
+    createdAt: "2026-07-19T08:30:00.000Z",
+  },
+  {
+    author: "Sana K.",
+    rating: 5,
+    title: "Fast delivery to Lahore",
+    body: "Two days by courier and packed properly. The jeans looked better in person than in the photos.",
+    verified: true,
+    createdAt: "2026-05-11T19:15:00.000Z",
+  },
+  {
+    author: "Usman T.",
+    rating: 4,
+    title: "Good prices for the quality",
+    body: "Picked up a Carhartt jacket for a fraction of retail. Only wish there was more stock in my size.",
+    verified: false,
+    createdAt: "2026-08-01T12:45:00.000Z",
+  },
+  {
+    author: "Ayesha M.",
+    rating: 5,
+    title: "Everything arrives washed",
+    body: "This is the bit that matters with secondhand and they get it right every time.",
+    verified: true,
+    createdAt: "2026-08-22T06:20:00.000Z",
+  },
+];

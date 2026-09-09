@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      AUTH_SECRET: ci-secret-not-used-in-production
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - name: No secrets exposed to the client bundle
+        run: |
+          if grep -rnE "NEXT_PUBLIC_[A-Z_]*(SALT|SECRET|PASSWORD|HASH_KEY|API_KEY)" src/ scripts/; then
+            echo "A secret is prefixed NEXT_PUBLIC_ and would ship to the browser."
+            exit 1
+          fi
+
+      - run: bun run lint
+
+      - run: bun test
+
+      - run: bun run build

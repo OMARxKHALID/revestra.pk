@@ -1,0 +1,208 @@
+"use client";
+
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { reviewSchema } from "@/lib/schemas/review";
+import RatingStars from "@/components/ui/rating-stars";
+import {
+  CheckIcon,
+  MailIcon,
+  PenIcon,
+  UserIcon,
+} from "@/components/ui/icons";
+import Field from "@/components/ui/field";
+import Chip from "@/components/ui/chip";
+import PillButton from "@/components/ui/pill-button";
+import cn from "@/lib/utils/cn";
+import { BODY, HEADING, META, NOTICE, TITLE } from "@/lib/type";
+
+const RATINGS = [5, 4, 3, 2, 1];
+
+const fetchReviews = async () => {
+  const response = await fetch("/api/reviews");
+
+  if (!response.ok) throw new Error("Could not load reviews");
+
+  return response.json();
+};
+
+const StoreReviews = ({ initialReviews, initialSummary }) => {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [submitError, setSubmitError] = useState(null);
+
+  const { data } = useQuery({
+    queryKey: ["reviews"],
+    queryFn: fetchReviews,
+    initialData: { reviews: initialReviews, summary: initialSummary },
+    staleTime: 60_000,
+  });
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(reviewSchema.omit({ rating: true })),
+  });
+
+  const handleOpen = () => setOpen(true);
+  const handleRating = (value) => setRating(value);
+
+  const onSubmit = async (values) => {
+    setSubmitError(null);
+
+    try {
+      const response = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...values, rating }),
+      });
+
+      const body = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setSubmitError(body.error ?? "Could not post that review.");
+        return;
+      }
+
+      reset();
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
+    } catch {
+      setSubmitError("Network error. Try again.");
+    }
+  };
+
+  return (
+    <section>
+      <div>
+        <div className="flex flex-wrap items-baseline justify-between gap-4">
+          <h2 className={cn(HEADING, "text-black")}>
+            {data.summary.count === 0
+              ? "No reviews yet"
+              : `${data.summary.count} review${data.summary.count === 1 ? "" : "s"}`}
+          </h2>
+
+          {data.summary.average !== null && (
+            <RatingStars
+              average={data.summary.average}
+              count={data.summary.count}
+            />
+          )}
+        </div>
+
+        <ul className="mt-10 divide-y divide-black/10 border-t border-black/10">
+          {data.reviews.map((review) => (
+            <li key={`${review.author}-${review.createdAt}`} className="py-7">
+              <div className="flex flex-wrap items-center gap-3">
+                <RatingStars average={review.rating} showCount={false} />
+
+                <p className={cn(META, "flex items-center gap-1.5 text-black/45")}>
+                  {review.author}
+
+                  {review.verified && (
+                    <span className="flex items-center gap-1 text-blurple">
+                      <CheckIcon className="h-3.5 w-3.5" />
+                      verified buyer
+                    </span>
+                  )}
+                </p>
+              </div>
+
+              <p className={cn(TITLE, "mt-3 text-black")}>
+                {review.title}
+              </p>
+
+              <p className={cn(BODY, "mt-2 max-w-[62ch] text-black/70")}>
+                {review.body}
+              </p>
+            </li>
+          ))}
+        </ul>
+
+        {!open && (
+          <PillButton onClick={handleOpen} className="mt-10">
+            Write a review
+          </PillButton>
+        )}
+
+        {open && (
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-12">
+            <h3
+              className={cn(META, "border-b border-black/10 pb-4 text-black/70")}
+            >
+              Your review
+            </h3>
+
+            <fieldset className="mt-7">
+              <legend className={cn(META, "text-black/45")}>Your rating</legend>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {RATINGS.map((value) => (
+                  <Chip
+                    key={value}
+                    selected={rating === value}
+                    onClick={() => handleRating(value)}
+                    aria-label={`${value} out of 5`}
+                    className="min-w-[52px]"
+                  >
+                    {value}
+                    <span aria-hidden="true"> ★</span>
+                  </Chip>
+                ))}
+              </div>
+            </fieldset>
+
+            <div className="mt-8 grid grid-cols-1 gap-7 sm:grid-cols-2">
+              <Field
+                id="author"
+                label="Name"
+                icon={<UserIcon className="h-4 w-4" />}
+                registration={register("author")}
+                error={errors.author?.message}
+              />
+              <Field
+                id="review-email"
+                label="Email"
+                icon={<MailIcon className="h-4 w-4" />}
+                type="email"
+                registration={register("email")}
+                error={errors.email?.message}
+              />
+              <Field
+                id="title"
+                label="Headline"
+                icon={<PenIcon className="h-4 w-4" />}
+                className="sm:col-span-2"
+                registration={register("title")}
+                error={errors.title?.message}
+              />
+              <Field
+                id="body"
+                label="Your review"
+                className="sm:col-span-2"
+                registration={register("body")}
+                error={errors.body?.message}
+              />
+            </div>
+
+            <PillButton type="submit" disabled={isSubmitting} className="mt-9">
+              {isSubmitting ? "Posting…" : "Post review"}
+            </PillButton>
+
+            <p aria-live="polite" className={cn(NOTICE, "mt-4 text-sale")}>
+              {submitError ?? " "}
+            </p>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+};
+
+export default StoreReviews;
