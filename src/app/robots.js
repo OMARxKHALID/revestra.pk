@@ -12,6 +12,7 @@ const robots = () => ({
         "/orders/",
         "/track",
         "/account/",
+        "/admin",
         "/sign-in",
         "/sign-up",
         "/wishlist",

@@ -21,7 +21,7 @@ export const userDocSchema = z.object({
   email: z.email(),
   name: z.string().min(1),
   passwordHash: z.string().min(1),
-  role: z.enum(["customer"]).default("customer"),
+  role: z.enum(["customer", "admin"]).default("customer"),
   wishlist: z.array(z.string()).default([]),
   emailVerified: z.date().nullable().default(null),
   createdAt: z.date(),

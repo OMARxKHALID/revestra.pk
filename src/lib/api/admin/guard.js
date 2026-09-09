@@ -1,0 +1,54 @@
+import "server-only";
+import { auth } from "@/auth";
+import { siteUrl } from "@/lib/payments/config";
+
+const notFound = () => Response.json({ error: "Not found" }, { status: 404 });
+
+const badOrigin = () => Response.json({ error: "Bad origin" }, { status: 403 });
+
+export const isAdmin = (session) => session?.user?.role === "admin";
+
+export const adminSession = async () => {
+  const session = await auth();
+
+  return isAdmin(session) ? session : null;
+};
+
+const sameOrigin = (request) => {
+  const origin = request.headers.get("origin");
+
+  if (!origin) return true;
+
+  try {
+    return new URL(origin).origin === new URL(siteUrl()).origin;
+  } catch {
+    return false;
+  }
+};
+
+export const guard = async (request, { mutation = false } = {}) => {
+  const session = await adminSession();
+
+  if (!session) return { response: notFound() };
+
+  if (mutation && !sameOrigin(request)) return { response: badOrigin() };
+
+  return { session, adminId: session.user.id };
+};
+
+export const readJson = async (request) => {
+  try {
+    return { ok: true, payload: await request.json() };
+  } catch {
+    return {
+      ok: false,
+      response: Response.json({ error: "Malformed request" }, { status: 400 }),
+    };
+  }
+};
+
+export const invalid = (error) =>
+  Response.json(
+    { error: error.issues[0]?.message ?? "Invalid request" },
+    { status: 422 }
+  );

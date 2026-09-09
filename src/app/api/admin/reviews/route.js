@@ -1,0 +1,42 @@
+import { z } from "zod";
+import { guard, readJson, invalid } from "@/lib/api/admin/guard";
+import { listReviews, setReviewStatus } from "@/lib/api/admin/reviews";
+
+export const dynamic = "force-dynamic";
+
+const patchSchema = z.object({
+  author: z.string().min(1),
+  createdAt: z.string().min(1),
+  status: z.enum(["published", "hidden"]),
+});
+
+export const GET = async (request) => {
+  const { response } = await guard(request);
+
+  if (response) return response;
+
+  const status = new URL(request.url).searchParams.get("status") ?? "";
+
+  return Response.json({ reviews: await listReviews({ status }) });
+};
+
+export const PATCH = async (request) => {
+  const { response } = await guard(request, { mutation: true });
+
+  if (response) return response;
+
+  const body = await readJson(request);
+
+  if (!body.ok) return body.response;
+
+  const parsed = patchSchema.safeParse(body.payload);
+
+  if (!parsed.success) return invalid(parsed.error);
+
+  const updated = await setReviewStatus(parsed.data);
+
+  if (!updated.ok)
+    return Response.json({ error: updated.error }, { status: 404 });
+
+  return Response.json({ ok: true });
+};

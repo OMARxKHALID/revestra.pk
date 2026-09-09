@@ -47,20 +47,15 @@ const upsert = async (collection, documents, key, extra = () => ({})) => {
     }))
   );
 
-  const stale = await collection.deleteMany({
-    [key]: { $nin: documents.map((document) => document[key]) },
-  });
-
   return {
     inserted: result.upsertedCount,
     updated: result.modifiedCount,
-    removed: stale.deletedCount,
   };
 };
 
-const report = (name, { inserted, updated, removed }) =>
+const report = (name, { inserted, updated }) =>
   console.log(
-    `Seeded "${dbName}.${name}" — ${inserted} inserted, ${updated} updated, ${removed} removed.`
+    `Seeded "${dbName}.${name}" — ${inserted} inserted, ${updated} updated.`
   );
 
 try {

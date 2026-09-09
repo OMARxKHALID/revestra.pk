@@ -86,13 +86,7 @@ const CheckoutForm = () => {
           rateId,
           method,
           promoCode: promo?.code ?? "",
-          items: items.map(({ slug, name, size, quantity, unitCents }) => ({
-            slug,
-            name,
-            size,
-            quantity,
-            unitCents,
-          })),
+          items: items.map(({ slug }) => ({ slug })),
         }),
       });
 

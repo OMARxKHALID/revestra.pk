@@ -14,19 +14,15 @@ export const shippingSchema = z.object({
   country: z.string().trim().min(2, "Enter your country"),
 });
 
-const orderLineSchema = z.object({
-  slug: z.string().min(1),
-  name: z.string().min(1),
-  size: z.string().min(1).nullable(),
-  quantity: z.int().positive().max(99),
-  unitCents: z.int().nonnegative(),
-});
+const orderLineSchema = z
+  .object({ slug: z.string().min(1) })
+  .transform(({ slug }) => ({ slug }));
 
 export const PAYMENT_METHODS = ["jazzcash", "easypaisa", "card", "cod"];
 
 export const orderSchema = z.object({
   shipping: shippingSchema,
-  items: z.array(orderLineSchema).min(1, "Your cart is empty"),
+  items: z.array(orderLineSchema).min(1, "Your cart is empty").max(50),
   promoCode: z.string().trim().max(24).optional().or(z.literal("")),
   rateId: z.enum(["standard", "express"]).default("standard"),
   method: z.enum(PAYMENT_METHODS).default("cod"),

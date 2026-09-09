@@ -11,7 +11,7 @@ const lines = (order) =>
   order.items
     .map(
       (item) =>
-        `  ${item.quantity} × ${item.name}${item.size ? ` (${item.size})` : ""} — ${formatPrice(item.unitCents * item.quantity)}`
+        `  ${item.name} — ${[item.size, item.condition].filter(Boolean).join(", ")} — ${formatPrice(item.unitCents)}`
     )
     .join("\n");
 

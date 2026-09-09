@@ -11,13 +11,7 @@ const shipping = {
   country: "USA",
 };
 
-const line = {
-  slug: "company-candle",
-  name: "Company Candle",
-  size: null,
-  quantity: 1,
-  unitCents: 3700,
-};
+const line = { slug: "levis-501-straight-w32-l30" };
 
 const messages = (result) =>
   result.success ? [] : result.error.issues.map((i) => i.message);
@@ -59,25 +53,24 @@ describe("order", () => {
     );
   });
 
-  test("rejects a zero or negative quantity", () => {
-    for (const quantity of [0, -1])
-      expect(
-        orderSchema.safeParse({ shipping, items: [{ ...line, quantity }] })
-          .success
-      ).toBe(false);
+  test("a line carries nothing but a slug, whatever the client sends", () => {
+    const parsed = orderSchema.parse({
+      shipping,
+      items: [{ ...line, unitCents: 1, quantity: 99, name: "Free jacket" }],
+    });
+
+    expect(parsed.items[0]).toEqual({ slug: line.slug });
   });
 
-  test("rejects a fractional quantity", () => {
-    expect(
-      orderSchema.safeParse({ shipping, items: [{ ...line, quantity: 1.5 }] })
-        .success
-    ).toBe(false);
+  test("rejects a line with no slug", () => {
+    expect(orderSchema.safeParse({ shipping, items: [{}] }).success).toBe(false);
   });
 
-  test("rejects a non-integer price", () => {
-    expect(
-      orderSchema.safeParse({ shipping, items: [{ ...line, unitCents: 37.5 }] })
-        .success
-    ).toBe(false);
+  test("refuses an absurdly large cart", () => {
+    const items = Array.from({ length: 51 }, (_, index) => ({
+      slug: `piece-${index}`,
+    }));
+
+    expect(orderSchema.safeParse({ shipping, items }).success).toBe(false);
   });
 });

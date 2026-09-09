@@ -1,0 +1,85 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Delete02Icon } from "@hugeicons/core-free-icons";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+const DeleteProductButton = ({ slug, name }) => {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [working, setWorking] = useState(false);
+
+  const handleDelete = async () => {
+    setWorking(true);
+
+    try {
+      const response = await fetch(`/api/admin/products/${slug}`, {
+        method: "DELETE",
+      });
+
+      const body = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        toast.error(body.error ?? "Could not delete that piece");
+        return;
+      }
+
+      toast.success(`${name} removed`);
+      setOpen(false);
+      router.refresh();
+    } catch {
+      toast.error("Network error. Try again.");
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        render={
+          <Button variant="ghost" size="icon-sm" aria-label={`Delete ${name}`} />
+        }
+      >
+        <HugeiconsIcon icon={Delete02Icon} size={16} />
+      </DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete {name}?</DialogTitle>
+          <DialogDescription>
+            This removes the piece from the catalogue for good. Pieces that
+            appear on an order cannot be deleted — mark those sold instead.
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter>
+          <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={working}
+          >
+            {working ? "Deleting…" : "Delete"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default DeleteProductButton;

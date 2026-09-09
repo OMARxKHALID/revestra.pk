@@ -14,8 +14,11 @@ export const ensureIndexes = async (db) => {
   await db.collection("orders").createIndex({ email: 1, createdAt: -1 });
   await db.collection("orders").createIndex({ userId: 1, createdAt: -1 });
   await db.collection("orders").createIndex({ "payment.attempts.ref": 1 });
+  await db.collection("orders").createIndex({ status: 1, createdAt: -1 });
+  await db.collection("orders").createIndex({ createdAt: -1 });
 
   await db.collection("reviews").createIndex({ createdAt: -1 });
+  await db.collection("reviews").createIndex({ status: 1, createdAt: -1 });
   await db
     .collection("reviews")
     .createIndex(

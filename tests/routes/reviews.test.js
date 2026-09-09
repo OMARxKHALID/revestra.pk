@@ -37,7 +37,6 @@ mock.module("@/lib/session", () => ({
 }));
 
 const review = (overrides) => ({
-  slug: "company-candle",
   author: "Reviewer",
   email: "someone@example.com",
   rating: 5,
@@ -102,12 +101,6 @@ describe("POST /api/reviews", () => {
     const body = await response.json();
 
     expect(body.review.verified).toBe(false);
-  });
-
-  test("rejects a review for a product that does not exist", async () => {
-    const response = await post(review({ slug: "ghost-item" }), "10.1.0.5");
-
-    expect(response.status).toBe(404);
   });
 
   test("rejects a rating outside one to five", async () => {

@@ -1,21 +1,12 @@
 import InteriorPage from "@/components/interior-page";
 import ProductBrowser from "@/components/product-browser";
 import { getAllProducts } from "@/lib/api/products";
+import { buildFacets } from "@/lib/utils/catalogue";
 import { BRAND, title } from "@/lib/brand";
 
 export const metadata = {
   title: title("Everything in stock"),
   description: `Secondhand jeans, jackets, shirts, shoes and belts from ${BRAND.name} — each one washed, measured and one of a kind.`,
-};
-
-const facetsFrom = (products) => {
-  const unique = (key) => [...new Set(products.map((product) => product[key]))].sort();
-
-  return {
-    sizes: unique("sizeLabel"),
-    brands: unique("brand"),
-    conditions: unique("condition"),
-  };
 };
 
 const ProductsPage = async () => {
@@ -30,7 +21,7 @@ const ProductsPage = async () => {
       <div className="mt-10 sm:mt-12">
         <ProductBrowser
           initialProducts={products}
-          initialFacets={facetsFrom(products)}
+          initialFacets={buildFacets(products)}
         />
       </div>
     </InteriorPage>

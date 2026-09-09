@@ -8,7 +8,6 @@ import { EYEBROW, META, TITLE } from "@/lib/type";
 import Chip from "@/components/ui/chip";
 import Field from "@/components/ui/field";
 import { SearchIcon } from "@/components/ui/icons";
-import { CATEGORIES } from "@/lib/schemas/product";
 
 const EMPTY = { category: "", size: "", brand: "", condition: "" };
 
@@ -103,7 +102,7 @@ const ProductBrowser = ({ initialProducts, initialFacets }) => {
         <div className="mt-7 flex flex-col gap-3">
           <FacetRow
             label="Type"
-            options={CATEGORIES}
+            options={facets?.categories ?? []}
             value={filters.category}
             onSelect={handleFilter("category")}
           />

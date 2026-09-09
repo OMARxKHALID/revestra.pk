@@ -10,11 +10,10 @@ const shipping = {
   country: "Pakistan",
 };
 
-const candle = {
-  slug: "company-candle",
-  name: "Company Candle",
-  size: null,
-  quantity: 2,
+const piece = {
+  slug: "levis-501-straight-w32-l30",
+  name: "whatever the client claims",
+  quantity: 9,
   unitCents: 1,
 };
 
@@ -89,7 +88,7 @@ describe("POST /api/orders", () => {
 
   test("rejects an invalid shipping address with 422", async () => {
     const response = await post(
-      { shipping: { ...shipping, email: "nope" }, items: [candle] },
+      { shipping: { ...shipping, email: "nope" }, items: [piece] },
       { "x-forwarded-for": "10.0.0.2" }
     );
 
@@ -98,7 +97,7 @@ describe("POST /api/orders", () => {
 
   test("rejects an unknown slug with 409", async () => {
     const response = await post(
-      { shipping, items: [{ ...candle, slug: "ghost-item" }] },
+      { shipping, items: [{ ...piece, slug: "ghost-item" }] },
       { "x-forwarded-for": "10.0.0.3" }
     );
 
@@ -107,14 +106,15 @@ describe("POST /api/orders", () => {
 
   test("re-prices the order server-side and stores it", async () => {
     const response = await post(
-      { shipping, items: [candle] },
+      { shipping, items: [piece] },
       { "x-forwarded-for": "10.0.0.4" }
     );
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.subtotalCents).toBeGreaterThan(2);
     expect(body.items[0].unitCents).toBeGreaterThan(1);
+    expect(body.items[0].quantity).toBe(1);
+    expect(body.items[0].size).toBe("W32 L30");
     expect(body.persisted).toBe(true);
     expect(inserted.reference).toBe(body.reference);
     expect(inserted.email).toBe("omar@example.com");
@@ -124,7 +124,7 @@ describe("POST /api/orders", () => {
     insertFails = true;
 
     const response = await post(
-      { shipping, items: [candle] },
+      { shipping, items: [piece] },
       { "x-forwarded-for": "10.0.0.5" }
     );
     const body = await response.json();
@@ -137,7 +137,7 @@ describe("POST /api/orders", () => {
     configured = false;
 
     const response = await post(
-      { shipping, items: [candle] },
+      { shipping, items: [piece] },
       { "x-forwarded-for": "10.0.0.6" }
     );
     const body = await response.json();
@@ -148,7 +148,7 @@ describe("POST /api/orders", () => {
 
   test("refuses a gateway that is not configured, rather than stranding the order", async () => {
     const response = await post(
-      { shipping, items: [candle], method: "jazzcash" },
+      { shipping, items: [piece], method: "jazzcash" },
       { "x-forwarded-for": "10.0.0.8" }
     );
     const body = await response.json();
@@ -160,7 +160,7 @@ describe("POST /api/orders", () => {
 
   test("cash on delivery needs no gateway credentials", async () => {
     const response = await post(
-      { shipping, items: [candle], method: "cod" },
+      { shipping, items: [piece], method: "cod" },
       { "x-forwarded-for": "10.0.0.9" }
     );
 
@@ -169,7 +169,7 @@ describe("POST /api/orders", () => {
 
   test("a cash order counts its promo redemption straight away", async () => {
     const response = await post(
-      { shipping, items: [candle], method: "cod", promoCode: "WELCOME10" },
+      { shipping, items: [piece], method: "cod", promoCode: "WELCOME10" },
       { "x-forwarded-for": "10.0.0.10" }
     );
     const body = await response.json();
@@ -184,7 +184,7 @@ describe("POST /api/orders", () => {
     let last;
 
     for (let attempt = 0; attempt < 11; attempt += 1)
-      last = await post({ shipping, items: [candle] }, ip);
+      last = await post({ shipping, items: [piece] }, ip);
 
     expect(last.status).toBe(429);
     expect(last.headers.get("Retry-After")).toBeTruthy();

@@ -14,6 +14,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   trustHost: true,
   secret: authSecret(),
+  logger: {
+    error: (error) => {
+      if (error?.name === "CredentialsSignin") {
+        console.info("[auth] a sign-in attempt failed");
+        return;
+      }
+
+      console.error(`[auth] ${error?.message ?? error}`);
+    },
+    warn: (code) => console.warn(`[auth] ${code}`),
+    debug: () => {},
+  },
   providers: [
     Credentials({
       credentials: {

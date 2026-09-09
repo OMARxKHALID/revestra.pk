@@ -29,6 +29,7 @@ const nextConfig = {
     { source: "/orders/:path*", headers: NO_STORE },
     { source: "/account/:path*", headers: NO_STORE },
     { source: "/checkout/:path*", headers: NO_STORE },
+    { source: "/admin/:path*", headers: NO_STORE },
   ],
 };
 

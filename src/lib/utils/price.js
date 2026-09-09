@@ -18,4 +18,4 @@ export const formatPrice = (cents) =>
     .replace(/ /g, " ");
 
 export const sumCents = (items) =>
-  items.reduce((total, item) => total + item.unitCents * item.quantity, 0);
+  items.reduce((total, item) => total + item.unitCents, 0);
