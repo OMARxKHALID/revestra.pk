@@ -1,12 +1,17 @@
 import { newsletterSchema } from "@/lib/schemas/newsletter";
-import { getDb, isDatabaseConfigured } from "@/lib/db";
-import { createRateLimiter, tooManyRequests } from "@/lib/rate-limit";
+import { isDatabaseConfigured } from "@/lib/db";
+import { subscribe } from "@/lib/api/subscribers";
+import { createLimiter, tooManyRequests } from "@/lib/rate-limit";
+import RATE_LIMITS from "@/lib/rate-limits";
 import requestIp from "@/lib/utils/request-ip";
+import { sameOrigin, badOrigin } from "@/lib/api/origin";
 
-const limiter = createRateLimiter({ limit: 5, windowMs: 60 * 60 * 1000 });
+const limiter = createLimiter(RATE_LIMITS.newsletter);
 
 export const POST = async (request) => {
-  const gate = limiter.check(requestIp(request));
+  if (!sameOrigin(request)) return badOrigin();
+
+  const gate = await limiter.check(requestIp(request));
 
   if (!gate.ok) return tooManyRequests(gate.resetAt);
 
@@ -34,15 +39,7 @@ export const POST = async (request) => {
   }
 
   try {
-    const db = await getDb();
-
-    await db
-      .collection("subscribers")
-      .updateOne(
-        { email },
-        { $setOnInsert: { email, createdAt: new Date() } },
-        { upsert: true }
-      );
+    await subscribe(email);
   } catch (error) {
     console.error(`[newsletter] could not store ${email}: ${error.message}`);
 

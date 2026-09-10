@@ -23,13 +23,10 @@ describe("formatPrice", () => {
 });
 
 describe("sumCents", () => {
-  test("multiplies each line and adds them up", () => {
+  test("adds one of each piece", () => {
     expect(
-      sumCents([
-        { unitCents: 560000, quantity: 2 },
-        { unitCents: 335000, quantity: 1 },
-      ])
-    ).toBe(1455000);
+      sumCents([{ unitCents: 560000 }, { unitCents: 335000 }])
+    ).toBe(895000);
   });
 
   test("is zero for an empty cart", () => {

@@ -7,15 +7,8 @@ import cn from "@/lib/utils/cn";
 import { META, NOTICE } from "@/lib/type";
 import PillButton from "@/components/ui/pill-button";
 import { isSold, sellableNow } from "@/lib/utils/stock";
-
-const fetchStatus = async ({ queryKey }) => {
-  const [, slug] = queryKey;
-  const response = await fetch(`/api/products/${slug}/stock`);
-
-  if (!response.ok) throw new Error("Could not load availability");
-
-  return response.json();
-};
+import { request } from "@/lib/api-client";
+import keys from "@/lib/query-keys";
 
 const AddToCart = ({ product }) => {
   const addItem = useCart((state) => state.addItem);
@@ -24,13 +17,18 @@ const AddToCart = ({ product }) => {
   const inCart = items.some((item) => item.slug === product.slug);
 
   const { data } = useQuery({
-    queryKey: ["availability", product.slug],
-    queryFn: fetchStatus,
+    queryKey: keys.products.availability(product.slug),
+    queryFn: ({ signal }) =>
+      request(`/api/products/${product.slug}/stock`, { signal }),
     initialData: {
+      slug: product.slug,
       status: product.status,
       reservedUntil: product.reservedUntil ?? null,
     },
-    staleTime: 20_000,
+    initialDataUpdatedAt: 0,
+    staleTime: 15_000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   });
 
   const live = { ...product, ...data };
@@ -39,7 +37,9 @@ const AddToCart = ({ product }) => {
 
   useEffect(() => {
     if (!added) return;
+
     const timeout = setTimeout(() => setAdded(false), 2000);
+
     return () => clearTimeout(timeout);
   }, [added]);
 
@@ -65,7 +65,7 @@ const AddToCart = ({ product }) => {
                 : "Add to Cart"}
       </PillButton>
 
-      <p className={cn(META, "mt-4 text-black/45")}>
+      <p className={cn(META, "mt-4 text-ink-soft")}>
         {sold
           ? "This one has gone — every piece here is one of one."
           : "One of one. Once it sells, it is gone."}

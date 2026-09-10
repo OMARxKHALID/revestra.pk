@@ -1,11 +1,17 @@
-import easypaisa from "@/lib/payments/easypaisa";
+import {
+  ORDER_STATUS,
+  PAYMENT_METHOD,
+  PAYMENT_STATUS,
+} from "@/lib/schemas/order";
+import { getAdapter } from "@/lib/payments";
 import {
   findOrderByAttemptRef,
   orderSecret,
+  recordAttempt,
   settlePayment,
 } from "@/lib/api/orders";
-import { releaseStock, markSold } from "@/lib/api/inventory";
-import { recordRedemption } from "@/lib/api/promos";
+import { releaseStock } from "@/lib/api/inventory";
+import { completeSale } from "@/lib/api/fulfilment";
 import { signOrderToken } from "@/lib/utils/order-token";
 import { easypaisaConfig, siteUrl } from "@/lib/payments/config";
 
@@ -34,11 +40,12 @@ const confirmPage = (authToken) => {
 };
 
 const settle = async (request) => {
+  const easypaisa = getAdapter(PAYMENT_METHOD.easypaisa);
   const fields = await easypaisa.parseCallback(request);
 
   if (fields.auth_token && !fields.status) return confirmPage(fields.auth_token);
 
-  const result = easypaisa.verifyCallback({ fields });
+  const result = await easypaisa.verifyCallback({ fields });
 
   if (!result.attemptRef) return seeOther("/checkout?payment=unknown");
 
@@ -53,39 +60,54 @@ const settle = async (request) => {
     signOrderToken(order.reference, orderSecret())
   );
 
-  if (order.payment.status !== "pending")
+  if (order.payment.status !== PAYMENT_STATUS.pending)
     return seeOther(`/orders/${order.reference}?t=${token}`);
 
-  const amountMatches =
-    result.amountCents === 0 || result.amountCents === order.payment.amountCents;
-  const paid = result.status === "paid" && amountMatches;
+  if (!result.ok) {
+    console.error(
+      `[easypaisa] settlement could not be verified for ${order.reference} (${result.verification}) — leaving it pending for manual reconciliation`
+    );
 
-  if (result.status === "paid" && !amountMatches)
+    await recordAttempt(order.reference, {
+      ref: result.attemptRef,
+      at: new Date(),
+      status: "unverified",
+      code: result.code,
+      message: result.message,
+      raw: result.raw,
+    });
+
+    return seeOther(`/orders/${order.reference}?t=${token}`);
+  }
+
+  const amountMatches = result.amountCents === order.payment.amountCents;
+  const paid = result.status === PAYMENT_STATUS.paid && amountMatches;
+
+  if (result.status === PAYMENT_STATUS.paid && !amountMatches)
     console.error(
       `[easypaisa] amount mismatch on ${order.reference}: gateway ${result.amountCents}, order ${order.payment.amountCents}`
     );
 
   const settled = await settlePayment({
     attemptRef: result.attemptRef,
-    status: paid ? "paid" : "failed",
-    orderStatus: paid ? "received" : "failed",
+    status: paid ? PAYMENT_STATUS.paid : PAYMENT_STATUS.failed,
+    orderStatus: paid ? ORDER_STATUS.received : ORDER_STATUS.failed,
     providerTxnId: result.providerTxnId,
     verification: result.verification,
     attempt: {
       ref: result.attemptRef,
       at: new Date(),
-      status: paid ? "paid" : "failed",
+      status: paid ? PAYMENT_STATUS.paid : PAYMENT_STATUS.failed,
       code: result.code,
       message: result.message,
       raw: result.raw,
     },
   });
 
-  if (settled && !paid && order.stockReserved) await releaseStock(order.items);
+  if (settled && !paid && order.stockReserved)
+    await releaseStock(order.items, order.reference);
 
-  if (settled && paid) await markSold(order.items);
-
-  if (settled && paid && order.promo) await recordRedemption(order.promo.code);
+  if (settled && paid) await completeSale(order);
 
   return seeOther(`/orders/${order.reference}?t=${token}`);
 };

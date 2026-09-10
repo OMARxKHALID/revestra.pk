@@ -67,6 +67,14 @@ bun run order-status CP-XXXXXX-XXXX shipped
 bun run release-stale 60
 ```
 
+```bash
+bun run create-admin you@example.com your-password "Your Name"
+```
+
+```bash
+bun run make-admin you@example.com
+```
+
 ## Environment
 
 Copy `.env.example` to `.env.local`. Everything is optional, but each unset
@@ -101,7 +109,9 @@ Then `MONGODB_URI=mongodb://127.0.0.1:27017` in `.env.local`. Stop it with
 
 `bun run seed` validates the bundled catalogue, promo codes and sample reviews
 against their Zod schemas, creates every index, and upserts all three into
-Mongo. It is the only writer; the app only reads.
+Mongo. **It only upserts — it never deletes.** It used to remove anything absent
+from the bundled list, which would have wiped every piece listed through the
+admin the first time anyone reseeded.
 
 Run `bun run seed` to validate the bundled catalogue against the Zod schema,
 create every index, and upsert the catalogue into Mongo.
@@ -464,8 +474,10 @@ Beyond the payment rules above:
   `orderRefNumber`).
 - **Neither gateway can reach `localhost`.** Development needs a public tunnel,
   and the return URL registered against the merchant account has to match.
-- No admin panel. Catalogue edits are code plus `bun run seed`; order status
-  moves with `bun run order-status <reference> <status>`.
+- The admin panel covers intake and status only. Photos are entered as paths —
+  there is no upload, so images must already be under `public/assets/`. Editing
+  an existing piece is API-only (`PATCH /api/admin/products/<slug>`); the UI
+  offers status changes but no edit form yet.
 - `/account/orders` lists orders by `userId`, never by email. Listing by email
   would undo the claim flow entirely — anyone registering with a stranger's
   address would see their orders and shipping details. No email verification, so

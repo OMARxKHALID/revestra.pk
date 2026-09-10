@@ -1,5 +1,5 @@
-import PageSkeleton from "@/components/ui/page-skeleton";
+import PageLoader from "@/components/ui/page-loader";
 
-const Loading = () => <PageSkeleton grid label="Loading your wishlist" />;
+const Loading = () => <PageLoader label="Loading your wishlist" />;
 
 export default Loading;

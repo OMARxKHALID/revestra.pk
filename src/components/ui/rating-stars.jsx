@@ -7,7 +7,7 @@ const Star = ({ filled }) => (
   <svg
     viewBox="0 0 20 20"
     aria-hidden="true"
-    className={cn("h-3 w-3", filled ? "text-black/70" : "text-black/15")}
+    className={cn("h-3 w-3", filled ? "text-ink-muted" : "text-black/15")}
   >
     <path
       fill="currentColor"
@@ -32,7 +32,7 @@ const RatingStars = ({ average, count, className, showCount = true }) => {
       </span>
 
       {showCount && count !== undefined && (
-        <span className={cn(META, "text-black/45")} aria-hidden="true">
+        <span className={cn(META, "text-ink-soft")} aria-hidden="true">
           {count}
         </span>
       )}

@@ -1,3 +1,5 @@
+import errorMessage from "@/lib/utils/error-message";
+
 const DEFAULT_MAX_KEYS = 5000;
 
 export const createRateLimiter = ({
@@ -40,6 +42,27 @@ export const createRateLimiter = ({
   const reset = () => hits.clear();
 
   return { check, reset };
+};
+
+export const createLimiter = ({ limit, windowMs }) => {
+  const local = createRateLimiter({ limit, windowMs });
+
+  const check = async (key) => {
+    try {
+      const { consume } = await import("@/lib/api/rate-limit-store");
+      const shared = await consume({ key, limit, windowMs });
+
+      if (shared) return shared;
+    } catch (error) {
+      console.warn(
+        `[rate-limit] shared store unavailable: ${errorMessage(error)}`
+      );
+    }
+
+    return local.check(key);
+  };
+
+  return { check, reset: local.reset };
 };
 
 export const tooManyRequests = (resetAt, now = Date.now()) =>

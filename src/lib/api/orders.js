@@ -1,4 +1,5 @@
 import "server-only";
+import { ORDER_STATUS, PAYMENT_STATUS } from "@/lib/schemas/order";
 import { getDb, isDatabaseConfigured } from "@/lib/db";
 import { authSecret } from "@/lib/secrets";
 
@@ -10,8 +11,16 @@ export const orderSecret = () =>
 export const buildReference = (now = Date.now(), random = Math.random) =>
   `CP-${now.toString(36).toUpperCase()}-${random()
     .toString(36)
-    .slice(2, 6)
+    .slice(2, 8)
+    .padEnd(6, "0")
     .toUpperCase()}`;
+
+export const DUPLICATE_KEY = 11000;
+
+const isDuplicateKey = (error) =>
+  Boolean(error) &&
+  typeof error === "object" &&
+  Number(Reflect.get(error, "code")) === DUPLICATE_KEY;
 
 export const insertOrder = async (order) => {
   if (!isDatabaseConfigured()) {
@@ -25,7 +34,13 @@ export const insertOrder = async (order) => {
 
   if (!db) return { persisted: false };
 
-  await db.collection(COLLECTION).insertOne({ ...order });
+  try {
+    await db.collection(COLLECTION).insertOne({ ...order });
+  } catch (error) {
+    if (isDuplicateKey(error)) return { persisted: false, duplicate: true };
+
+    throw error;
+  }
 
   return { persisted: true };
 };
@@ -55,12 +70,24 @@ export const recordAttempt = async (reference, attempt) => {
 
   if (!db) return;
 
-  await db
-    .collection(COLLECTION)
-    .updateOne(
-      { reference },
-      { $push: { "payment.attempts": attempt }, $set: { updatedAt: new Date() } }
-    );
+  await db.collection(COLLECTION).updateOne(
+    {
+      reference,
+      "payment.attempts": { $not: { $elemMatch: { ref: attempt.ref } } },
+    },
+    { $push: { "payment.attempts": attempt }, $set: { updatedAt: new Date() } }
+  );
+};
+
+export const nextAttempt = (order) => {
+  const attempts = order.payment.attempts ?? [];
+  const concluded = new Set(
+    attempts.filter((entry) => entry.status !== "started").map((entry) => entry.ref)
+  );
+  const started = attempts.filter((entry) => entry.status === "started");
+  const open = [...started].reverse().find((entry) => !concluded.has(entry.ref));
+
+  return open?.index ?? started.length + 1;
 };
 
 export const settlePayment = async ({
@@ -78,11 +105,14 @@ export const settlePayment = async ({
   const now = new Date();
 
   const result = await db.collection(COLLECTION).findOneAndUpdate(
-    { "payment.attempts.ref": attemptRef, "payment.status": "pending" },
+    {
+      "payment.attempts.ref": attemptRef,
+      "payment.status": PAYMENT_STATUS.pending,
+    },
     {
       $set: {
         "payment.status": status,
-        "payment.settledAt": status === "paid" ? now : null,
+        "payment.settledAt": status === PAYMENT_STATUS.paid ? now : null,
         "payment.providerTxnId": providerTxnId ?? null,
         "payment.verification": verification,
         status: orderStatus,
@@ -96,7 +126,70 @@ export const settlePayment = async ({
     { returnDocument: "after", projection: { _id: 0 } }
   );
 
-  return result?.value ?? result ?? null;
+  return result ?? null;
+};
+
+export const flagStockConflict = async (reference, slugs) => {
+  if (!slugs?.length) return { flagged: false };
+
+  const db = await getDb();
+
+  if (!db) return { flagged: false };
+
+  await db.collection(COLLECTION).updateOne(
+    { reference },
+    {
+      $set: {
+        stockConflict: slugs,
+        stockConflictAt: new Date(),
+        updatedAt: new Date(),
+      },
+    }
+  );
+
+  return { flagged: true };
+};
+
+export const findStaleOrders = async (cutoff) => {
+  const db = await getDb();
+
+  if (!db) return [];
+
+  return db
+    .collection(COLLECTION)
+    .find(
+      {
+        status: ORDER_STATUS.pendingPayment,
+        stockReserved: true,
+        createdAt: { $lt: cutoff },
+      },
+      { projection: { _id: 0 } }
+    )
+    .toArray();
+};
+
+export const cancelStaleOrder = async (reference, note) => {
+  const db = await getDb();
+
+  if (!db) return { cancelled: false };
+
+  const now = new Date();
+
+  const result = await db.collection(COLLECTION).updateOne(
+    { reference, status: ORDER_STATUS.pendingPayment },
+    {
+      $set: {
+        status: ORDER_STATUS.cancelled,
+        stockReserved: false,
+        "payment.status": PAYMENT_STATUS.failed,
+        promoRedeemed: false,
+        updatedAt: now,
+      },
+      $push: { history: { status: ORDER_STATUS.cancelled, at: now, note } },
+    }
+  );
+
+  return { cancelled: result.modifiedCount > 0 };
 };
 
 export const listOrdersForUser = async (userId, limit = 20) => {
@@ -125,5 +218,5 @@ export const claimOrder = async (reference, email, userId) => {
       { returnDocument: "after", projection: { _id: 0 } }
     );
 
-  return result?.value ?? result ?? null;
+  return result ?? null;
 };

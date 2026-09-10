@@ -1,13 +1,17 @@
-const whole = new Intl.NumberFormat("en-PK", {
+export const CURRENCY = "PKR";
+
+export const CURRENCY_LOCALE = "en-PK";
+
+const whole = new Intl.NumberFormat(CURRENCY_LOCALE, {
   style: "currency",
-  currency: "PKR",
+  currency: CURRENCY,
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
 
-const fractional = new Intl.NumberFormat("en-PK", {
+const fractional = new Intl.NumberFormat(CURRENCY_LOCALE, {
   style: "currency",
-  currency: "PKR",
+  currency: CURRENCY,
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
@@ -18,4 +22,4 @@ export const formatPrice = (cents) =>
     .replace(/ /g, " ");
 
 export const sumCents = (items) =>
-  items.reduce((total, item) => total + item.unitCents * item.quantity, 0);
+  items.reduce((total, item) => total + item.unitCents, 0);

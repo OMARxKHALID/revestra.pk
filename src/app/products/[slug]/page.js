@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import SiteHeader from "@/components/site-header";
 import Footer from "@/components/footer";
@@ -16,13 +17,23 @@ import ProductGallery from "@/components/product-gallery";
 import { availabilityLabel, gallery, isSold } from "@/lib/utils/stock";
 import SaveButton from "@/components/save-button";
 import MeasurementsTable from "@/components/measurements-table";
-import ConditionBadge from "@/components/ui/condition-badge";
+import ConditionBadge from "@/components/condition-badge";
+import ShopRating from "@/components/shop-rating";
 
 export const revalidate = 60;
 
 export const generateStaticParams = async () => {
-  const products = await getAllProducts();
-  return products.map(({ slug }) => ({ slug }));
+  try {
+    const products = await getAllProducts();
+
+    return products.map(({ slug }) => ({ slug }));
+  } catch (error) {
+    console.warn(
+      `[build] the catalogue was unreachable, product pages will render on demand: ${error.message}`
+    );
+
+    return [];
+  }
 };
 
 export const generateMetadata = async ({ params }) => {
@@ -30,13 +41,20 @@ export const generateMetadata = async ({ params }) => {
   const product = await getProductBySlug(slug);
   if (!product) return {};
 
+  const sold = isSold(product);
+
   return {
-    title: title(product.name),
+    title: sold ? title(`${product.name} — sold`) : title(product.name),
     description: product.description,
+    alternates: { canonical: `/products/${product.slug}` },
+    robots: sold ? { index: false, follow: true } : undefined,
     openGraph: {
       title: title(product.name),
       description: product.description,
-      images: gallery(product).map((url) => ({ url })),
+      type: "website",
+      images: gallery(product).map((url) => ({
+        url: new URL(url, process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").toString(),
+      })),
     },
   };
 };
@@ -65,7 +83,7 @@ const ProductPage = async ({ params }) => {
   const label = sold || product.status === "reserved" ? availabilityLabel(product) : null;
 
   return (
-    <main className="bg-white">
+    <main id="main" className="bg-white">
       <SiteHeader />
 
       <article className="grid grid-cols-1 lg:grid-cols-2">
@@ -73,15 +91,15 @@ const ProductPage = async ({ params }) => {
           <ProductGallery frames={frames} name={name} sold={sold} label={label} />
         </div>
 
-        <div className="flex items-center justify-center px-6 py-16 sm:px-10 sm:py-20 lg:sticky lg:top-[var(--spacing-header)] lg:h-[calc(100svh-var(--spacing-header))] lg:py-0">
+        <div className="flex items-center justify-center px-6 py-16 sm:px-10 sm:py-20 lg:sticky lg:top-header lg:h-[calc(100svh-var(--spacing-header))] lg:py-0">
           <div className="w-full max-w-[420px] text-center">
             <p className={cn(EYEBROW, "text-blurple")}>
               {tagline}
             </p>
 
-            <h1 className={cn(DISPLAY, "mt-4 text-black")}>{name}</h1>
+            <h1 className={cn(DISPLAY, "mt-4 text-ink")}>{name}</h1>
 
-            <p className={cn(META, "mt-3 text-black/45")}>
+            <p className={cn(META, "mt-3 text-ink-soft")}>
               {brand} · {sizeLabel}
             </p>
 
@@ -89,27 +107,33 @@ const ProductPage = async ({ params }) => {
               <ConditionBadge condition={condition} />
             </div>
 
+            <div className="mt-4 flex justify-center">
+              <Suspense fallback={null}>
+                <ShopRating />
+              </Suspense>
+            </div>
+
             <p className={cn(ITEM, "mt-4 flex items-center justify-center gap-3")}>
               {salePriceCents === null ? (
-                <span className="text-black/70">{formatPrice(priceCents)}</span>
+                <span className="text-ink-muted">{formatPrice(priceCents)}</span>
               ) : (
                 <>
                   <span className="text-sale line-through decoration-1">
                     {formatPrice(priceCents)}
                   </span>
-                  <span className="text-black/70">
+                  <span className="text-ink-muted">
                     {formatPrice(salePriceCents)}
                   </span>
                 </>
               )}
             </p>
 
-            <p className={cn(ITEM, "mx-auto mt-6 font-light leading-[1.5] text-black")}>
+            <p className={cn(ITEM, "mx-auto mt-6 font-light leading-[1.5] text-ink")}>
               {description}
             </p>
 
             {conditionNotes && (
-              <p className={cn(NOTICE, "mx-auto mt-4 max-w-[38ch] text-black/70")}>
+              <p className={cn(NOTICE, "mx-auto mt-4 max-w-[38ch] text-ink-muted")}>
                 {conditionNotes}
               </p>
             )}
@@ -122,13 +146,13 @@ const ProductPage = async ({ params }) => {
 
             <MeasurementsTable product={product} />
 
-            <hr className="mx-auto mt-10 w-full border-0 border-t border-black/20" />
+            <hr className="mx-auto mt-10 w-full border-0 border-t border-rule-strong" />
 
             <ul className="mt-8 space-y-1">
               {details.map((line) => (
                 <li
                   key={line}
-                  className={cn(SPEC, "text-black/70")}
+                  className={cn(SPEC, "text-ink-muted")}
                 >
                   {line}
                 </li>

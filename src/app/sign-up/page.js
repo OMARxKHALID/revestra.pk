@@ -2,6 +2,7 @@ import Link from "next/link";
 import InteriorPage from "@/components/interior-page";
 import SignUpForm from "@/components/sign-up-form";
 import { authIsAvailable } from "@/lib/api/users";
+import { getSettings } from "@/lib/api/settings";
 import { title } from "@/lib/brand";
 import cn from "@/lib/utils/cn";
 import { META } from "@/lib/type";
@@ -11,17 +12,21 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-const SignUpPage = () => (
-  <InteriorPage heading="Create an account" className="max-w-[440px]">
-    <SignUpForm available={authIsAvailable()} />
+const SignUpPage = async () => {
+  const { signupOpen } = await getSettings();
 
-    <p className={cn(META, "mt-8 text-black/45")}>
-      Already have one?{" "}
-      <Link href="/sign-in" className="text-blurple hover:underline">
-        Sign in
-      </Link>
-    </p>
-  </InteriorPage>
-);
+  return (
+    <InteriorPage heading="Create an account" className="max-w-[440px]">
+      <SignUpForm available={authIsAvailable() && signupOpen} />
+
+      <p className={cn(META, "mt-8 text-ink-soft")}>
+        Already have one?{" "}
+        <Link href="/sign-in" className="text-blurple hover:underline">
+          Sign in
+        </Link>
+      </p>
+    </InteriorPage>
+  );
+};
 
 export default SignUpPage;

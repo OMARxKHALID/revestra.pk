@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "paths": { "@/*": ["./src/*"] },
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["src/lib/**/*.js"]
+}

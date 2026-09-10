@@ -1,64 +1,47 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { orderLookupSchema } from "@/lib/schemas/order";
 import Field from "@/components/ui/field";
 import { HashIcon, MailIcon } from "@/components/ui/icons";
 import PillButton from "@/components/ui/pill-button";
 import cn from "@/lib/utils/cn";
 import { META, NOTICE } from "@/lib/type";
-
-const claimSchema = z.object({
-  reference: z.string().trim().min(4, "Enter the order reference"),
-  email: z.email("Enter the email you ordered with"),
-});
+import { request } from "@/lib/api-client";
 
 const ClaimOrderForm = () => {
   const router = useRouter();
-  const [message, setMessage] = useState(null);
-  const [failed, setFailed] = useState(false);
 
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
-  } = useForm({ resolver: zodResolver(claimSchema) });
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(orderLookupSchema) });
 
-  const onSubmit = async (values) => {
-    setMessage(null);
-    setFailed(false);
-
-    try {
-      const response = await fetch("/api/orders/claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-
-      const body = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        setFailed(true);
-        setMessage(body.error ?? "Could not add that order.");
-        return;
-      }
-
-      setMessage(`${body.reference} added to your account.`);
+  const claim = useMutation({
+    mutationFn: (values) => request("/api/orders/claim", { body: values }),
+    onSuccess: () => {
       reset();
       router.refresh();
-    } catch {
-      setFailed(true);
-      setMessage("Network error. Try again.");
-    }
-  };
+    },
+  });
+
+  const failed = claim.isError;
+  const message = claim.isError
+    ? claim.error.message
+    : claim.isSuccess
+      ? `${claim.data.reference} added to your account.`
+      : null;
+
+  const handleClaim = (values) => claim.mutate(values);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-14">
-      <h2 className={cn(META, "border-b border-black/10 pb-4 text-black/70")}>
+    <form onSubmit={handleSubmit(handleClaim)} noValidate className="mt-14">
+      <h2 className={cn(META, "border-b border-rule pb-4 text-ink-muted")}>
         Add an order you placed as a guest
       </h2>
 
@@ -83,10 +66,10 @@ const ClaimOrderForm = () => {
       <PillButton
         type="submit"
         size="sm"
-        disabled={isSubmitting}
+        disabled={claim.isPending}
         className="mt-7"
       >
-        {isSubmitting ? "Adding…" : "Add order"}
+        {claim.isPending ? "Adding…" : "Add order"}
       </PillButton>
 
       <p

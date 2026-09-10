@@ -2,9 +2,11 @@ import Link from "next/link";
 import InteriorPage from "@/components/interior-page";
 import PillButton from "@/components/ui/pill-button";
 import SignOutButton from "@/components/sign-out-button";
+import { ArrowIcon } from "@/components/ui/icons";
 import cn from "@/lib/utils/cn";
-import { META, NOTICE, TITLE } from "@/lib/type";
+import { META, TITLE } from "@/lib/type";
 import { title } from "@/lib/brand";
+import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 
 export const metadata = {
@@ -13,7 +15,11 @@ export const metadata = {
 };
 
 const LINKS = [
-  { href: "/account/orders", label: "Orders", note: "Everything you have bought" },
+  {
+    href: "/account/orders",
+    label: "Orders",
+    note: "Everything you have bought",
+  },
   { href: "/wishlist", label: "Wishlist", note: "Saved for later" },
   { href: "/track", label: "Track an order", note: "By reference and email" },
 ];
@@ -21,25 +27,41 @@ const LINKS = [
 const AccountPage = async () => {
   const session = await auth();
 
-  return (
-    <InteriorPage heading={session.user.name ?? "Your account"}>
-      <p className={cn(NOTICE, "mt-4 text-black/45")}>{session.user.email}</p>
+  if (!session?.user) redirect("/sign-in?callbackUrl=/account");
 
-      <ul className="mt-10 divide-y divide-black/10 border-y border-black/10">
+  return (
+    <InteriorPage
+      eyebrow="Account"
+      heading={session.user.name ?? "Your account"}
+      intro={session.user.email}
+    >
+      <ul className="mt-12 divide-y divide-rule border-y border-rule">
         {LINKS.map(({ href, label, note }) => (
           <li key={href}>
             <Link
               href={href}
-              className="flex items-baseline justify-between gap-6 py-5 transition hover:text-blurple focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple"
+              className="group flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-6 transition-colors hover:text-blurple focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple"
             >
-              <span className={TITLE}>{label}</span>
-              <span className={cn(META, "text-black/45")}>{note}</span>
+              <span className="flex items-center gap-3">
+                <span className={TITLE}>{label}</span>
+
+                <ArrowIcon className="h-4 w-4 text-blurple opacity-0 transition duration-300 group-hover:translate-x-1 group-hover:opacity-100" />
+              </span>
+
+              <span
+                className={cn(
+                  META,
+                  "text-ink-soft transition-colors group-hover:text-blurple"
+                )}
+              >
+                {note}
+              </span>
             </Link>
           </li>
         ))}
       </ul>
 
-      <div className="mt-10 flex flex-wrap items-center gap-6">
+      <div className="mt-12 flex flex-wrap items-center gap-4">
         <PillButton href="/products">Keep shopping</PillButton>
         <SignOutButton />
       </div>

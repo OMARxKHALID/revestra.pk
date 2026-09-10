@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 
 const SmoothScrollProvider = ({ children }) => {
+  const pathname = usePathname();
+  const disabled = pathname?.startsWith("/admin") ?? false;
+
   useEffect(() => {
+    if (disabled) return;
+
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     let lenis;
@@ -45,7 +51,7 @@ const SmoothScrollProvider = ({ children }) => {
       query.removeEventListener("change", handleChange);
       stop();
     };
-  }, []);
+  }, [disabled]);
 
   return <>{children}</>;
 };

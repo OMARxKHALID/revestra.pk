@@ -1,5 +1,5 @@
-import PageSkeleton from "@/components/ui/page-skeleton";
+import PageLoader from "@/components/ui/page-loader";
 
-const Loading = () => <PageSkeleton label="Loading your account" />;
+const Loading = () => <PageLoader label="Loading your account" />;
 
 export default Loading;

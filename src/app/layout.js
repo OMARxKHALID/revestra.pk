@@ -3,7 +3,7 @@ import SmoothScrollProvider from "@/components/smooth-scroll-provider";
 import CartHydration from "@/components/cart-hydration";
 import QueryProvider from "@/components/query-provider";
 import AuthProvider from "@/components/session-provider";
-import { inter, ptSerif } from "@/lib/fonts";
+import { fontVariables } from "@/lib/fonts";
 import cn from "@/lib/utils/cn";
 import { BRAND } from "@/lib/brand";
 
@@ -28,9 +28,17 @@ export const viewport = {
 const RootLayout = ({ children }) => (
   <html
     lang="en"
-    className={cn(inter.variable, ptSerif.variable)}
+    className={cn(...fontVariables)}
+    suppressHydrationWarning
   >
-    <body className="bg-white text-black antialiased">
+    <body className="antialiased">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:outline-2 focus:outline-offset-2 focus:outline-blurple"
+      >
+        Skip to content
+      </a>
+
       <CartHydration />
       <AuthProvider>
         <QueryProvider>

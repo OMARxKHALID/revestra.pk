@@ -1,11 +1,10 @@
-import { MongoClient } from "mongodb";
-
-const uri = process.env.MONGODB_URI;
-const dbName = process.env.MONGODB_DB ?? "general-store";
+const secret = process.env.CRON_SECRET?.trim();
+const site =
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "http://localhost:3000";
 const minutes = Number(process.argv[2] ?? 60);
 
-if (!uri) {
-  console.error("MONGODB_URI is not set. Add it to .env.local.");
+if (!secret) {
+  console.error("CRON_SECRET is not set. Add it to .env.local.");
   process.exit(1);
 }
 
@@ -14,61 +13,33 @@ if (!Number.isFinite(minutes) || minutes < 5) {
   process.exit(1);
 }
 
-const cutoff = new Date(Date.now() - minutes * 60 * 1000);
-const client = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 });
+const endpoint = new URL("/api/admin/cron/release-stale", site).toString();
 
 try {
-  await client.connect();
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-cron-secret": secret },
+    body: JSON.stringify({ minutes }),
+  });
 
-  const db = client.db(dbName);
-  const orders = db.collection("orders");
-  const products = db.collection("products");
-
-  const stale = await orders
-    .find({
-      status: "pending_payment",
-      stockReserved: true,
-      createdAt: { $lt: cutoff },
-    })
-    .toArray();
-
-  if (stale.length === 0) {
-    console.log(`No abandoned orders older than ${minutes} minutes.`);
-  }
-
-  for (const order of stale) {
-    for (const line of order.items)
-      await products.updateOne(
-        { slug: line.slug, status: { $ne: "sold" } },
-        { $set: { status: "available", reservedUntil: null } }
-      );
-
-    const now = new Date();
-
-    await orders.updateOne(
-      { reference: order.reference, status: "pending_payment" },
-      {
-        $set: {
-          status: "cancelled",
-          stockReserved: false,
-          "payment.status": "failed",
-          updatedAt: now,
-        },
-        $push: {
-          history: {
-            status: "cancelled",
-            at: now,
-            note: `abandoned for over ${minutes} minutes, stock released`,
-          },
-        },
-      }
+  if (!response.ok) {
+    console.error(
+      `The release endpoint answered ${response.status}. Check CRON_SECRET and that the site is running at ${site}.`
     );
-
-    console.log(`Released ${order.items.length} line(s) from ${order.reference}.`);
+    process.exit(1);
   }
+
+  const { examined, released } = await response.json();
+
+  if (released.length === 0) {
+    console.log(
+      `No abandoned orders older than ${minutes} minutes (${examined} examined).`
+    );
+  }
+
+  for (const order of released)
+    console.log(`Released ${order.lines} line(s) from ${order.reference}.`);
 } catch (error) {
-  console.error(`Could not release stale orders: ${error.message}`);
+  console.error(`Could not reach ${endpoint}: ${error.message}`);
   process.exitCode = 1;
-} finally {
-  await client.close();
 }

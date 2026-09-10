@@ -1,11 +1,13 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { newsletterSchema } from "@/lib/schemas/newsletter";
 import cn from "@/lib/utils/cn";
 import { MailIcon } from "@/components/ui/icons";
 import { EYEBROW, META } from "@/lib/type";
+import { request } from "@/lib/api-client";
 
 const NewsletterForm = () => {
   const {
@@ -13,34 +15,23 @@ const NewsletterForm = () => {
     handleSubmit,
     reset,
     setError,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors },
   } = useForm({ resolver: zodResolver(newsletterSchema) });
 
-  const onSubmit = async ({ email }) => {
-    try {
-      const response = await fetch("/api/newsletter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+  const subscribe = useMutation({
+    mutationFn: (email) => request("/api/newsletter", { body: { email } }),
+    onSuccess: () => reset(),
+    onError: (error) =>
+      setError("email", {
+        message: error.message ?? "Network error. Try again.",
+      }),
+  });
 
-      if (!response.ok) {
-        const { error } = await response.json().catch(() => ({}));
-        setError("email", {
-          message: error ?? "Something went wrong. Try again.",
-        });
-        return;
-      }
-
-      reset();
-    } catch {
-      setError("email", { message: "Network error. Try again." });
-    }
-  };
+  const handleSubscribe = ({ email }) => subscribe.mutate(email);
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(handleSubscribe)}
       noValidate
       className="w-full sm:max-w-72 sm:text-right"
     >
@@ -67,13 +58,13 @@ const NewsletterForm = () => {
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={subscribe.isPending}
           className={cn(
             EYEBROW,
             "relative shrink-0 text-blurple transition before:absolute before:-inset-2 before:content-[''] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:text-white/30"
           )}
         >
-          {isSubmitting ? "…" : "Join"}
+          {subscribe.isPending ? "…" : "Join"}
         </button>
       </div>
 
@@ -87,7 +78,7 @@ const NewsletterForm = () => {
         )}
       >
         {errors.email?.message ??
-          (isSubmitSuccessful ? "You are on the list." : " ")}
+          (subscribe.isSuccess ? "You are on the list." : " ")}
       </p>
     </form>
   );

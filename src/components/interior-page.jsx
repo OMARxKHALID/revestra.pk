@@ -12,7 +12,7 @@ const InteriorPage = ({
   className,
   children,
 }) => (
-  <main className="flex min-h-svh flex-col bg-white">
+  <main id="main" className="flex min-h-svh flex-col bg-white">
     <SiteHeader />
 
     <section
@@ -32,7 +32,7 @@ const InteriorPage = ({
       >
         {eyebrow && <p className={cn(EYEBROW, eyebrowTone)}>{eyebrow}</p>}
 
-        <h1 className={cn(DISPLAY, "text-black", eyebrow && "mt-4")}>
+        <h1 className={cn(DISPLAY, "text-ink", eyebrow && "mt-4")}>
           {heading}
         </h1>
 
@@ -40,7 +40,7 @@ const InteriorPage = ({
           <p
             className={cn(
               BODY,
-              "mt-5 max-w-[52ch] text-black/70",
+              "mt-5 max-w-[52ch] text-ink-muted",
               centered && "mx-auto max-w-[46ch]"
             )}
           >

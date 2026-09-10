@@ -7,7 +7,10 @@ const SignOutButton = () => {
   const handleSignOut = () => signOut({ callbackUrl: "/" });
 
   return (
-    <PillButton size="sm" onClick={handleSignOut}>
+    <PillButton
+      onClick={handleSignOut}
+      className="border-black/15 text-ink-muted hover:border-black hover:bg-black hover:text-white"
+    >
       Sign out
     </PillButton>
   );

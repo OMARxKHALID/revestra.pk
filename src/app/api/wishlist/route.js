@@ -1,13 +1,15 @@
-import { z } from "zod";
+import { wishlistSchema } from "@/lib/schemas/wishlist";
 import { auth } from "@/auth";
 import { getWishlist, setWishlist } from "@/lib/api/users";
 import { getAllProducts } from "@/lib/api/products";
+import { createLimiter, tooManyRequests } from "@/lib/rate-limit";
+import RATE_LIMITS from "@/lib/rate-limits";
+import { sameOrigin, badOrigin } from "@/lib/api/origin";
+import requestIp from "@/lib/utils/request-ip";
 
 export const dynamic = "force-dynamic";
 
-const wishlistSchema = z.object({
-  slugs: z.array(z.string().min(1)).max(200),
-});
+const limiter = createLimiter(RATE_LIMITS.wishlist);
 
 export const GET = async () => {
   const session = await auth();
@@ -19,6 +21,12 @@ export const GET = async () => {
 };
 
 export const PUT = async (request) => {
+  if (!sameOrigin(request)) return badOrigin();
+
+  const gate = await limiter.check(requestIp(request));
+
+  if (!gate.ok) return tooManyRequests(gate.resetAt);
+
   const session = await auth();
 
   if (!session?.user?.id)

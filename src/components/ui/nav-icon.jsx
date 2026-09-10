@@ -3,7 +3,7 @@ import cn from "@/lib/utils/cn";
 
 const TONES = {
   light: "text-white/85 hover:text-white focus-visible:outline-white",
-  dark: "text-black/70 hover:text-black focus-visible:outline-blurple",
+  dark: "text-ink-muted hover:text-ink focus-visible:outline-blurple",
 };
 
 const COUNT_TONES = {

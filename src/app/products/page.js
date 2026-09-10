@@ -1,6 +1,16 @@
+import { Suspense } from "react";
 import InteriorPage from "@/components/interior-page";
 import ProductBrowser from "@/components/product-browser";
-import { getAllProducts } from "@/lib/api/products";
+import CatalogueUnavailable from "@/components/catalogue-unavailable";
+import Loader from "@/components/ui/loader";
+import { getSellableProducts } from "@/lib/api/products";
+import { isCatalogueUnavailable } from "@/lib/utils/catalogue-guard";
+import {
+  buildFacets,
+  matchesFilters,
+  readFilters,
+  toSearchParams,
+} from "@/lib/utils/catalogue";
 import { BRAND, title } from "@/lib/brand";
 
 export const metadata = {
@@ -8,18 +18,34 @@ export const metadata = {
   description: `Secondhand jeans, jackets, shirts, shoes and belts from ${BRAND.name} — each one washed, measured and one of a kind.`,
 };
 
-const facetsFrom = (products) => {
-  const unique = (key) => [...new Set(products.map((product) => product[key]))].sort();
+const loadCatalogue = async () => {
+  try {
+    return await getSellableProducts();
+  } catch (error) {
+    if (isCatalogueUnavailable(error)) return null;
 
-  return {
-    sizes: unique("sizeLabel"),
-    brands: unique("brand"),
-    conditions: unique("condition"),
-  };
+    throw error;
+  }
 };
 
-const ProductsPage = async () => {
-  const products = await getAllProducts();
+const LiveBrowser = async ({ filters }) => {
+  const products = await loadCatalogue();
+
+  if (!products) return <CatalogueUnavailable />;
+
+  return (
+    <ProductBrowser
+      initialProducts={products.filter((product) =>
+        matchesFilters(product, filters)
+      )}
+      initialFacets={buildFacets(products, filters)}
+      initialFilters={filters}
+    />
+  );
+};
+
+const ProductsPage = async ({ searchParams }) => {
+  const filters = readFilters(toSearchParams(await searchParams));
 
   return (
     <InteriorPage
@@ -28,10 +54,9 @@ const ProductsPage = async () => {
       className="max-w-[1200px]"
     >
       <div className="mt-10 sm:mt-12">
-        <ProductBrowser
-          initialProducts={products}
-          initialFacets={facetsFrom(products)}
-        />
+        <Suspense fallback={<Loader label="Loading the catalogue" />}>
+          <LiveBrowser filters={filters} />
+        </Suspense>
       </div>
     </InteriorPage>
   );

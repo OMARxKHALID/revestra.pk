@@ -1,67 +1,89 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import ProductList from "@/components/product-list";
+import Pager from "@/components/ui/pager";
+import useDebounced from "@/hooks/use-debounced";
 import cn from "@/lib/utils/cn";
-import { EYEBROW, META, TITLE } from "@/lib/type";
-import Chip from "@/components/ui/chip";
+import { BODY, EYEBROW, META, TITLE } from "@/lib/type";
+import { EMPTY_FILTERS, filtersToParams } from "@/lib/utils/catalogue";
+import { formatPrice } from "@/lib/utils/price";
 import Field from "@/components/ui/field";
-import { SearchIcon } from "@/components/ui/icons";
-import { CATEGORIES } from "@/lib/schemas/product";
+import { SearchIcon, CloseIcon } from "@/components/ui/icons";
+import PillButton from "@/components/ui/pill-button";
+import ErrorState from "@/components/ui/error-state";
+import { request } from "@/lib/api-client";
+import keys from "@/lib/query-keys";
 
-const EMPTY = { category: "", size: "", brand: "", condition: "" };
+const fetchProducts = ({ queryKey, signal }) => {
+  const [, , filters] = queryKey;
 
-const fetchProducts = async ({ queryKey }) => {
-  const [, { query, filters }] = queryKey;
-  const params = new URLSearchParams();
-
-  if (query) params.set("q", query);
-
-  for (const [key, value] of Object.entries(filters))
-    if (value) params.set(key, value);
-
-  const response = await fetch(`/api/products?${params}`);
-  if (!response.ok) throw new Error("Could not load products");
-
-  return response.json();
+  return request(`/api/products?${filtersToParams(filters)}`, { signal });
 };
 
-const FacetRow = ({ label, options, value, onSelect }) => {
+const PER_PAGE = 12;
+
+const SelectFilter = ({ id, label, value, options, onSelect }) => {
   if (options.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className={cn(META, "mr-1 w-16 shrink-0 text-black/45")}>
+    <div>
+      <label htmlFor={id} className={cn(META, "text-ink-soft")}>
         {label}
-      </span>
+      </label>
 
-      <Chip selected={value === ""} onClick={() => onSelect("")}>
-        All
-      </Chip>
-
-      {options.map((option) => (
-        <Chip
-          key={option}
-          selected={value === option}
-          onClick={() => onSelect(option)}
+      <div className="mt-2 border-b border-rule-strong pb-2 focus-within:border-blurple">
+        <select
+          id={id}
+          value={value}
+          onChange={(event) => onSelect(event.target.value)}
+          className="cursor-pointer bg-transparent font-sans text-sm text-ink focus:outline-none"
         >
-          {option}
-        </Chip>
-      ))}
+          <option value="">All</option>
+
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 };
 
-const ProductBrowser = ({ initialProducts, initialFacets }) => {
-  const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState(EMPTY);
+const ProductBrowser = ({
+  initialProducts,
+  initialFacets,
+  initialFilters = EMPTY_FILTERS,
+  lockedCategory = "",
+}) => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
+  const [filters, setFilters] = useState(initialFilters);
+  const [page, setPage] = useState(1);
+  const [queryInput, setQueryInput] = useState(initialFilters.query);
+  const query = useDebounced(queryInput, 250);
+
+  const active = useMemo(() => ({ ...filters, query }), [filters, query]);
   const isDefaultView =
-    query === "" && Object.values(filters).every((value) => value === "");
+    JSON.stringify(active) ===
+    JSON.stringify({ ...EMPTY_FILTERS, ...initialFilters });
 
-  const { data, isFetching, isError } = useQuery({
-    queryKey: ["products", { query, filters }],
+  useEffect(() => {
+    const next = filtersToParams(active).toString();
+
+    if (next === searchParams.toString()) return;
+
+    router.replace(next ? `${pathname}?${next}` : pathname, { scroll: false });
+  }, [active, pathname, router, searchParams]);
+
+  const { data, isFetching, isError, error, refetch } = useQuery({
+    queryKey: keys.products.list(active),
     queryFn: fetchProducts,
     placeholderData: keepPreviousData,
     initialData: isDefaultView
@@ -75,87 +97,270 @@ const ProductBrowser = ({ initialProducts, initialFacets }) => {
 
   const products = data?.products ?? [];
   const facets = data?.facets ?? initialFacets;
+  const bounds = facets?.price ?? { minCents: 0, maxCents: 0 };
 
   const handleReset = () => {
-    setQuery("");
-    setFilters(EMPTY);
+    setFilters({ ...EMPTY_FILTERS, category: lockedCategory });
+    setQueryInput("");
   };
 
-  const handleFilter = (key) => (value) =>
+  const handleFilter = (key) => (value) => {
+    setPage(1);
     setFilters((current) => ({ ...current, [key]: value }));
+  };
 
-  const handleSearch = (event) => setQuery(event.target.value);
+  const handlePrice = (key) => (event) => {
+    const digits = event.target.value.replace(/[^\d]/g, "");
+
+    setPage(1);
+    setFilters((current) => ({
+      ...current,
+      [key]: digits === "" ? null : Number(digits) * 100,
+    }));
+  };
+
+  const handleAvailable = () =>
+    setFilters((current) => ({
+      ...current,
+      availableOnly: !current.availableOnly,
+    }));
+
+  const handleSearch = (event) => {
+    setPage(1);
+    setQueryInput(event.target.value);
+  };
+
+  const pages = Math.max(1, Math.ceil(products.length / PER_PAGE));
+  const current = Math.min(page, pages);
+  const visible = products.slice((current - 1) * PER_PAGE, current * PER_PAGE);
+
+  const handlePage = (target) => {
+    setPage(target);
+    document.getElementById("results")?.scrollIntoView({ block: "start" });
+  };
+
+  const activeFilters = [
+    { key: "category", label: "Type", value: filters.category },
+    { key: "size", label: "Size", value: filters.size },
+    { key: "brand", label: "Brand", value: filters.brand },
+    { key: "condition", label: "Condition", value: filters.condition },
+  ]
+    .filter(({ key, value }) => value && !(key === "category" && lockedCategory))
+    .map((entry) => ({ ...entry, clear: () => handleFilter(entry.key)("") }));
+
+  if (filters.minCents !== null || filters.maxCents !== null)
+    activeFilters.push({
+      key: "price",
+      label: "Price",
+      value: `${formatPrice(filters.minCents ?? bounds.minCents)} – ${formatPrice(
+        filters.maxCents ?? bounds.maxCents
+      )}`,
+      clear: () =>
+        setFilters((current) => ({
+          ...current,
+          minCents: null,
+          maxCents: null,
+        })),
+    });
+
+  if (filters.availableOnly)
+    activeFilters.push({
+      key: "availableOnly",
+      label: "Stock",
+      value: "Available only",
+      clear: handleAvailable,
+    });
 
   return (
     <>
-      <div className="pb-6 sm:pb-8">
-        <Field
-          id="product-search"
-          label="Search"
-          type="search"
-          value={query}
-          onChange={handleSearch}
-          placeholder="Brand, size, anything"
-          icon={<SearchIcon className="h-4 w-4" />}
-          className="sm:max-w-sm"
-        />
+      <div className="border-b border-rule pb-5">
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
+          <div className="relative min-w-[190px] flex-1">
+            <label htmlFor="product-search" className={cn(META, "text-ink-soft")}>
+              Search
+            </label>
 
-        <div className="mt-7 flex flex-col gap-3">
-          <FacetRow
-            label="Type"
-            options={CATEGORIES}
-            value={filters.category}
-            onSelect={handleFilter("category")}
-          />
-          <FacetRow
+            <div className="mt-2 flex items-center gap-2 border-b border-rule-strong pb-2 focus-within:border-blurple">
+              <SearchIcon className="h-4 w-4 shrink-0 text-ink-faint" />
+
+              <input
+                id="product-search"
+                type="search"
+                value={queryInput}
+                onChange={handleSearch}
+                placeholder="Brand, size, anything"
+                className="w-full bg-transparent font-sans text-sm text-ink placeholder:text-ink-faint focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {!lockedCategory && (
+            <SelectFilter
+              id="filter-category"
+              label="Type"
+              value={filters.category}
+              options={facets?.categories ?? []}
+              onSelect={handleFilter("category")}
+            />
+          )}
+
+          <SelectFilter
+            id="filter-size"
             label="Size"
-            options={facets?.sizes ?? []}
             value={filters.size}
+            options={facets?.sizes ?? []}
             onSelect={handleFilter("size")}
           />
-          <FacetRow
+
+          <SelectFilter
+            id="filter-brand"
             label="Brand"
-            options={facets?.brands ?? []}
             value={filters.brand}
+            options={facets?.brands ?? []}
             onSelect={handleFilter("brand")}
           />
-          <FacetRow
+
+          <SelectFilter
+            id="filter-condition"
             label="Condition"
-            options={facets?.conditions ?? []}
             value={filters.condition}
+            options={facets?.conditions ?? []}
             onSelect={handleFilter("condition")}
           />
+
+          <div>
+            <span className={cn(META, "text-ink-soft")}>Price</span>
+
+            <div className="mt-2 flex items-center gap-2 border-b border-rule-strong pb-2 focus-within:border-blurple">
+              <span className={cn(META, "text-ink-faint")}>Rs</span>
+
+              <label htmlFor="price-min" className="sr-only">
+                Lowest price in rupees
+              </label>
+              <input
+                id="price-min"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                value={filters.minCents === null ? "" : filters.minCents / 100}
+                onChange={handlePrice("minCents")}
+                placeholder={String(Math.floor(bounds.minCents / 100))}
+                className="w-14 bg-transparent font-sans text-sm text-ink tabular-nums placeholder:text-ink-faint focus:outline-none"
+              />
+
+              <span className={cn(META, "text-ink-faint")}>to</span>
+
+              <label htmlFor="price-max" className="sr-only">
+                Highest price in rupees
+              </label>
+              <input
+                id="price-max"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                value={filters.maxCents === null ? "" : filters.maxCents / 100}
+                onChange={handlePrice("maxCents")}
+                placeholder={String(Math.ceil(bounds.maxCents / 100))}
+                className="w-14 bg-transparent font-sans text-sm text-ink tabular-nums placeholder:text-ink-faint focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <label className="flex cursor-pointer items-center gap-2 pb-2">
+            <input
+              type="checkbox"
+              checked={filters.availableOnly}
+              onChange={handleAvailable}
+              className="h-3.5 w-3.5 accent-blurple"
+            />
+            <span className={cn(META, "text-ink-muted")}>Available only</span>
+          </label>
         </div>
+
+        {activeFilters.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {activeFilters.map(({ key, label, value, clear }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={clear}
+                aria-label={`Remove ${label} filter`}
+                className={cn(
+                  META,
+                  "flex items-center gap-1.5 rounded-full border border-blurple bg-blurple/5 px-3 py-1.5 text-blurple transition hover:bg-blurple hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple"
+                )}
+              >
+                {label}: {value}
+                <CloseIcon className="h-3 w-3" />
+              </button>
+            ))}
+
+            <button
+              type="button"
+              onClick={handleReset}
+              className={cn(META, "ml-1 text-ink-soft underline hover:text-ink")}
+            >
+              Clear all
+            </button>
+          </div>
+        )}
       </div>
 
-      <p
-        aria-live="polite"
-        className={cn(META, "border-t border-black/10 pb-10 pt-6 text-black/45")}
-      >
-        {isError
-          ? "Could not load pieces"
-          : `${products.length} ${products.length === 1 ? "piece" : "pieces"}${
-              isFetching ? " — updating" : ""
-            }`}
-      </p>
+      {!isError && (
+        <p
+          id="results"
+          aria-live="polite"
+          className={cn(META, "border-t border-rule pb-10 pt-6 text-ink-soft")}
+        >
+          {`${products.length} ${products.length === 1 ? "piece" : "pieces"}`}
+          {pages > 1 && ` · page ${current} of ${pages}`}
+          {isFetching && " — updating"}
+        </p>
+      )}
 
-      {products.length === 0 && !isError ? (
-        <div className="border-t border-black/10 py-16 text-center">
-          <p className={cn(TITLE, "text-black/70")}>Nothing matches that.</p>
+      {isError ? (
+        <ErrorState
+          error={error}
+          eyebrow="Could not load"
+          actions={<PillButton onClick={() => refetch()}>Try again</PillButton>}
+        />
+      ) : products.length === 0 ? (
+        <div className="border-t border-rule py-16 text-center">
+          <p className={cn(TITLE, "text-ink-muted")}>
+            {activeFilters.length > 0 || queryInput
+              ? "Nothing matches that."
+              : "The rail is empty right now."}
+          </p>
 
-          <button
-            type="button"
-            onClick={handleReset}
-            className={cn(
-              EYEBROW,
-              "mt-6 text-blurple transition hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blurple"
-            )}
-          >
-            Clear filters
-          </button>
+          {activeFilters.length > 0 || queryInput ? (
+            <button
+              type="button"
+              onClick={handleReset}
+              className={cn(
+                EYEBROW,
+                "mt-6 text-blurple transition hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blurple"
+              )}
+            >
+              Clear filters
+            </button>
+          ) : (
+            <p className={cn(BODY, "mt-3 text-ink-soft")}>
+              New pieces are added as they are washed and measured. Check back
+              shortly.
+            </p>
+          )}
         </div>
       ) : (
-        <ProductList products={products} />
+        <>
+          <ProductList products={visible} />
+
+          <Pager
+            page={current}
+            pages={pages}
+            onSelect={handlePage}
+            className="mt-16"
+          />
+        </>
       )}
     </>
   );

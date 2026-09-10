@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Image from "next/image";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { reviewSchema } from "@/lib/schemas/review";
@@ -15,27 +16,25 @@ import {
 import Field from "@/components/ui/field";
 import Chip from "@/components/ui/chip";
 import PillButton from "@/components/ui/pill-button";
+import ReviewPhotos from "@/components/review-photos";
+import ErrorNotice from "@/components/ui/error-notice";
 import cn from "@/lib/utils/cn";
-import { BODY, HEADING, META, NOTICE, TITLE } from "@/lib/type";
+import { BODY, HEADING, META, TITLE } from "@/lib/type";
+import { request } from "@/lib/api-client";
+import keys from "@/lib/query-keys";
 
 const RATINGS = [5, 4, 3, 2, 1];
 
-const fetchReviews = async () => {
-  const response = await fetch("/api/reviews");
-
-  if (!response.ok) throw new Error("Could not load reviews");
-
-  return response.json();
-};
+const fetchReviews = ({ signal }) => request("/api/reviews", { signal });
 
 const StoreReviews = ({ initialReviews, initialSummary }) => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(5);
-  const [submitError, setSubmitError] = useState(null);
+  const [photos, setPhotos] = useState([]);
 
   const { data } = useQuery({
-    queryKey: ["reviews"],
+    queryKey: keys.reviews.list(),
     queryFn: fetchReviews,
     initialData: { reviews: initialReviews, summary: initialSummary },
     staleTime: 60_000,
@@ -45,44 +44,33 @@ const StoreReviews = ({ initialReviews, initialSummary }) => {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(reviewSchema.omit({ rating: true })),
   });
 
+  const postReview = useMutation({
+    mutationFn: (values) =>
+      request("/api/reviews", { body: { ...values, rating, images: photos } }),
+    onSuccess: () => {
+      reset();
+      setPhotos([]);
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: keys.reviews.all });
+    },
+  });
+
+  const submitError = postReview.isError ? postReview.error.message : null;
+
   const handleOpen = () => setOpen(true);
   const handleRating = (value) => setRating(value);
-
-  const onSubmit = async (values) => {
-    setSubmitError(null);
-
-    try {
-      const response = await fetch("/api/reviews", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...values, rating }),
-      });
-
-      const body = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        setSubmitError(body.error ?? "Could not post that review.");
-        return;
-      }
-
-      reset();
-      setOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["reviews"] });
-    } catch {
-      setSubmitError("Network error. Try again.");
-    }
-  };
+  const handlePostReview = (values) => postReview.mutate(values);
 
   return (
     <section>
       <div>
         <div className="flex flex-wrap items-baseline justify-between gap-4">
-          <h2 className={cn(HEADING, "text-black")}>
+          <h2 className={cn(HEADING, "text-ink")}>
             {data.summary.count === 0
               ? "No reviews yet"
               : `${data.summary.count} review${data.summary.count === 1 ? "" : "s"}`}
@@ -96,13 +84,13 @@ const StoreReviews = ({ initialReviews, initialSummary }) => {
           )}
         </div>
 
-        <ul className="mt-10 divide-y divide-black/10 border-t border-black/10">
+        <ul className="mt-10 divide-y divide-rule border-t border-rule">
           {data.reviews.map((review) => (
-            <li key={`${review.author}-${review.createdAt}`} className="py-7">
+            <li key={review.id ?? `${review.author}-${review.createdAt}`} className="py-7">
               <div className="flex flex-wrap items-center gap-3">
                 <RatingStars average={review.rating} showCount={false} />
 
-                <p className={cn(META, "flex items-center gap-1.5 text-black/45")}>
+                <p className={cn(META, "flex items-center gap-1.5 text-ink-soft")}>
                   {review.author}
 
                   {review.verified && (
@@ -114,13 +102,30 @@ const StoreReviews = ({ initialReviews, initialSummary }) => {
                 </p>
               </div>
 
-              <p className={cn(TITLE, "mt-3 text-black")}>
+              <p className={cn(TITLE, "mt-3 text-ink")}>
                 {review.title}
               </p>
 
-              <p className={cn(BODY, "mt-2 max-w-[62ch] text-black/70")}>
+              <p className={cn(BODY, "mt-2 max-w-[62ch] text-ink-muted")}>
                 {review.body}
               </p>
+
+              {review.images?.length > 0 && (
+                <ul className="mt-4 flex flex-wrap gap-3">
+                  {review.images.map((id) => (
+                    <li key={id}>
+                      <Image
+                        src={`/api/reviews/image/${id}`}
+                        alt={`Photo from ${review.author}`}
+                        width={112}
+                        height={112}
+                        unoptimized
+                        className="h-28 w-28 rounded object-cover"
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ul>
@@ -132,15 +137,15 @@ const StoreReviews = ({ initialReviews, initialSummary }) => {
         )}
 
         {open && (
-          <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-12">
+          <form onSubmit={handleSubmit(handlePostReview)} noValidate className="mt-12">
             <h3
-              className={cn(META, "border-b border-black/10 pb-4 text-black/70")}
+              className={cn(META, "border-b border-rule pb-4 text-ink-muted")}
             >
               Your review
             </h3>
 
             <fieldset className="mt-7">
-              <legend className={cn(META, "text-black/45")}>Your rating</legend>
+              <legend className={cn(META, "text-ink-soft")}>Your rating</legend>
 
               <div className="mt-3 flex flex-wrap gap-2">
                 {RATINGS.map((value) => (
@@ -191,13 +196,15 @@ const StoreReviews = ({ initialReviews, initialSummary }) => {
               />
             </div>
 
-            <PillButton type="submit" disabled={isSubmitting} className="mt-9">
-              {isSubmitting ? "Posting…" : "Post review"}
+            <div className="mt-8">
+              <ReviewPhotos value={photos} onChange={setPhotos} />
+            </div>
+
+            <PillButton type="submit" disabled={postReview.isPending} className="mt-9">
+              {postReview.isPending ? "Posting…" : "Post review"}
             </PillButton>
 
-            <p aria-live="polite" className={cn(NOTICE, "mt-4 text-sale")}>
-              {submitError ?? " "}
-            </p>
+            <ErrorNotice error={postReview.error} className="mt-4" />
           </form>
         )}
       </div>

@@ -139,7 +139,7 @@ describe("cash on delivery", () => {
     expect(cod.createSession()).toEqual({ kind: "none" });
   });
 
-  test("settles as not required", () => {
-    expect(cod.verifyCallback().status).toBe("not_required");
+  test("settles as not required", async () => {
+    expect((await cod.verifyCallback()).status).toBe("not_required");
   });
 });

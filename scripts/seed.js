@@ -1,11 +1,22 @@
 import { MongoClient } from "mongodb";
+import { hash } from "bcryptjs";
 import { PRODUCTS } from "../src/lib/products.js";
 import { MOCK_PROMOS } from "../src/lib/promos.js";
 import { MOCK_REVIEWS } from "../src/lib/reviews.js";
 import { intakeSchema } from "../src/lib/schemas/product.js";
 import { promoSchema } from "../src/lib/schemas/promo.js";
 import { reviewDocSchema } from "../src/lib/schemas/review.js";
+import { DEFAULT_CATEGORIES } from "../src/lib/categories.js";
+import { DEFAULT_SETTINGS } from "../src/lib/settings.js";
+import { categorySchema } from "../src/lib/schemas/category.js";
+import { settingsSchema } from "../src/lib/schemas/settings.js";
 import { ensureIndexes } from "./indexes.js";
+
+const ADMIN = {
+  name: process.env.SEED_ADMIN_NAME ?? "Omar",
+  email: (process.env.SEED_ADMIN_EMAIL ?? "admin@gmail.com").toLowerCase(),
+  password: process.env.SEED_ADMIN_PASSWORD ?? "adminadmin",
+};
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB ?? "general-store";
@@ -19,6 +30,8 @@ if (!uri) {
 
 const products = PRODUCTS.map((product) => intakeSchema.parse(product));
 const promos = MOCK_PROMOS.map((promo) => promoSchema.parse(promo));
+const categories = DEFAULT_CATEGORIES.map((entry) => categorySchema.parse(entry));
+const settings = settingsSchema.parse(DEFAULT_SETTINGS);
 
 const reviews = MOCK_REVIEWS.map((review) =>
   reviewDocSchema.parse({
@@ -31,7 +44,7 @@ const reviews = MOCK_REVIEWS.map((review) =>
 );
 
 console.log(
-  `Validated ${products.length} products, ${promos.length} promo codes and ${reviews.length} reviews.`
+  `Validated ${products.length} products, ${categories.length} categories, ${promos.length} promo codes and ${reviews.length} reviews.`
 );
 
 const client = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 });
@@ -47,20 +60,15 @@ const upsert = async (collection, documents, key, extra = () => ({})) => {
     }))
   );
 
-  const stale = await collection.deleteMany({
-    [key]: { $nin: documents.map((document) => document[key]) },
-  });
-
   return {
     inserted: result.upsertedCount,
     updated: result.modifiedCount,
-    removed: stale.deletedCount,
   };
 };
 
-const report = (name, { inserted, updated, removed }) =>
+const report = (name, { inserted, updated }) =>
   console.log(
-    `Seeded "${dbName}.${name}" — ${inserted} inserted, ${updated} updated, ${removed} removed.`
+    `Seeded "${dbName}.${name}" — ${inserted} inserted, ${updated} updated.`
   );
 
 try {
@@ -69,10 +77,48 @@ try {
 
   await ensureIndexes(db);
 
+  const users = db.collection("users");
+  const now = new Date();
+
+  await users.updateOne(
+    { email: ADMIN.email },
+    {
+      $set: { name: ADMIN.name, role: "admin", updatedAt: now },
+      $setOnInsert: {
+        email: ADMIN.email,
+        passwordHash: await hash(ADMIN.password, 12),
+        wishlist: [],
+        emailVerified: null,
+        createdAt: now,
+      },
+    },
+    { upsert: true }
+  );
+
+  const admin = await users.findOne({ email: ADMIN.email });
+  const uploadedBy = String(admin._id);
+
+  console.log(`Admin ready — ${ADMIN.name} <${ADMIN.email}> (role: admin)`);
+
+  report("categories", await upsert(db.collection("categories"), categories, "slug"));
+
+  await db
+    .collection("settings")
+    .updateOne(
+      { _id: "site" },
+      { $set: { ...settings, updatedAt: now, updatedBy: uploadedBy } },
+      { upsert: true }
+    );
+
+  console.log(`Seeded "${dbName}.settings" — site details written.`);
+
   report(
     "products",
     await upsert(db.collection("products"), products, "slug", (_, index) => ({
       order: index,
+      uploadedBy,
+      uploadedByName: ADMIN.name,
+      uploadedAt: now,
     }))
   );
 

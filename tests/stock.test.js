@@ -139,9 +139,15 @@ describe("product schema", () => {
     ).toBe(false);
   });
 
-  test("rejects an unknown category", () => {
+  test("accepts any named category, because categories now live in the database", () => {
     expect(
-      productSchema.safeParse({ ...jeans, category: "Home" }).success
-    ).toBe(false);
+      productSchema.safeParse({ ...jeans, category: "Knitwear" }).success
+    ).toBe(true);
+  });
+
+  test("still rejects a blank category", () => {
+    expect(productSchema.safeParse({ ...jeans, category: "" }).success).toBe(
+      false
+    );
   });
 });

@@ -14,12 +14,18 @@ export const jazzcashConfig = () => ({
 export const easypaisaConfig = () => ({
   storeId: env("EASYPAISA_STORE_ID"),
   hashKey: env("EASYPAISA_HASH_KEY"),
+  accountNum: env("EASYPAISA_ACCOUNT_NUM"),
+  username: env("EASYPAISA_USERNAME"),
+  password: env("EASYPAISA_PASSWORD"),
   action: isLive()
     ? "https://easypay.easypaisa.com.pk/easypay/Index.jsf"
     : "https://easypaystg.easypaisa.com.pk/easypay/Index.jsf",
   confirmAction: isLive()
     ? "https://easypay.easypaisa.com.pk/easypay/Confirm.jsf"
     : "https://easypaystg.easypaisa.com.pk/easypay/Confirm.jsf",
+  inquiryAction: isLive()
+    ? "https://easypay.easypaisa.com.pk/easypay-service/rest/v4/inquire-transaction"
+    : "https://easypaystg.easypaisa.com.pk/easypay-service/rest/v4/inquire-transaction",
 });
 
 export const cardProvider = () => env("PAYMENT_CARD_PROVIDER") || "jazzcash";

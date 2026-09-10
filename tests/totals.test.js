@@ -7,8 +7,8 @@ import {
 import { promoProblem } from "../src/lib/utils/promo-validity.js";
 import { MOCK_PROMOS } from "../src/lib/promos.js";
 import {
-  FREE_SHIPPING_THRESHOLD_CENTS,
-  SHIPPING_RATES,
+  DEFAULT_COMMERCE,
+  DEFAULT_SHIPPING_RATES,
   rateById,
 } from "../src/lib/shipping.js";
 
@@ -43,11 +43,11 @@ describe("shippingFor", () => {
   });
 
   test("falls back to the standard rate for an unknown id", () => {
-    expect(shippingFor(null, 100000, "teleport")).toBe(SHIPPING_RATES[0].cents);
+    expect(shippingFor(null, 100000, "teleport")).toBe(DEFAULT_SHIPPING_RATES[0].cents);
   });
 
   test("is free at or above the threshold", () => {
-    expect(shippingFor(null, FREE_SHIPPING_THRESHOLD_CENTS, "standard")).toBe(0);
+    expect(shippingFor(null, DEFAULT_COMMERCE.freeShippingThresholdCents, "standard")).toBe(0);
   });
 
   test("a free-shipping code beats the threshold", () => {
@@ -68,8 +68,8 @@ describe("buildTotals", () => {
     });
 
     expect(totals.discountCents).toBe(52000);
-    expect(totals.shippingCents).toBe(SHIPPING_RATES[0].cents);
-    expect(totals.totalCents).toBe(520000 - 52000 + SHIPPING_RATES[0].cents);
+    expect(totals.shippingCents).toBe(DEFAULT_SHIPPING_RATES[0].cents);
+    expect(totals.totalCents).toBe(520000 - 52000 + DEFAULT_SHIPPING_RATES[0].cents);
   });
 
   test("every component is an integer", () => {
@@ -87,7 +87,7 @@ describe("buildTotals", () => {
     const totals = buildTotals({ subtotalCents: 100000, rateId: "standard" });
 
     expect(totals.discountCents).toBe(0);
-    expect(totals.totalCents).toBe(100000 + SHIPPING_RATES[0].cents);
+    expect(totals.totalCents).toBe(100000 + DEFAULT_SHIPPING_RATES[0].cents);
   });
 });
 

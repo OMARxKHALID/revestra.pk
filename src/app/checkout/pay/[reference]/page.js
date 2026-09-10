@@ -8,9 +8,11 @@ import { title } from "@/lib/brand";
 import { formatPrice } from "@/lib/utils/price";
 import {
   findOrderByReference,
+  nextAttempt,
   orderSecret,
   recordAttempt,
 } from "@/lib/api/orders";
+import { PAYMENT_STATUS } from "@/lib/schemas/order";
 import { verifyOrderToken } from "@/lib/utils/order-token";
 import { getAdapter, modeFor } from "@/lib/payments";
 
@@ -35,7 +37,7 @@ const PayPage = async ({ params, searchParams }) => {
 
   if (!order) notFound();
 
-  if (order.payment.status !== "pending")
+  if (order.payment.status !== PAYMENT_STATUS.pending)
     return (
       <InteriorPage
         centered
@@ -67,7 +69,7 @@ const PayPage = async ({ params, searchParams }) => {
       </InteriorPage>
     );
 
-  const attempt = (order.payment.attempts?.length ?? 0) + 1;
+  const attempt = nextAttempt(order);
 
   if (attempt > MAX_PAYMENT_ATTEMPTS)
     return (
@@ -92,6 +94,7 @@ const PayPage = async ({ params, searchParams }) => {
 
   await recordAttempt(reference, {
     ref: session.attemptRef,
+    index: attempt,
     at: new Date(),
     status: "started",
     code: null,
@@ -105,7 +108,7 @@ const PayPage = async ({ params, searchParams }) => {
       heading={`${formatPrice(order.payment.amountCents)} to pay`}
       className="max-w-[560px]"
     >
-      <p className={cn(META, "mt-4 text-black/45")}>
+      <p className={cn(META, "mt-4 text-ink-soft")}>
         Your card or wallet details are entered on {adapter.label}, never here.
       </p>
 
