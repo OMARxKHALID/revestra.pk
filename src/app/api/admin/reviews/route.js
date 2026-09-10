@@ -1,14 +1,8 @@
-import { z } from "zod";
+import { reviewStatusSchema } from "@/lib/schemas/review";
 import { guard, readJson, invalid } from "@/lib/api/admin/guard";
 import { listReviews, setReviewStatus } from "@/lib/api/admin/reviews";
 
 export const dynamic = "force-dynamic";
-
-const patchSchema = z.object({
-  author: z.string().min(1),
-  createdAt: z.string().min(1),
-  status: z.enum(["published", "hidden"]),
-});
 
 export const GET = async (request) => {
   const { response } = await guard(request);
@@ -29,7 +23,7 @@ export const PATCH = async (request) => {
 
   if (!body.ok) return body.response;
 
-  const parsed = patchSchema.safeParse(body.payload);
+  const parsed = reviewStatusSchema.safeParse(body.payload);
 
   if (!parsed.success) return invalid(parsed.error);
 

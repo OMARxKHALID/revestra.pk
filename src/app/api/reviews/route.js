@@ -1,10 +1,14 @@
-import { reviewSchema } from "@/lib/schemas/review";
+import { reviewDocSchema, reviewSchema } from "@/lib/schemas/review";
+import { storeImages } from "@/lib/api/review-images";
 import { createReview, getReviews, hasSettledOrder, summarise } from "@/lib/api/reviews";
+import { REVIEW_STATUS } from "@/lib/schemas/review";
 import { optionalSession } from "@/lib/session";
-import { createRateLimiter, tooManyRequests } from "@/lib/rate-limit";
+import { createLimiter, tooManyRequests } from "@/lib/rate-limit";
+import RATE_LIMITS from "@/lib/rate-limits";
 import requestIp from "@/lib/utils/request-ip";
+import { sameOrigin, badOrigin } from "@/lib/api/origin";
 
-const limiter = createRateLimiter({ limit: 5, windowMs: 60 * 60 * 1000 });
+const limiter = createLimiter(RATE_LIMITS.review);
 
 export const GET = async () => {
   const reviews = await getReviews();
@@ -13,7 +17,9 @@ export const GET = async () => {
 };
 
 export const POST = async (request) => {
-  const gate = limiter.check(requestIp(request));
+  if (!sameOrigin(request)) return badOrigin();
+
+  const gate = await limiter.check(requestIp(request));
 
   if (!gate.ok) return tooManyRequests(gate.resetAt);
 
@@ -36,20 +42,33 @@ export const POST = async (request) => {
   const session = await optionalSession();
   const userId = session?.user?.id ?? null;
 
-  const review = {
-    ...parsed.data,
+  const stored = await storeImages(parsed.data.images);
+
+  if (!stored.ok)
+    return Response.json({ error: stored.error }, { status: 422 });
+
+  const { images: _submitted, ...fields } = parsed.data;
+
+  const review = reviewDocSchema.parse({
+    id: crypto.randomUUID(),
+    ...fields,
+    images: stored.ids,
     email: parsed.data.email.toLowerCase(),
     userId,
     verified: await hasSettledOrder(userId),
-    status: "published",
+    status: REVIEW_STATUS.pending,
     createdAt: new Date(),
-  };
+  });
 
   try {
     const { persisted } = await createReview(review);
 
     return Response.json(
-      { review: { ...review, email: undefined }, persisted },
+      {
+        review: { ...review, email: undefined },
+        persisted,
+        pending: true,
+      },
       { status: 201 }
     );
   } catch (error) {

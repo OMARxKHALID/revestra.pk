@@ -3,6 +3,22 @@ import { getDb } from "@/lib/db";
 
 const COLLECTION = "subscribers";
 
+export const subscribe = async (email) => {
+  const db = await getDb();
+
+  if (!db) return { ok: false, persisted: false };
+
+  await db
+    .collection(COLLECTION)
+    .updateOne(
+      { email },
+      { $setOnInsert: { email, createdAt: new Date() } },
+      { upsert: true }
+    );
+
+  return { ok: true, persisted: true };
+};
+
 export const listSubscribers = async (limit = 500) => {
   const db = await getDb();
 
@@ -14,12 +30,4 @@ export const listSubscribers = async (limit = 500) => {
     .sort({ createdAt: -1 })
     .limit(limit)
     .toArray();
-};
-
-export const countSubscribers = async () => {
-  const db = await getDb();
-
-  if (!db) return 0;
-
-  return db.collection(COLLECTION).countDocuments();
 };

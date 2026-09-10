@@ -3,8 +3,8 @@ import { META } from "@/lib/type";
 
 const TONES = {
   Excellent: "border-blurple/40 bg-blurple/5 text-blurple",
-  Good: "border-black/20 text-black/70",
-  Fair: "border-black/20 text-black/70",
+  Good: "border-rule-strong text-ink-muted",
+  Fair: "border-rule-strong text-ink-muted",
   Worn: "border-sale/40 bg-sale/5 text-sale",
 };
 

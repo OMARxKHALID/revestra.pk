@@ -1,36 +1,71 @@
-import { z } from "zod";
-import { deleteProduct, setStatus, updateProduct } from "@/lib/api/admin";
-import { AVAILABILITY } from "@/lib/schemas/product";
-import { requireAdmin, forbidden } from "@/lib/admin-guard";
+import { guard, readJson, invalid } from "@/lib/api/admin/guard";
+import {
+  deleteProduct,
+  getProduct,
+  setStatus,
+  updateProduct,
+} from "@/lib/api/admin/products";
+import { adminProductPatchSchema } from "@/lib/schemas/admin";
+import { productStatusSchema } from "@/lib/schemas/product";
+import { categoryNames } from "@/lib/api/categories";
+import { onlyProvided } from "@/lib/utils/patch";
 
 export const dynamic = "force-dynamic";
 
-const statusSchema = z.object({ status: z.enum(AVAILABILITY) });
+export const GET = async (request, { params }) => {
+  const { response } = await guard(request);
 
-export const PATCH = async (request, { params }) => {
-  if (!(await requireAdmin())) return forbidden();
+  if (response) return response;
 
   const { slug } = await params;
+  const product = await getProduct(slug);
 
-  let payload;
+  if (!product) return Response.json({ error: "Not found" }, { status: 404 });
 
-  try {
-    payload = await request.json();
-  } catch {
-    return Response.json({ error: "Malformed request" }, { status: 400 });
+  return Response.json({ product });
+};
+
+export const PATCH = async (request, { params }) => {
+  const { response } = await guard(request, { mutation: true });
+
+  if (response) return response;
+
+  const body = await readJson(request);
+
+  if (!body.ok) return body.response;
+
+  const { slug } = await params;
+  const asStatus = productStatusSchema.safeParse(body.payload);
+
+  if (!asStatus.success) {
+    const parsed = adminProductPatchSchema.safeParse(body.payload);
+
+    if (!parsed.success) return invalid(parsed.error);
   }
 
-  const asStatus = statusSchema.safeParse(payload);
+  const patch = asStatus.success
+    ? null
+    : onlyProvided(body.payload, adminProductPatchSchema.parse(body.payload));
+
+  if (patch?.category) {
+    const known = await categoryNames();
+
+    if (!known.includes(patch.category))
+      return Response.json(
+        { error: `"${patch.category}" is not a category. Add it first.` },
+        { status: 422 }
+      );
+  }
 
   try {
     const result = asStatus.success
       ? await setStatus(slug, asStatus.data.status)
-      : await updateProduct(slug, payload);
+      : await updateProduct(slug, patch);
 
     if (!result.ok)
-      return Response.json({ error: "No such piece" }, { status: 404 });
+      return Response.json({ error: result.error }, { status: 404 });
 
-    return Response.json({ ok: true, product: result.product ?? null });
+    return Response.json({ ok: true, product: result.product });
   } catch (error) {
     console.error(`[admin] could not update ${slug}: ${error.message}`);
 
@@ -41,24 +76,18 @@ export const PATCH = async (request, { params }) => {
   }
 };
 
-export const DELETE = async (_request, { params }) => {
-  if (!(await requireAdmin())) return forbidden();
+export const DELETE = async (request, { params }) => {
+  const { response } = await guard(request, { mutation: true });
+
+  if (response) return response;
 
   const { slug } = await params;
 
   try {
-    const result = await deleteProduct(slug);
+    const removed = await deleteProduct(slug);
 
-    if (result.reason === "on-order")
-      return Response.json(
-        {
-          error: `That piece is on order ${result.reference} — mark it sold instead`,
-        },
-        { status: 409 }
-      );
-
-    if (!result.ok)
-      return Response.json({ error: "No such piece" }, { status: 404 });
+    if (!removed.ok)
+      return Response.json({ error: removed.error }, { status: 409 });
 
     return Response.json({ ok: true });
   } catch (error) {

@@ -1,59 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { orderLookupSchema } from "@/lib/schemas/order";
 import Field from "@/components/ui/field";
 import { HashIcon, MailIcon } from "@/components/ui/icons";
 import PillButton from "@/components/ui/pill-button";
+import ErrorNotice from "@/components/ui/error-notice";
 import OrderStatus from "@/components/order-status";
 import OrderSummary from "@/components/order-summary";
 import cn from "@/lib/utils/cn";
-import { NOTICE } from "@/lib/type";
-
-const trackSchema = z.object({
-  reference: z.string().trim().min(4, "Enter your order reference"),
-  email: z.email("Enter the email you ordered with"),
-});
+import { request } from "@/lib/api-client";
 
 const TrackForm = () => {
-  const [order, setOrder] = useState(null);
-  const [submitError, setSubmitError] = useState(null);
-
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm({ resolver: zodResolver(trackSchema) });
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(orderLookupSchema) });
 
-  const onSubmit = async (values) => {
-    setSubmitError(null);
-    setOrder(null);
+  const lookup = useMutation({
+    mutationFn: (values) => request("/api/orders/lookup", { body: values }),
+  });
 
-    try {
-      const response = await fetch("/api/orders/lookup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-
-      const body = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        setSubmitError(body.error ?? "Could not find that order.");
-        return;
-      }
-
-      setOrder(body);
-    } catch {
-      setSubmitError("Network error. Try again.");
-    }
-  };
+  const order = lookup.data ?? null;
+  const submitError = lookup.isError ? lookup.error.message : null;
+  const handleLookup = (values) => lookup.mutate(values);
 
   return (
     <div className="mt-10">
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={handleSubmit(handleLookup)} noValidate>
         <div className="grid grid-cols-1 gap-7 sm:grid-cols-2">
           <Field
             id="reference"
@@ -74,18 +51,16 @@ const TrackForm = () => {
           />
         </div>
 
-        <PillButton type="submit" disabled={isSubmitting} className="mt-9">
-          {isSubmitting ? "Looking…" : "Find my order"}
+        <PillButton type="submit" disabled={lookup.isPending} className="mt-9">
+          {lookup.isPending ? "Looking…" : "Find my order"}
         </PillButton>
 
-        <p aria-live="polite" className={cn(NOTICE, "mt-4 text-sale")}>
-          {submitError ?? " "}
-        </p>
+        <ErrorNotice error={lookup.error} className="mt-4" />
       </form>
 
       {order && (
-        <div className="mt-12 border-t border-black/10 pt-10">
-          <p className={cn(META, "text-black/45")}>{order.reference}</p>
+        <div className="mt-12 border-t border-rule pt-10">
+          <p className={cn(META, "text-ink-soft")}>{order.reference}</p>
 
           <OrderStatus status={order.status} />
 

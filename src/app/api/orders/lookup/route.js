@@ -1,15 +1,12 @@
-import { z } from "zod";
+import { orderLookupSchema } from "@/lib/schemas/order";
 import { findOrderByReference, orderSecret } from "@/lib/api/orders";
 import { signOrderToken } from "@/lib/utils/order-token";
-import { createRateLimiter, tooManyRequests } from "@/lib/rate-limit";
+import { createLimiter, tooManyRequests } from "@/lib/rate-limit";
+import RATE_LIMITS from "@/lib/rate-limits";
 import requestIp from "@/lib/utils/request-ip";
+import { sameOrigin, badOrigin } from "@/lib/api/origin";
 
-const limiter = createRateLimiter({ limit: 10, windowMs: 10 * 60 * 1000 });
-
-const lookupSchema = z.object({
-  reference: z.string().trim().min(4),
-  email: z.email("Enter the email you ordered with"),
-});
+const limiter = createLimiter(RATE_LIMITS.orderLookup);
 
 const notFound = () =>
   Response.json(
@@ -18,7 +15,9 @@ const notFound = () =>
   );
 
 export const POST = async (request) => {
-  const gate = limiter.check(requestIp(request));
+  if (!sameOrigin(request)) return badOrigin();
+
+  const gate = await limiter.check(requestIp(request));
 
   if (!gate.ok) return tooManyRequests(gate.resetAt);
 
@@ -30,7 +29,7 @@ export const POST = async (request) => {
     return Response.json({ error: "Malformed request" }, { status: 400 });
   }
 
-  const parsed = lookupSchema.safeParse(payload);
+  const parsed = orderLookupSchema.safeParse(payload);
 
   if (!parsed.success)
     return Response.json(
