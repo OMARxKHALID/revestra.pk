@@ -14,6 +14,7 @@ import { releaseStock } from "@/lib/api/inventory";
 import { completeSale, captureOrderCompleted } from "@/lib/api/fulfilment";
 import { signOrderToken } from "@/lib/utils/order-token";
 import { siteUrl } from "@/lib/payments/config";
+import reportPaymentAnomaly from "@/lib/api/payment-anomaly";
 
 export const dynamic = "force-dynamic";
 
@@ -46,14 +47,10 @@ const settle = async (request) => {
     result.status === PAYMENT_STATUS.paid && result.ok && amountMatches;
 
   if (result.status === PAYMENT_STATUS.paid && !amountMatches)
-    console.error(
-      `[jazzcash] amount mismatch on ${order.reference}: gateway ${result.amountCents}, order ${order.payment.amountCents}`
-    );
+    await reportPaymentAnomaly("jazzcash", "amount mismatch", order, result);
 
   if (!result.ok) {
-    console.error(
-      `[jazzcash] secure hash did not verify for ${order.reference} — leaving it pending for manual reconciliation`
-    );
+    await reportPaymentAnomaly("jazzcash", "hash did not verify", order, result);
 
     await recordAttempt(order.reference, {
       ref: result.attemptRef,

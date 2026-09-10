@@ -43,7 +43,9 @@ const ProductGrid = () => (
     <div className="mx-auto max-w-[1200px]">
       <h2 className="sr-only">Shop</h2>
 
-      <Suspense fallback={<Loader label="Loading the latest pieces" />}>
+      <Suspense
+        fallback={<Loader label="Loading the latest pieces" className="min-h-[70svh]" />}
+      >
         <LiveProductList />
       </Suspense>
     </div>

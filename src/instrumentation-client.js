@@ -8,6 +8,7 @@ if (token) {
     ui_host: "https://eu.posthog.com",
     defaults: "2026-05-30",
     person_profiles: "identified_only",
+    capture_exceptions: true,
     cookieless_mode: "on_reject",
     session_recording: {
       maskAllInputs: true,

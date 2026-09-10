@@ -64,8 +64,11 @@ const settle = async (request) => {
     return seeOther(`/orders/${order.reference}?t=${token}`);
 
   if (!result.ok) {
-    console.error(
-      `[easypaisa] settlement could not be verified for ${order.reference} (${result.verification}) — leaving it pending for manual reconciliation`
+    await reportPaymentAnomaly(
+      "easypaisa",
+      `settlement unverified (${result.verification})`,
+      order,
+      result
     );
 
     await recordAttempt(order.reference, {
@@ -84,9 +87,7 @@ const settle = async (request) => {
   const paid = result.status === PAYMENT_STATUS.paid && amountMatches;
 
   if (result.status === PAYMENT_STATUS.paid && !amountMatches)
-    console.error(
-      `[easypaisa] amount mismatch on ${order.reference}: gateway ${result.amountCents}, order ${order.payment.amountCents}`
-    );
+    await reportPaymentAnomaly("easypaisa", "amount mismatch", order, result);
 
   const settled = await settlePayment({
     attemptRef: result.attemptRef,

@@ -8,6 +8,12 @@ export const track = (event, properties = {}) => {
   posthog.capture(event, properties);
 };
 
+export const reportError = (error, properties = {}) => {
+  if (!enabled) return;
+
+  posthog.captureException(error, properties);
+};
+
 export const identifyViewer = (id, properties) => {
   if (!enabled || !id) return;
 

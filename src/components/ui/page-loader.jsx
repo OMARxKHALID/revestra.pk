@@ -1,5 +1,4 @@
 import SiteHeader from "@/components/site-header";
-import Footer from "@/components/footer";
 import Loader from "@/components/ui/loader";
 
 const PageLoader = ({ label = "Loading" }) => (
@@ -9,8 +8,6 @@ const PageLoader = ({ label = "Loading" }) => (
     <section className="flex flex-1 items-center justify-center px-6 sm:px-10">
       <Loader label={label} />
     </section>
-
-    <Footer />
   </main>
 );
 

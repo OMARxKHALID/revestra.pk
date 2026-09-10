@@ -10,6 +10,7 @@ import { signOrderToken } from "@/lib/utils/order-token";
 import { getPromoByCode } from "@/lib/api/promos";
 import { reserveStock, releaseStock } from "@/lib/api/inventory";
 import { completeSale, captureOrderCompleted } from "@/lib/api/fulfilment";
+import { captureServerException } from "@/lib/api/analytics";
 import { priceOrderLines, subtotalOf } from "@/lib/utils/order-lines";
 import { CURRENCY } from "@/lib/utils/price";
 import { promoProblem } from "@/lib/utils/promo-validity";
@@ -127,6 +128,13 @@ export const POST = async (request) => {
     console.error(
       `[orders] could not store ${order.reference}: ${error.message}`
     );
+
+    await captureServerException(error, {
+      distinctId: distinctId || null,
+      area: "orders",
+      reference: order.reference,
+      method,
+    });
 
     if (reservation.reserved) await releaseStock(priced.lines, reference);
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,9 +11,14 @@ import {
 } from "@/components/ui/card";
 import PageLayout from "@/components/admin/page-layout";
 import { describeError } from "@/lib/errors";
+import { reportError } from "@/lib/track";
 
 const AdminError = ({ error, reset }) => {
   const described = describeError(error);
+
+  useEffect(() => {
+    reportError(error, { boundary: "admin" });
+  }, [error]);
 
   return (
     <PageLayout>
