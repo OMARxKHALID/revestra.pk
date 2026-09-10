@@ -15,10 +15,9 @@ import { CURRENCY } from "@/lib/utils/price";
 import { promoProblem } from "@/lib/utils/promo-validity";
 import { getSettings } from "@/lib/api/settings";
 import { buildTotals } from "@/lib/utils/totals";
-import { createLimiter, tooManyRequests } from "@/lib/rate-limit";
+import { createLimiter } from "@/lib/rate-limit";
 import RATE_LIMITS from "@/lib/rate-limits";
-import { sameOrigin, badOrigin } from "@/lib/api/origin";
-import requestIp from "@/lib/utils/request-ip";
+import { guardRequest } from "@/lib/api/request";
 import { sendOrderConfirmation } from "@/lib/email";
 import { siteUrl } from "@/lib/payments/config";
 import { optionalSession } from "@/lib/session";
@@ -27,29 +26,15 @@ import { listMethods } from "@/lib/payments";
 const limiter = createLimiter(RATE_LIMITS.order);
 
 export const POST = async (request) => {
-  if (!sameOrigin(request)) return badOrigin();
+  const gated = await guardRequest(request, {
+    limiter,
+    schema: orderSchema,
+    fallback: "Invalid order",
+  });
 
-  const gate = await limiter.check(requestIp(request));
+  if (gated.response) return gated.response;
 
-  if (!gate.ok) return tooManyRequests(gate.resetAt);
-
-  let payload;
-
-  try {
-    payload = await request.json();
-  } catch {
-    return Response.json({ error: "Malformed request" }, { status: 400 });
-  }
-
-  const parsed = orderSchema.safeParse(payload);
-
-  if (!parsed.success)
-    return Response.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid order" },
-      { status: 422 }
-    );
-
-  const { shipping, items, promoCode, rateId, method } = parsed.data;
+  const { shipping, items, promoCode, rateId, method } = gated.data;
 
   const settings = await getSettings();
 

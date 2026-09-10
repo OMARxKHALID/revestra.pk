@@ -1,44 +1,29 @@
 import { orderLookupSchema } from "@/lib/schemas/order";
 import { auth } from "@/auth";
 import { claimOrder } from "@/lib/api/orders";
-import { createLimiter, tooManyRequests } from "@/lib/rate-limit";
+import { createLimiter } from "@/lib/rate-limit";
 import RATE_LIMITS from "@/lib/rate-limits";
-import requestIp from "@/lib/utils/request-ip";
-import { sameOrigin, badOrigin } from "@/lib/api/origin";
+import { gateRequest, readBody } from "@/lib/api/request";
 
 const limiter = createLimiter(RATE_LIMITS.orderClaim);
 
 export const POST = async (request) => {
-  if (!sameOrigin(request)) return badOrigin();
+  const gated = await gateRequest(request, limiter);
 
-  const gate = await limiter.check(requestIp(request));
-
-  if (!gate.ok) return tooManyRequests(gate.resetAt);
+  if (gated.response) return gated.response;
 
   const session = await auth();
 
   if (!session?.user?.id)
     return Response.json({ error: "Sign in first" }, { status: 401 });
 
-  let payload;
+  const body = await readBody(request, orderLookupSchema, "Invalid claim");
 
-  try {
-    payload = await request.json();
-  } catch {
-    return Response.json({ error: "Malformed request" }, { status: 400 });
-  }
-
-  const parsed = orderLookupSchema.safeParse(payload);
-
-  if (!parsed.success)
-    return Response.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid claim" },
-      { status: 422 }
-    );
+  if (body.response) return body.response;
 
   const order = await claimOrder(
-    parsed.data.reference.trim().toUpperCase(),
-    parsed.data.email,
+    body.data.reference.trim().toUpperCase(),
+    body.data.email,
     session.user.id
   );
 

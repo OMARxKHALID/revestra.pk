@@ -1,19 +1,16 @@
 import { signUpSchema } from "@/lib/schemas/user";
 import { authIsAvailable, createUser } from "@/lib/api/users";
 import { getSettings } from "@/lib/api/settings";
-import { createLimiter, tooManyRequests } from "@/lib/rate-limit";
+import { createLimiter } from "@/lib/rate-limit";
 import RATE_LIMITS from "@/lib/rate-limits";
-import requestIp from "@/lib/utils/request-ip";
-import { sameOrigin, badOrigin } from "@/lib/api/origin";
+import { gateRequest, readBody } from "@/lib/api/request";
 
 const limiter = createLimiter(RATE_LIMITS.register);
 
 export const POST = async (request) => {
-  if (!sameOrigin(request)) return badOrigin();
+  const gated = await gateRequest(request, limiter);
 
-  const gate = await limiter.check(requestIp(request));
-
-  if (!gate.ok) return tooManyRequests(gate.resetAt);
+  if (gated.response) return gated.response;
 
   if (!authIsAvailable())
     return Response.json(
@@ -29,24 +26,12 @@ export const POST = async (request) => {
       { status: 403 }
     );
 
-  let payload;
+  const body = await readBody(request, signUpSchema, "Invalid details");
+
+  if (body.response) return body.response;
 
   try {
-    payload = await request.json();
-  } catch {
-    return Response.json({ error: "Malformed request" }, { status: 400 });
-  }
-
-  const parsed = signUpSchema.safeParse(payload);
-
-  if (!parsed.success)
-    return Response.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid details" },
-      { status: 422 }
-    );
-
-  try {
-    const result = await createUser(parsed.data);
+    const result = await createUser(body.data);
 
     if (!result.ok)
       return Response.json(

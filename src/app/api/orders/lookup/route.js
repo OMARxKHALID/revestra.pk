@@ -1,10 +1,9 @@
 import { orderLookupSchema } from "@/lib/schemas/order";
 import { findOrderByReference, orderSecret } from "@/lib/api/orders";
 import { signOrderToken } from "@/lib/utils/order-token";
-import { createLimiter, tooManyRequests } from "@/lib/rate-limit";
+import { createLimiter } from "@/lib/rate-limit";
 import RATE_LIMITS from "@/lib/rate-limits";
-import requestIp from "@/lib/utils/request-ip";
-import { sameOrigin, badOrigin } from "@/lib/api/origin";
+import { guardRequest } from "@/lib/api/request";
 
 const limiter = createLimiter(RATE_LIMITS.orderLookup);
 
@@ -15,29 +14,15 @@ const notFound = () =>
   );
 
 export const POST = async (request) => {
-  if (!sameOrigin(request)) return badOrigin();
+  const gated = await guardRequest(request, {
+    limiter,
+    schema: orderLookupSchema,
+    fallback: "Invalid lookup",
+  });
 
-  const gate = await limiter.check(requestIp(request));
+  if (gated.response) return gated.response;
 
-  if (!gate.ok) return tooManyRequests(gate.resetAt);
-
-  let payload;
-
-  try {
-    payload = await request.json();
-  } catch {
-    return Response.json({ error: "Malformed request" }, { status: 400 });
-  }
-
-  const parsed = orderLookupSchema.safeParse(payload);
-
-  if (!parsed.success)
-    return Response.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid lookup" },
-      { status: 422 }
-    );
-
-  const { reference, email } = parsed.data;
+  const { reference, email } = gated.data;
   const order = await findOrderByReference(reference.trim().toUpperCase());
 
   if (!order) return notFound();

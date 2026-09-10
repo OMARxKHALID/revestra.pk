@@ -3,10 +3,9 @@ import { storeImages } from "@/lib/api/review-images";
 import { createReview, getReviews, hasSettledOrder, summarise } from "@/lib/api/reviews";
 import { REVIEW_STATUS } from "@/lib/schemas/review";
 import { optionalSession } from "@/lib/session";
-import { createLimiter, tooManyRequests } from "@/lib/rate-limit";
+import { createLimiter } from "@/lib/rate-limit";
 import RATE_LIMITS from "@/lib/rate-limits";
-import requestIp from "@/lib/utils/request-ip";
-import { sameOrigin, badOrigin } from "@/lib/api/origin";
+import { guardRequest } from "@/lib/api/request";
 
 const limiter = createLimiter(RATE_LIMITS.review);
 
@@ -17,43 +16,29 @@ export const GET = async () => {
 };
 
 export const POST = async (request) => {
-  if (!sameOrigin(request)) return badOrigin();
+  const gated = await guardRequest(request, {
+    limiter,
+    schema: reviewSchema,
+    fallback: "Invalid review",
+  });
 
-  const gate = await limiter.check(requestIp(request));
-
-  if (!gate.ok) return tooManyRequests(gate.resetAt);
-
-  let payload;
-
-  try {
-    payload = await request.json();
-  } catch {
-    return Response.json({ error: "Malformed request" }, { status: 400 });
-  }
-
-  const parsed = reviewSchema.safeParse(payload);
-
-  if (!parsed.success)
-    return Response.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid review" },
-      { status: 422 }
-    );
+  if (gated.response) return gated.response;
 
   const session = await optionalSession();
   const userId = session?.user?.id ?? null;
 
-  const stored = await storeImages(parsed.data.images);
+  const stored = await storeImages(gated.data.images);
 
   if (!stored.ok)
     return Response.json({ error: stored.error }, { status: 422 });
 
-  const { images: _submitted, ...fields } = parsed.data;
+  const { images: _submitted, ...fields } = gated.data;
 
   const review = reviewDocSchema.parse({
     id: crypto.randomUUID(),
     ...fields,
     images: stored.ids,
-    email: parsed.data.email.toLowerCase(),
+    email: gated.data.email.toLowerCase(),
     userId,
     verified: await hasSettledOrder(userId),
     status: REVIEW_STATUS.pending,

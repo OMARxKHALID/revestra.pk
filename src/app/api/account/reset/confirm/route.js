@@ -1,39 +1,25 @@
 import { setPasswordByEmail } from "@/lib/api/users";
 import { verifyCode } from "@/lib/api/password-reset";
 import { resetConfirmSchema } from "@/lib/schemas/account";
-import { createLimiter, tooManyRequests } from "@/lib/rate-limit";
+import { createLimiter } from "@/lib/rate-limit";
 import RATE_LIMITS from "@/lib/rate-limits";
-import { sameOrigin, badOrigin } from "@/lib/api/origin";
-import requestIp from "@/lib/utils/request-ip";
+import { guardRequest } from "@/lib/api/request";
 
 export const dynamic = "force-dynamic";
 
 const limiter = createLimiter(RATE_LIMITS.passwordResetConfirm);
 
 export const POST = async (request) => {
-  if (!sameOrigin(request)) return badOrigin();
+  const gated = await guardRequest(request, {
+    limiter,
+    schema: resetConfirmSchema,
+    prefix: "reset-confirm",
+    fallback: "Invalid request",
+  });
 
-  const gate = await limiter.check(`reset-confirm|${requestIp(request)}`);
+  if (gated.response) return gated.response;
 
-  if (!gate.ok) return tooManyRequests(gate.resetAt);
-
-  let payload;
-
-  try {
-    payload = await request.json();
-  } catch {
-    return Response.json({ error: "Malformed request" }, { status: 400 });
-  }
-
-  const parsed = resetConfirmSchema.safeParse(payload);
-
-  if (!parsed.success)
-    return Response.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid request" },
-      { status: 422 }
-    );
-
-  const { email, code, password } = parsed.data;
+  const { email, code, password } = gated.data;
   const verified = await verifyCode(email, code);
 
   if (!verified.ok)

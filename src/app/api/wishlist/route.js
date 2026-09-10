@@ -2,10 +2,9 @@ import { wishlistSchema } from "@/lib/schemas/wishlist";
 import { auth } from "@/auth";
 import { getWishlist, setWishlist } from "@/lib/api/users";
 import { getAllProducts } from "@/lib/api/products";
-import { createLimiter, tooManyRequests } from "@/lib/rate-limit";
+import { createLimiter } from "@/lib/rate-limit";
 import RATE_LIMITS from "@/lib/rate-limits";
-import { sameOrigin, badOrigin } from "@/lib/api/origin";
-import requestIp from "@/lib/utils/request-ip";
+import { gateRequest } from "@/lib/api/request";
 
 export const dynamic = "force-dynamic";
 
@@ -21,11 +20,9 @@ export const GET = async () => {
 };
 
 export const PUT = async (request) => {
-  if (!sameOrigin(request)) return badOrigin();
+  const gated = await gateRequest(request, limiter);
 
-  const gate = await limiter.check(requestIp(request));
-
-  if (!gate.ok) return tooManyRequests(gate.resetAt);
+  if (gated.response) return gated.response;
 
   const session = await auth();
 
