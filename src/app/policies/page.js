@@ -19,7 +19,11 @@ const PoliciesPage = async () => {
     >
       <div className="grid max-w-[720px] gap-12">
         {policies.map(({ slug, title: heading, body }) => (
-          <section key={slug} id={slug} className="scroll-mt-[--spacing-header]">
+          <section
+            key={slug}
+            id={slug}
+            className="scroll-mt-[var(--spacing-header)]"
+          >
             <h2 className={cn(HEADING, "text-ink")}>{heading}</h2>
 
             <p className={cn(BODY, "mt-4 whitespace-pre-line text-ink-soft")}>
@@ -28,7 +32,7 @@ const PoliciesPage = async () => {
           </section>
         ))}
 
-        <section id="contact" className="scroll-mt-[--spacing-header]">
+        <section id="contact" className="scroll-mt-[var(--spacing-header)]">
           <h2 className={cn(HEADING, "text-ink")}>Contact</h2>
 
           <p className={cn(BODY, "mt-4 text-ink-soft")}>

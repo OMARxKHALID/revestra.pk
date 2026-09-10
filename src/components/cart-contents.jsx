@@ -43,7 +43,7 @@ const CartContents = () => {
   const viewed = useRef(false);
 
   useEffect(() => {
-    if (viewed.current) return;
+    if (viewed.current || items.length === 0) return;
 
     viewed.current = true;
     track(ANALYTICS_EVENT.cartViewed, {

@@ -6,16 +6,20 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { request } from "@/lib/api-client";
+import { REVIEW_STATUS } from "@/lib/schemas/review";
 
 const ReviewRow = ({ review }) => {
   const router = useRouter();
-  const hidden = review.status === "hidden";
+  const hidden = review.status === REVIEW_STATUS.hidden;
 
   const toggle = useMutation({
     mutationFn: () =>
       request("/api/admin/reviews", {
         method: "PATCH",
-        body: { id: review.id, status: hidden ? "published" : "hidden" },
+        body: {
+          id: review.id,
+          status: hidden ? REVIEW_STATUS.published : REVIEW_STATUS.hidden,
+        },
       }),
     onSuccess: () => {
       toast.success(hidden ? "Published" : "Hidden");
