@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +15,8 @@ import { TrashIcon } from "@/components/ui/icons";
 import ErrorState from "@/components/ui/error-state";
 import { request } from "@/lib/api-client";
 import keys from "@/lib/query-keys";
+import { track } from "@/lib/track";
+import { ANALYTICS_EVENT, productProperties } from "@/lib/analytics";
 
 const fetchStock = ({ queryKey, signal }) => {
   const [, slugs] = queryKey;
@@ -36,6 +39,22 @@ const CartContents = () => {
   const clear = useCart((state) => state.clear);
   const subtotal = useCart(selectSubtotal);
   const slugs = items.map((item) => item.slug);
+
+  const viewed = useRef(false);
+
+  useEffect(() => {
+    if (viewed.current) return;
+
+    viewed.current = true;
+    track(ANALYTICS_EVENT.cartViewed, {
+      products: items.map(productProperties),
+    });
+  }, [items]);
+
+  const handleRemove = (item) => {
+    removeItem(item.slug);
+    track(ANALYTICS_EVENT.productRemoved, productProperties(item));
+  };
 
   const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: keys.stock.forSlugs(slugs),
@@ -149,7 +168,7 @@ const CartContents = () => {
 
                   <button
                     type="button"
-                    onClick={() => removeItem(item.slug)}
+                    onClick={() => handleRemove(item)}
                     className={cn(
                       META,
                       "relative flex items-center gap-1.5 text-ink-soft transition before:absolute before:-inset-x-1 before:-inset-y-2 before:content-[''] hover:text-sale focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blurple"

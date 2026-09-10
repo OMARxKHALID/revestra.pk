@@ -8,6 +8,8 @@ import Field from "@/components/ui/field";
 import { TagIcon } from "@/components/ui/icons";
 import PillButton from "@/components/ui/pill-button";
 import { request } from "@/lib/api-client";
+import { track } from "@/lib/track";
+import { ANALYTICS_EVENT, majorUnits } from "@/lib/analytics";
 
 const PromoField = ({ subtotalCents, rateId, promo, onApply, onClear }) => {
   const [code, setCode] = useState("");
@@ -19,7 +21,17 @@ const PromoField = ({ subtotalCents, rateId, promo, onApply, onClear }) => {
     onSuccess: (body) => {
       onApply(body.promo, body.totals);
       setCode("");
+      track(ANALYTICS_EVENT.couponApplied, {
+        coupon_id: body.promo.code,
+        coupon_name: body.promo.kind,
+        discount: majorUnits(body.totals.discountCents),
+      });
     },
+    onError: (error) =>
+      track(ANALYTICS_EVENT.couponDenied, {
+        coupon_id: code.trim().toUpperCase(),
+        reason: error.message,
+      }),
   });
 
   const error =

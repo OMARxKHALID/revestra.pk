@@ -11,7 +11,7 @@ import {
   settlePayment,
 } from "@/lib/api/orders";
 import { releaseStock } from "@/lib/api/inventory";
-import { completeSale } from "@/lib/api/fulfilment";
+import { completeSale, captureOrderCompleted } from "@/lib/api/fulfilment";
 import { signOrderToken } from "@/lib/utils/order-token";
 import { siteUrl } from "@/lib/payments/config";
 
@@ -99,7 +99,10 @@ const settle = async (request) => {
   if (settled && !paid && order.stockReserved)
     await releaseStock(order.items, order.reference);
 
-  if (settled && paid) await completeSale(order);
+  if (settled && paid) {
+    await completeSale(order);
+    await captureOrderCompleted({ ...order, status: ORDER_STATUS.received });
+  }
 
   return seeOther(`/orders/${order.reference}?t=${token}`);
 };

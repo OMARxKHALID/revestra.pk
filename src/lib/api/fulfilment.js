@@ -6,6 +6,8 @@ import {
   flagStockConflict,
 } from "@/lib/api/orders";
 import { recordRedemption, releaseRedemption } from "@/lib/api/promos";
+import { captureServerEvent } from "@/lib/api/analytics";
+import { ANALYTICS_EVENT, orderProperties } from "@/lib/analytics";
 
 export const completeSale = async (order, lines = order.items) => {
   const sale = await markSold(lines, order.reference);
@@ -39,3 +41,19 @@ export const releaseStaleOrders = async (minutes) => {
 
   return { minutes, examined: stale.length, released };
 };
+
+const analyticsIdFor = (order) => order.distinctId || order.userId || null;
+
+export const captureOrderCompleted = (order) =>
+  captureServerEvent({
+    distinctId: analyticsIdFor(order),
+    event: ANALYTICS_EVENT.orderCompleted,
+    properties: orderProperties(order),
+  });
+
+export const captureOrderCancelled = (order) =>
+  captureServerEvent({
+    distinctId: analyticsIdFor(order),
+    event: ANALYTICS_EVENT.orderCancelled,
+    properties: orderProperties(order),
+  });

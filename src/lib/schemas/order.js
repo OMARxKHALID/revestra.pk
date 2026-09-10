@@ -62,6 +62,7 @@ export const SHIPPING_RATE_IDS = ["standard", "express"];
 
 export const orderSchema = z.object({
   shipping: shippingSchema,
+  distinctId: z.string().trim().max(200).optional().or(z.literal("")),
   items: z.array(orderLineSchema).min(1, "Your cart is empty").max(50),
   promoCode: z.string().trim().max(24).optional().or(z.literal("")),
   rateId: z.enum(SHIPPING_RATE_IDS).default("standard"),

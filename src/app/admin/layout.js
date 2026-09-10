@@ -4,6 +4,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminSidebar from "@/components/admin/admin-sidebar";
 import AdminHeader from "@/components/admin/admin-header";
+import AnalyticsOff from "@/components/admin/analytics-off";
 import { auth } from "@/auth";
 import { ROLE } from "@/lib/roles";
 import { title } from "@/lib/brand";
@@ -25,7 +26,9 @@ const AdminLayout = async ({ children }) => {
         <AdminSidebar name={session.user.name ?? session.user.email} />
 
         <SidebarInset className="bg-background text-foreground">
-          <AdminHeader />
+          <AnalyticsOff />
+
+        <AdminHeader />
 
           {children}
         </SidebarInset>

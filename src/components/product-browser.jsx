@@ -16,6 +16,8 @@ import PillButton from "@/components/ui/pill-button";
 import ErrorState from "@/components/ui/error-state";
 import { request } from "@/lib/api-client";
 import keys from "@/lib/query-keys";
+import { track } from "@/lib/track";
+import { ANALYTICS_EVENT } from "@/lib/analytics";
 
 const fetchProducts = ({ queryKey, signal }) => {
   const [, , filters] = queryKey;
@@ -70,6 +72,12 @@ const ProductBrowser = ({
   const query = useDebounced(queryInput, 250);
 
   const active = useMemo(() => ({ ...filters, query }), [filters, query]);
+
+  useEffect(() => {
+    if (!query) return;
+
+    track(ANALYTICS_EVENT.productsSearched, { query });
+  }, [query]);
   const isDefaultView =
     JSON.stringify(active) ===
     JSON.stringify({ ...EMPTY_FILTERS, ...initialFilters });
@@ -105,6 +113,8 @@ const ProductBrowser = ({
   };
 
   const handleFilter = (key) => (value) => {
+    track(ANALYTICS_EVENT.productListFiltered, { filter: key, value });
+
     setPage(1);
     setFilters((current) => ({ ...current, [key]: value }));
   };

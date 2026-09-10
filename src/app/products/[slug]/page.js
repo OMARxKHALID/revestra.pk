@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import SiteHeader from "@/components/site-header";
 import Footer from "@/components/footer";
 import AddToCart from "@/components/add-to-cart";
+import AnalyticsProductView from "@/components/analytics-product-view";
 import RelatedProducts from "@/components/related-products";
 import {
   getAllProducts,
@@ -137,6 +138,8 @@ const ProductPage = async ({ params }) => {
                 {conditionNotes}
               </p>
             )}
+
+            <AnalyticsProductView product={product} />
 
             <AddToCart product={product} />
 

@@ -48,7 +48,7 @@ const OrderDetailPage = async ({ params }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.6fr_1fr]">
+      <div className="ph-no-capture grid grid-cols-1 gap-6 xl:grid-cols-[1.6fr_1fr]">
         <div className="grid gap-6">
           <Card>
             <CardContent className="grid gap-4 pt-6">

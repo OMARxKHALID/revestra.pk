@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useCart, { selectSubtotal } from "@/store/use-cart";
 import { PAYMENT_METHOD, shippingSchema } from "@/lib/schemas/order";
-import { formatPrice } from "@/lib/utils/price";
+import { CURRENCY, formatPrice } from "@/lib/utils/price";
 import { buildTotals } from "@/lib/utils/totals";
 import { DEFAULT_COMMERCE, ratesOf } from "@/lib/shipping";
 import Field from "@/components/ui/field";
@@ -31,6 +31,12 @@ import OrderSummary from "@/components/order-summary";
 import ErrorNotice from "@/components/ui/error-notice";
 import { request, ApiError } from "@/lib/api-client";
 import keys from "@/lib/query-keys";
+import { track, viewerId } from "@/lib/track";
+import {
+  ANALYTICS_EVENT,
+  majorUnits,
+  productProperties,
+} from "@/lib/analytics";
 
 const fetchMethods = ({ signal }) => request("/api/payments/methods", { signal });
 
@@ -74,6 +80,25 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
     formState: { errors },
   } = useForm({ resolver: zodResolver(shippingSchema) });
 
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (started.current || items.length === 0) return;
+
+    started.current = true;
+
+    track(ANALYTICS_EVENT.checkoutStarted, {
+      value: majorUnits(totals.totalCents),
+      revenue: majorUnits(totals.totalCents),
+      shipping: majorUnits(totals.shippingCents),
+      tax: majorUnits(totals.taxCents),
+      discount: majorUnits(totals.discountCents),
+      coupon: promo?.code ?? null,
+      currency: CURRENCY,
+      products: items.map(productProperties),
+    });
+  }, [items, totals, promo]);
+
   const placeOrder = useMutation({
     mutationFn: (shipping) =>
       request("/api/orders", {
@@ -83,6 +108,7 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
           method,
           promoCode: promo?.code ?? "",
           items: items.map(({ slug }) => ({ slug })),
+          distinctId: viewerId(),
         },
       }),
     onSuccess: (order) => {
@@ -111,6 +137,7 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
   const handleMethod = (id) => {
     setMethod(id);
     placeOrder.reset();
+    track(ANALYTICS_EVENT.paymentInfoEntered, { payment_method: id });
   };
 
   const handlePlaceOrder = (shipping) => placeOrder.mutate(shipping);

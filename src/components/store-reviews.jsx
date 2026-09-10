@@ -22,6 +22,8 @@ import cn from "@/lib/utils/cn";
 import { BODY, HEADING, META, TITLE } from "@/lib/type";
 import { request } from "@/lib/api-client";
 import keys from "@/lib/query-keys";
+import { track } from "@/lib/track";
+import { ANALYTICS_EVENT } from "@/lib/analytics";
 
 const RATINGS = [5, 4, 3, 2, 1];
 
@@ -57,6 +59,7 @@ const StoreReviews = ({ initialReviews, initialSummary }) => {
       setPhotos([]);
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: keys.reviews.all });
+      track(ANALYTICS_EVENT.productReviewed, { rating });
     },
   });
 

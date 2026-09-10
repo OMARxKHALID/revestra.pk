@@ -3,6 +3,8 @@ import SmoothScrollProvider from "@/components/smooth-scroll-provider";
 import CartHydration from "@/components/cart-hydration";
 import QueryProvider from "@/components/query-provider";
 import AuthProvider from "@/components/session-provider";
+import AnalyticsIdentity from "@/components/analytics-identity";
+import ConsentBanner from "@/components/consent-banner";
 import { fontVariables } from "@/lib/fonts";
 import cn from "@/lib/utils/cn";
 import { BRAND } from "@/lib/brand";
@@ -41,10 +43,14 @@ const RootLayout = ({ children }) => (
 
       <CartHydration />
       <AuthProvider>
+        <AnalyticsIdentity />
+
         <QueryProvider>
           <SmoothScrollProvider>{children}</SmoothScrollProvider>
         </QueryProvider>
       </AuthProvider>
+
+      <ConsentBanner />
     </body>
   </html>
 );

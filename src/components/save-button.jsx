@@ -5,6 +5,8 @@ import useWishlist from "@/store/use-wishlist";
 import { useSaveWishlist } from "@/hooks/use-wishlist-sync";
 import Chip from "@/components/ui/chip";
 import { HeartIcon } from "@/components/ui/icons";
+import { track } from "@/lib/track";
+import { ANALYTICS_EVENT } from "@/lib/analytics";
 
 const SaveButton = ({ slug, className }) => {
   const slugs = useWishlist((state) => state.slugs);
@@ -15,6 +17,13 @@ const SaveButton = ({ slug, className }) => {
 
   const handleToggle = () => {
     toggle(slug);
+
+    track(
+      saved
+        ? ANALYTICS_EVENT.productRemovedFromWishlist
+        : ANALYTICS_EVENT.productAddedToWishlist,
+      { product_id: slug }
+    );
 
     if (status !== "authenticated") return;
 

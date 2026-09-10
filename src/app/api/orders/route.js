@@ -9,7 +9,7 @@ import { buildReference, insertOrder, orderSecret } from "@/lib/api/orders";
 import { signOrderToken } from "@/lib/utils/order-token";
 import { getPromoByCode } from "@/lib/api/promos";
 import { reserveStock, releaseStock } from "@/lib/api/inventory";
-import { completeSale } from "@/lib/api/fulfilment";
+import { completeSale, captureOrderCompleted } from "@/lib/api/fulfilment";
 import { priceOrderLines, subtotalOf } from "@/lib/utils/order-lines";
 import { CURRENCY } from "@/lib/utils/price";
 import { promoProblem } from "@/lib/utils/promo-validity";
@@ -34,7 +34,8 @@ export const POST = async (request) => {
 
   if (gated.response) return gated.response;
 
-  const { shipping, items, promoCode, rateId, method } = gated.data;
+  const { shipping, items, promoCode, rateId, method, distinctId } =
+    gated.data;
 
   const settings = await getSettings();
 
@@ -83,6 +84,7 @@ export const POST = async (request) => {
   const order = {
     reference,
     currency: CURRENCY,
+    distinctId: distinctId || null,
     userId: session?.user?.id ?? null,
     email: shipping.email.toLowerCase(),
     shipping,
@@ -146,7 +148,10 @@ export const POST = async (request) => {
     );
   }
 
-  if (persisted && isCod) await completeSale(order, priced.lines);
+  if (persisted && isCod) {
+    await completeSale(order, priced.lines);
+    await captureOrderCompleted(order);
+  }
 
   const token = signOrderToken(order.reference, orderSecret());
   const trackUrl = `${siteUrl()}/orders/${order.reference}?t=${encodeURIComponent(token)}`;

@@ -1,6 +1,8 @@
 import { guard, readJson, invalid } from "@/lib/api/admin/guard";
 import { getOrder, setOrderStatus } from "@/lib/api/admin/orders";
 import { orderStatusSchema } from "@/lib/schemas/admin";
+import { ORDER_STATUS } from "@/lib/schemas/order";
+import { captureOrderCancelled } from "@/lib/api/fulfilment";
 import { orderSecret } from "@/lib/api/orders";
 import { signOrderToken } from "@/lib/utils/order-token";
 import { sendOrderStatusUpdate } from "@/lib/email";
@@ -50,6 +52,9 @@ export const PATCH = async (request, { params }) => {
     const trackUrl = `${siteUrl()}/orders/${reference}?t=${encodeURIComponent(token)}`;
 
     await sendOrderStatusUpdate(updated.order, trackUrl);
+
+    if (updated.order.status === ORDER_STATUS.cancelled)
+      await captureOrderCancelled(updated.order);
   }
 
   return Response.json({ order: updated.order });

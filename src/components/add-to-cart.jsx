@@ -9,6 +9,8 @@ import PillButton from "@/components/ui/pill-button";
 import { isSold, sellableNow } from "@/lib/utils/stock";
 import { request } from "@/lib/api-client";
 import keys from "@/lib/query-keys";
+import { track } from "@/lib/track";
+import { ANALYTICS_EVENT, productProperties } from "@/lib/analytics";
 
 const AddToCart = ({ product }) => {
   const addItem = useCart((state) => state.addItem);
@@ -46,6 +48,7 @@ const AddToCart = ({ product }) => {
   const handleAdd = () => {
     addItem(product);
     setAdded(true);
+    track(ANALYTICS_EVENT.productAdded, productProperties(product));
   };
 
   return (
