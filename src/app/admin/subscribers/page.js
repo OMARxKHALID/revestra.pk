@@ -1,6 +1,7 @@
 import { Mail01Icon } from "@hugeicons/core-free-icons";
 import PageLayout from "@/components/admin/page-layout";
 import PageHeader from "@/components/admin/page-header";
+import ExportButton from "@/components/admin/export-button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -26,7 +27,9 @@ const SubscribersPage = async ({ searchParams }) => {
         title="Subscribers"
         description={`${total} addresses from the newsletter form.`}
         icon={Mail01Icon}
-      />
+      >
+        <ExportButton href="/api/admin/subscribers/export" />
+      </PageHeader>
 
       <Card>
         <CardContent className="px-0 sm:px-6">

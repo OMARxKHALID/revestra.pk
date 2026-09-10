@@ -4,6 +4,7 @@ import PageLayout from "@/components/admin/page-layout";
 import PageHeader from "@/components/admin/page-header";
 import FilterBar from "@/components/admin/filter-bar";
 import Pager from "@/components/admin/pager";
+import ExportButton from "@/components/admin/export-button";
 import StatusBadge from "@/components/admin/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -40,7 +41,9 @@ const OrdersPage = async ({ searchParams }) => {
         title="Orders"
         description="Search by reference, email, name or phone."
         icon={ShoppingBag03Icon}
-      />
+      >
+        <ExportButton href="/api/admin/orders/export" />
+      </PageHeader>
 
       <Card>
         <CardContent className="grid gap-5">
