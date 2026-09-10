@@ -1,9 +1,15 @@
+import {
+  ORDER_STATUS,
+  PAYMENT_METHOD,
+  PAYMENT_STATUS,
+} from "@/lib/schemas/order";
+
 export const DEMO_ORDERS = [
   {
     reference: "CP-DEMO01-A1B2",
-    status: "delivered",
+    status: ORDER_STATUS.delivered,
     createdAt: "2026-07-14T09:12:00.000Z",
-    payment: { method: "jazzcash", status: "paid" },
+    payment: { method: PAYMENT_METHOD.jazzcash, status: PAYMENT_STATUS.paid },
     totals: {
       subtotalCents: 1290000,
       discountCents: 129000,
@@ -25,9 +31,12 @@ export const DEMO_ORDERS = [
   },
   {
     reference: "CP-DEMO02-C3D4",
-    status: "shipped",
+    status: ORDER_STATUS.shipped,
     createdAt: "2026-08-29T16:40:00.000Z",
-    payment: { method: "cod", status: "not_required" },
+    payment: {
+      method: PAYMENT_METHOD.cod,
+      status: PAYMENT_STATUS.notRequired,
+    },
     totals: {
       subtotalCents: 610000,
       discountCents: 0,

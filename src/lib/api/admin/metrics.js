@@ -1,8 +1,15 @@
 import "server-only";
+// The one file that reads across collections on purpose: the dashboard counts
+// orders, products, reviews and subscribers in a single pass.
+import {
+  FULFILLED_ORDER_STATUSES,
+  ORDER_STATUS,
+} from "@/lib/schemas/order";
+import { REVIEW_STATUS } from "@/lib/schemas/review";
 import { getDb } from "@/lib/db";
 import { fillDailySeries, sinceDays } from "@/lib/utils/series";
 
-export const SETTLED = ["received", "processing", "shipped", "delivered"];
+export const SETTLED = FULFILLED_ORDER_STATUSES;
 
 const EMPTY = {
   revenueCents: 0,
@@ -85,8 +92,8 @@ export const getMetrics = async ({ days = 30, now = new Date() } = {}) => {
           },
         ])
         .toArray(),
-      orders.countDocuments({ status: "pending_payment" }),
-      db.collection("reviews").countDocuments({ status: "hidden" }),
+      orders.countDocuments({ status: ORDER_STATUS.pendingPayment }),
+      db.collection("reviews").countDocuments({ status: REVIEW_STATUS.hidden }),
       db.collection("subscribers").countDocuments(),
       orders
         .find(

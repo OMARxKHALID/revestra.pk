@@ -1,4 +1,6 @@
 import "server-only";
+import { FULFILLED_ORDER_STATUSES } from "@/lib/schemas/order";
+import { REVIEW_STATUS } from "@/lib/schemas/review";
 import { getDb, isDatabaseConfigured } from "@/lib/db";
 import { MOCK_REVIEWS } from "@/lib/reviews";
 
@@ -7,23 +9,19 @@ const COLLECTION = "reviews";
 export const getReviews = async (limit = 50) => {
   if (!isDatabaseConfigured()) return MOCK_REVIEWS;
 
-  try {
-    const db = await getDb();
+  const db = await getDb();
 
-    if (!db) return MOCK_REVIEWS;
+  if (!db) return MOCK_REVIEWS;
 
-    const stored = await db
-      .collection(COLLECTION)
-      .find({ status: "published" }, { projection: { _id: 0, email: 0 } })
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .toArray();
-
-    return stored.length > 0 ? stored : MOCK_REVIEWS;
-  } catch (error) {
-    console.warn(`[reviews] read failed: ${error.message}`);
-    return MOCK_REVIEWS;
-  }
+  return db
+    .collection(COLLECTION)
+    .find(
+      { status: REVIEW_STATUS.published },
+      { projection: { _id: 0, email: 0 } }
+    )
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .toArray();
 };
 
 export const summarise = (reviews) => {
@@ -46,7 +44,15 @@ export const summarise = (reviews) => {
   };
 };
 
-export const getReviewSummary = async () => summarise(await getReviews());
+
+export const getReviewHighlights = async (limit = 3) => {
+  const reviews = await getReviews();
+
+  return {
+    summary: summarise(reviews),
+    reviews: reviews.slice(0, limit),
+  };
+};
 
 export const hasSettledOrder = async (userId) => {
   if (!userId || !isDatabaseConfigured()) return false;
@@ -57,7 +63,7 @@ export const hasSettledOrder = async (userId) => {
 
   const order = await db.collection("orders").findOne({
     userId,
-    status: { $in: ["received", "processing", "shipped", "delivered"] },
+    status: { $in: FULFILLED_ORDER_STATUSES },
   });
 
   return Boolean(order);

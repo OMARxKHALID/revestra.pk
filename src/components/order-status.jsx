@@ -1,7 +1,12 @@
 import cn from "@/lib/utils/cn";
 import { EYEBROW, META } from "@/lib/type";
 
-const STEPS = ["received", "processing", "shipped", "delivered"];
+import {
+  FULFILLED_ORDER_STATUSES,
+  ORDER_STATUS,
+} from "@/lib/schemas/order";
+
+const STEPS = FULFILLED_ORDER_STATUSES;
 
 const LABELS = {
   pending_payment: "Awaiting payment",
@@ -22,7 +27,9 @@ const OrderStatus = ({ status }) => {
       <p
         className={cn(
           EYEBROW,
-          stalled && status !== "pending_payment" ? "text-sale" : "text-blurple"
+          stalled && status !== ORDER_STATUS.pendingPayment
+            ? "text-sale"
+            : "text-blurple"
         )}
       >
         {LABELS[status] ?? status}
@@ -35,14 +42,14 @@ const OrderStatus = ({ status }) => {
               <div
                 className={cn(
                   "h-1 rounded-full",
-                  position <= index ? "bg-blurple" : "bg-black/10"
+                  position <= index ? "bg-blurple" : "bg-rule"
                 )}
               />
               <p
                 className={cn(
                   META,
                   "mt-2 hidden sm:block",
-                  position <= index ? "text-black/70" : "text-black/45"
+                  position <= index ? "text-ink-muted" : "text-ink-soft"
                 )}
               >
                 {LABELS[step]}

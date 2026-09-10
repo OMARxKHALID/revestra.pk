@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isStoredImage } from "@/lib/cloudinary";
 
 export const CATEGORIES = [
   "Jeans",
@@ -35,7 +36,7 @@ export const productBaseSchema = z.object({
   name: z.string().min(1),
   tagline: z.string().min(1),
   brand: z.string().min(1),
-  category: z.enum(CATEGORIES),
+  category: z.string().trim().min(1, "Pick a category"),
   sizeSystem: z.enum(SIZE_SYSTEMS),
   sizeLabel: z.string().min(1),
   measurements: z.record(z.string(), z.string()),
@@ -43,16 +44,25 @@ export const productBaseSchema = z.object({
   conditionNotes: z.string().nullable().default(null),
   priceCents: z.int().nonnegative(),
   salePriceCents: z.int().nonnegative().nullable().default(null),
-  image: z.string().startsWith("/assets/"),
-  images: z.array(z.string().startsWith("/assets/")).default([]),
+  image: z
+    .string()
+    .refine(isStoredImage, "Images must be uploaded, or a path under /assets/"),
+  images: z
+    .array(z.string().refine(isStoredImage, "Images must be uploaded"))
+    .default([]),
   description: z.string().min(1),
   details: z.array(z.string().min(1)).min(1),
   status: z.enum(AVAILABILITY).default("available"),
   reservedUntil: z.union([z.string(), z.date()]).nullable().default(null),
+  uploadedBy: z.string().nullable().default(null),
+  uploadedByName: z.string().nullable().default(null),
+  uploadedAt: z.union([z.string(), z.date()]).nullable().default(null),
   soldAt: z.union([z.string(), z.date()]).nullable().default(null),
 });
 
-export const refineProduct = (product, ctx) => {
+export const refineWithTemplates =
+  (templates = MEASUREMENT_TEMPLATES) =>
+  (product, ctx) => {
   if (
     product.salePriceCents !== null &&
     product.salePriceCents !== undefined &&
@@ -68,7 +78,7 @@ export const refineProduct = (product, ctx) => {
   if (product.category === undefined || product.measurements === undefined)
     return;
 
-  const expected = MEASUREMENT_TEMPLATES[product.category] ?? [];
+  const expected = templates[product.category] ?? [];
   const missing = expected.filter((label) => !product.measurements[label]);
 
   if (missing.length)
@@ -77,7 +87,9 @@ export const refineProduct = (product, ctx) => {
       path: ["measurements"],
       message: `${product.category} needs ${missing.join(", ")}`,
     });
-};
+  };
+
+export const refineProduct = refineWithTemplates();
 
 export const productSchema = productBaseSchema.superRefine(refineProduct);
 
@@ -90,6 +102,10 @@ export const intakeSchema = z.intersection(productSchema, privateProductSchema);
 
 export const productsSchema = z.array(productSchema).min(1);
 
-export const PRIVATE_FIELDS = ["costCents", "lot"];
-
 export const toPublicProduct = ({ costCents, lot, ...product }) => product;
+
+export const productStatusSchema = z.object({ status: z.enum(AVAILABILITY) });
+
+export const stockQuerySchema = z.object({
+  slugs: z.array(z.string().min(1)).max(50),
+});

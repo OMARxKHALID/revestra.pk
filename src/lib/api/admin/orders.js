@@ -1,6 +1,8 @@
 import "server-only";
+import { ORDER_STATUS } from "@/lib/schemas/order";
 import { getDb } from "@/lib/db";
 import { releaseStock, markSold } from "@/lib/api/inventory";
+import { recordRedemption, releaseRedemption } from "@/lib/api/promos";
 
 const COLLECTION = "orders";
 
@@ -84,11 +86,22 @@ export const setOrderStatus = async ({ reference, status, note, adminId }) => {
     { returnDocument: "after", projection: { _id: 0 } }
   );
 
-  if (status === "cancelled") await releaseStock(order.items);
-  if (status === "received" && order.status === "cancelled")
-    await markSold(order.items);
+  if (status === ORDER_STATUS.cancelled) {
+    await releaseStock(order.items, reference);
 
-  return { ok: true, order: result?.value ?? result ?? null };
+    if (order.promo) await releaseRedemption(order.promo.code, reference);
+  }
+
+  if (
+    status === ORDER_STATUS.received &&
+    order.status === ORDER_STATUS.cancelled
+  ) {
+    await markSold(order.items, reference);
+
+    if (order.promo) await recordRedemption(order.promo.code, reference);
+  }
+
+  return { ok: true, order: result ?? null };
 };
 
 export const countByStatus = async () => {
