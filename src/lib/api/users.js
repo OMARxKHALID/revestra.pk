@@ -59,7 +59,6 @@ export const createUser = async ({
     passwordHash: await hash(password, COST),
     role,
     wishlist: [],
-    emailVerified: null,
     createdAt: now,
     updatedAt: now,
   };

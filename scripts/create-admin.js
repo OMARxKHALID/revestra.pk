@@ -47,7 +47,6 @@ try {
       $setOnInsert: {
         email,
         wishlist: [],
-        emailVerified: null,
         createdAt: now,
       },
     },

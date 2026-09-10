@@ -88,7 +88,6 @@ try {
         email: ADMIN.email,
         passwordHash: await hash(ADMIN.password, 12),
         wishlist: [],
-        emailVerified: null,
         createdAt: now,
       },
     },
