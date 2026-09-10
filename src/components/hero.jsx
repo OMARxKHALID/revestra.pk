@@ -1,16 +1,23 @@
-"use client";
-
-import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import SiteHeader from "@/components/site-header";
-import ThemeSwitcher from "@/components/theme-switcher";
-import { HERO_PRODUCTS, LOGO_THEMES } from "@/lib/products";
+import { HERO_LOGO } from "@/lib/products";
+import { getLatestProducts } from "@/lib/api/products";
 import cn from "@/lib/utils/cn";
 import { BRAND } from "@/lib/brand";
 
-const Hero = () => {
-  const [theme, setTheme] = useState("jitter");
-  const { logo, width, height, bg } = LOGO_THEMES[theme];
+const { logo, width, height, bg } = HERO_LOGO;
+
+const SHELF = [
+  "w-[18%] min-w-[68px] max-w-[140px] -rotate-6",
+  "w-[14%] min-w-[56px] max-w-[110px] rotate-3",
+  "w-[14%] min-w-[56px] max-w-[110px] -rotate-2",
+  "w-[16%] min-w-[62px] max-w-[130px] rotate-6",
+  "w-[14%] min-w-[56px] max-w-[110px] -rotate-3",
+];
+
+const Hero = async () => {
+  const latest = await getLatestProducts(SHELF.length);
 
   return (
     <section className="relative w-full overflow-hidden bg-black">
@@ -21,14 +28,9 @@ const Hero = () => {
           fill
           priority
           sizes="100vw"
-          className={cn(
-            "object-cover object-center",
-            theme === "transparent" && "opacity-90"
-          )}
+          className="object-cover object-center"
         />
-        {theme !== "transparent" && (
-          <div className="absolute inset-0 bg-black/20" />
-        )}
+        <div className="absolute inset-0 bg-black/20" />
       </div>
 
       <SiteHeader overlay />
@@ -48,17 +50,19 @@ const Hero = () => {
         </h1>
 
         <div className="z-10 mt-12 flex w-full items-end justify-center gap-3 sm:absolute sm:inset-x-0 sm:bottom-[8%] sm:mt-0 sm:gap-5 sm:px-4 md:gap-8">
-          {HERO_PRODUCTS.map(({ alt, image, className }, index) => (
-            <div
-              key={alt}
+          {latest.map(({ slug, name, image }, index) => (
+            <Link
+              key={slug}
+              href={`/products/${slug}`}
+              aria-label={name}
               className={cn(
-                "relative shrink-0 drop-shadow-[0_20px_30px_rgba(0,0,0,0.45)]",
-                className
+                "relative shrink-0 drop-shadow-[0_20px_30px_rgba(0,0,0,0.45)] transition-transform duration-300 hover:-translate-y-2 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white",
+                SHELF[index]
               )}
             >
               <Image
                 src={image}
-                alt={alt}
+                alt={name}
                 width={280}
                 height={280}
                 priority={index === 0}
@@ -67,12 +71,10 @@ const Hero = () => {
                 sizes="140px"
                 className="h-auto w-full object-contain"
               />
-            </div>
+            </Link>
           ))}
         </div>
       </div>
-
-      <ThemeSwitcher theme={theme} setTheme={setTheme} />
     </section>
   );
 };

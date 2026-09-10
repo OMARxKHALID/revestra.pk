@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
-import MonogramMark from "@/components/monogram-mark";
 import ProductList from "@/components/product-list";
 import Loader from "@/components/ui/loader";
 import cn from "@/lib/utils/cn";
@@ -43,10 +42,6 @@ const ProductGrid = () => (
   <section id="shop" className="bg-white px-6 pb-24 pt-12 sm:px-10 sm:pb-32 sm:pt-16">
     <div className="mx-auto max-w-[1200px]">
       <h2 className="sr-only">Shop</h2>
-
-      <div className="flex justify-center pb-12 sm:pb-16">
-        <MonogramMark />
-      </div>
 
       <Suspense fallback={<Loader label="Loading the latest pieces" />}>
         <LiveProductList />

@@ -406,51 +406,9 @@ export const PRODUCTS = [
   },
 ];
 
-export const HERO_PRODUCTS = [
-  {
-    alt: "Hard Hat Long Sleeve-T",
-    image: "/assets/WEBP/64adce8962f07616f9cf9b0e_Long_Sleeve_Front.webp",
-    className: "w-[18%] min-w-[68px] max-w-[140px] -rotate-6",
-  },
-  {
-    alt: "Sticker Pack",
-    image: "/assets/WEBP/64b844c556fec6d53fb9dd9c_Stickersheet_Hero.webp",
-    className: "w-[14%] min-w-[56px] max-w-[110px] rotate-3",
-  },
-  {
-    alt: "Company Candle",
-    image: "/assets/WEBP/64c07b00efaea300a95aa559_Candle_Hero.webp",
-    className: "w-[14%] min-w-[56px] max-w-[110px] -rotate-2",
-  },
-  {
-    alt: "Wink Hat — White",
-    image: "/assets/WEBP/64b822f79ca862139f10dfa3_White_Hat_Hero.webp",
-    className: "w-[16%] min-w-[62px] max-w-[130px] rotate-6",
-  },
-  {
-    alt: "Company Socks",
-    image: "/assets/WEBP/64b1b4f66acab4bf05ce23bc_Sock_Hero.webp",
-    className: "w-[14%] min-w-[56px] max-w-[110px] -rotate-3",
-  },
-];
-
-export const LOGO_THEMES = {
-  jitter: {
-    logo: "/assets/PNG/64b7173cdd6ff3285af61160_Jitter_00000.png",
-    width: 1840,
-    height: 710,
-    bg: "/assets/AVIF/6495fcd53cebe34b7b5a8fe4_Space-pic-3x-edited-3.avif",
-  },
-  serif: {
-    logo: "/assets/PNG/64b7173c6691efd70d893e3f_Serif_00000.png",
-    width: 1920,
-    height: 700,
-    bg: "/assets/AVIF/6495fcd53cebe34b7b5a8fe4_Space-pic-3x-edited-3.avif",
-  },
-  transparent: {
-    logo: "/assets/PNG/64b7173cdd6ff3285af61160_Jitter_00000.png",
-    width: 1840,
-    height: 710,
-    bg: "/assets/PNG/64b7173b28956c9892088f3c_Transparent_00000.png",
-  },
+export const HERO_LOGO = {
+  logo: "/assets/PNG/64b7173cdd6ff3285af61160_Jitter_00000.png",
+  width: 1840,
+  height: 710,
+  bg: "/assets/AVIF/6495fcd53cebe34b7b5a8fe4_Space-pic-3x-edited-3.avif",
 };

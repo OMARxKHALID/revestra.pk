@@ -1,6 +1,7 @@
 import "server-only";
 import { getDb, isDatabaseConfigured } from "@/lib/db";
 import { productsSchema, toPublicProduct } from "@/lib/schemas/product";
+import { sellableNow } from "@/lib/utils/stock";
 import { PRODUCTS as STATIC_PRODUCTS } from "@/lib/products";
 
 import {
@@ -80,6 +81,30 @@ const withLiveStock = async (products) => {
 
     return live ? { ...product, ...live } : product;
   });
+};
+
+export const getLatestProducts = async (limit = 5) => {
+  if (!isDatabaseConfigured())
+    return (await getAllProducts()).filter(sellableNow).slice(0, limit);
+
+  const db = await getDb();
+
+  if (!db) return [];
+
+  const documents = await db
+    .collection(COLLECTION)
+    .find(
+      { status: { $ne: "sold" } },
+      { projection: { _id: 0, costCents: 0, lot: 0 } }
+    )
+    .sort({ createdAt: -1 })
+    .limit(limit * 3)
+    .toArray();
+
+  return productsSchema
+    .parse(documents.map(({ order, ...product }) => product))
+    .filter(sellableNow)
+    .slice(0, limit);
 };
 
 export const getSellableProducts = async () =>
