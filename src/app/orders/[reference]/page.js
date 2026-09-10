@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import InteriorPage from "@/components/interior-page";
 import OrderSummary from "@/components/order-summary";
@@ -8,8 +9,10 @@ import { BODY, META } from "@/lib/type";
 import { title } from "@/lib/brand";
 import { optionalSession } from "@/lib/session";
 import { findOrderByReference, orderSecret } from "@/lib/api/orders";
-import { PAYMENT_METHOD } from "@/lib/schemas/order";
+import { PAYMENT_METHOD, PAYMENT_STATUS } from "@/lib/schemas/order";
 import { verifyOrderToken } from "@/lib/utils/order-token";
+import CancelOrderButton from "@/components/cancel-order-button";
+import { CANCELLABLE_STATUSES } from "@/lib/api/orders";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +63,20 @@ const OrderPage = async ({ params, searchParams }) => {
             .join(" · ")}
         </p>
       ) : null}
+
+      <p className={cn(META, "mt-6")}>
+        <Link
+          href={`/orders/${order.reference}/invoice?t=${encodeURIComponent(t ?? "")}`}
+          className="text-blurple hover:underline"
+        >
+          View invoice
+        </Link>
+      </p>
+
+      {CANCELLABLE_STATUSES.includes(order.status) &&
+        order.payment.status !== PAYMENT_STATUS.paid && (
+          <CancelOrderButton reference={order.reference} token={t ?? ""} />
+        )}
 
       <div className="mt-10 max-w-[460px]">
         <OrderSummary

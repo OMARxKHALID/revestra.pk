@@ -73,3 +73,8 @@ export const orderLookupSchema = z.object({
   reference: z.string().trim().min(4, "Enter your order reference"),
   email: z.email("Enter the email you ordered with"),
 });
+
+export const orderCancelSchema = z.object({
+  reference: z.string().trim().min(4, "Enter your order reference"),
+  token: z.string().trim().max(400).default(""),
+});

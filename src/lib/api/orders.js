@@ -168,7 +168,17 @@ export const findStaleOrders = async (cutoff) => {
     .toArray();
 };
 
-export const cancelStaleOrder = async (reference, note) => {
+export const CANCELLABLE_STATUSES = [
+  ORDER_STATUS.pendingPayment,
+  ORDER_STATUS.received,
+  ORDER_STATUS.processing,
+];
+
+export const cancelOrderDocument = async (
+  reference,
+  note,
+  from = [ORDER_STATUS.pendingPayment]
+) => {
   const db = await getDb();
 
   if (!db) return { cancelled: false };
@@ -176,7 +186,7 @@ export const cancelStaleOrder = async (reference, note) => {
   const now = new Date();
 
   const result = await db.collection(COLLECTION).updateOne(
-    { reference, status: ORDER_STATUS.pendingPayment },
+    { reference, status: { $in: from } },
     {
       $set: {
         status: ORDER_STATUS.cancelled,

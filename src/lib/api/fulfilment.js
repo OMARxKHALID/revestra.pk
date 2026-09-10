@@ -1,10 +1,13 @@
 import "server-only";
 import { markSold, releaseStock } from "@/lib/api/inventory";
 import {
-  cancelStaleOrder,
+  CANCELLABLE_STATUSES,
+  cancelOrderDocument,
+  findOrderByReference,
   findStaleOrders,
   flagStockConflict,
 } from "@/lib/api/orders";
+import { PAYMENT_STATUS } from "@/lib/schemas/order";
 import { recordRedemption, releaseRedemption } from "@/lib/api/promos";
 import { captureServerEvent } from "@/lib/api/analytics";
 import { ANALYTICS_EVENT, orderProperties } from "@/lib/analytics";
@@ -19,19 +22,56 @@ export const completeSale = async (order, lines = order.items) => {
   return sale;
 };
 
+const releaseHolds = async (order) => {
+  await releaseStock(order.items, order.reference);
+
+  if (order.promo && order.promoRedeemed)
+    await releaseRedemption(order.promo.code, order.reference);
+};
+
+export const cancelOrder = async (order, note, from) => {
+  await releaseHolds(order);
+
+  return cancelOrderDocument(order.reference, note, from);
+};
+
+export const cancelOwnOrder = async (reference) => {
+  const order = await findOrderByReference(reference);
+
+  if (!order) return { ok: false, error: "No such order" };
+
+  if (order.payment?.status === PAYMENT_STATUS.paid)
+    return {
+      ok: false,
+      error: "This order is paid. Write to us and we will refund it.",
+    };
+
+  if (!CANCELLABLE_STATUSES.includes(order.status))
+    return {
+      ok: false,
+      error: `An order that is ${order.status} can no longer be cancelled here.`,
+    };
+
+  const { cancelled } = await cancelOrder(
+    order,
+    "cancelled by the customer",
+    CANCELLABLE_STATUSES
+  );
+
+  if (!cancelled)
+    return { ok: false, error: "That order could not be cancelled" };
+
+  return { ok: true, order: { ...order, status: "cancelled" } };
+};
+
 export const releaseStaleOrders = async (minutes) => {
   const cutoff = new Date(Date.now() - minutes * 60 * 1000);
   const stale = await findStaleOrders(cutoff);
   const released = [];
 
   for (const order of stale) {
-    await releaseStock(order.items, order.reference);
-
-    if (order.promo && order.promoRedeemed)
-      await releaseRedemption(order.promo.code, order.reference);
-
-    const { cancelled } = await cancelStaleOrder(
-      order.reference,
+    const { cancelled } = await cancelOrder(
+      order,
       `abandoned for over ${minutes} minutes, stock released`
     );
 
