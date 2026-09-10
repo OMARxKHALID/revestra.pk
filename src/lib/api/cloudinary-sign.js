@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 
-export const SIGNED_KEYS = ["folder", "public_id", "source", "timestamp"];
+const SIGNED_KEYS = ["folder", "public_id", "source", "timestamp"];
 
 export const parameterString = (params) =>
   Object.keys(params)

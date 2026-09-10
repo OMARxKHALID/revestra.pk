@@ -55,7 +55,7 @@ export const buildFields = ({
   };
 };
 
-export const inquireTransaction = async ({
+const inquireTransaction = async ({
   attemptRef,
   config,
   fetchImpl = fetch,

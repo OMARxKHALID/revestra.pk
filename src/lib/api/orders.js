@@ -15,7 +15,7 @@ export const buildReference = (now = Date.now(), random = Math.random) =>
     .padEnd(6, "0")
     .toUpperCase()}`;
 
-export const DUPLICATE_KEY = 11000;
+const DUPLICATE_KEY = 11000;
 
 const isDuplicateKey = (error) =>
   Boolean(error) &&

@@ -5,9 +5,9 @@ import { sameOrigin } from "@/lib/api/origin";
 
 const notFound = () => Response.json({ error: "Not found" }, { status: 404 });
 
-export const isAdmin = (session) => session?.user?.role === ROLE.admin;
+const isAdmin = (session) => session?.user?.role === ROLE.admin;
 
-export const adminSession = async () => {
+const adminSession = async () => {
   const session = await auth();
 
   return isAdmin(session) ? session : null;

@@ -2,7 +2,7 @@ import "server-only";
 import { timingSafeEqual } from "node:crypto";
 import { cronSecret } from "@/lib/secrets";
 
-export const CRON_HEADER = "x-cron-secret";
+const CRON_HEADER = "x-cron-secret";
 
 const matches = (offered, expected) => {
   const a = Buffer.from(offered);

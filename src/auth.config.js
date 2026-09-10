@@ -5,7 +5,7 @@ const ADMIN_PREFIX = "/admin";
 
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24;
 
-export const SESSION_UPDATE_AGE_SECONDS = 60 * 15;
+const SESSION_UPDATE_AGE_SECONDS = 60 * 15;
 
 const authConfig = {
   pages: { signIn: "/sign-in" },

@@ -17,7 +17,7 @@ export const CONDITIONS = ["Excellent", "Good", "Fair", "Worn"];
 
 export const AVAILABILITY = ["available", "reserved", "sold"];
 
-export const MEASUREMENT_TEMPLATES = {
+const MEASUREMENT_TEMPLATES = {
   Jeans: ["Waist", "Inseam", "Rise", "Leg opening"],
   Pants: ["Waist", "Inseam", "Rise", "Leg opening"],
   Shirts: ["Pit to pit", "Length", "Shoulder", "Sleeve"],

@@ -5,11 +5,11 @@ import { getDb } from "@/lib/db";
 const COLLECTION = "password_resets";
 
 export const CODE_TTL_MINUTES = 15;
-export const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS = 5;
 
 const digest = (code) => createHash("sha256").update(code, "utf8").digest("hex");
 
-export const generateCode = () => String(randomInt(0, 1_000_000)).padStart(6, "0");
+const generateCode = () => String(randomInt(0, 1_000_000)).padStart(6, "0");
 
 export const requestReset = async (email) => {
   const db = await getDb();

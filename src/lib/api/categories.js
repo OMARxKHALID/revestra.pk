@@ -43,14 +43,6 @@ export const listCategories = async ({ includeInactive = false } = {}) => {
 export const categoryNames = async () =>
   (await listCategories()).map((category) => category.name);
 
-export const measurementsFor = async (name) => {
-  const found = (await listCategories({ includeInactive: true })).find(
-    (category) => category.name === name
-  );
-
-  return found?.measurements ?? [];
-};
-
 export const createCategory = async (category) => {
   const db = await getDb();
 

@@ -27,7 +27,7 @@ export const ratesOf = (commerce) =>
     ? commerce.shippingRates
     : DEFAULT_SHIPPING_RATES;
 
-export const defaultRate = (commerce = DEFAULT_COMMERCE) => ratesOf(commerce)[0];
+const defaultRate = (commerce = DEFAULT_COMMERCE) => ratesOf(commerce)[0];
 
 export const rateById = (id, commerce = DEFAULT_COMMERCE) =>
   ratesOf(commerce).find((rate) => rate.id === id) ?? defaultRate(commerce);

@@ -131,7 +131,7 @@ const optionsFor = (products, filters, key) => {
   return key === "size" ? unique.sort(compareSizes) : unique.sort();
 };
 
-export const priceBounds = (products) => {
+const priceBounds = (products) => {
   if (products.length === 0) return { minCents: 0, maxCents: 0 };
 
   const prices = products.map(priceOf);

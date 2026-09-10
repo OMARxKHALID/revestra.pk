@@ -5,7 +5,7 @@ import { invalidateCatalogue } from "@/lib/api/catalogue-cache";
 
 const COLLECTION = "products";
 
-export const HOLD_MINUTES = DEFAULT_COMMERCE.holdMinutes;
+const HOLD_MINUTES = DEFAULT_COMMERCE.holdMinutes;
 
 const sellableFilter = (slug, now) => ({
   slug,

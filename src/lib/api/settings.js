@@ -9,7 +9,7 @@ const TTL_MS = 30_000;
 
 const cache = (globalThis.__settings ??= { value: null, expiresAt: 0 });
 
-export const invalidateSettings = () => {
+const invalidateSettings = () => {
   cache.expiresAt = 0;
 };
 
