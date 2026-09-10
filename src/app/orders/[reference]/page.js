@@ -8,6 +8,7 @@ import { BODY, META } from "@/lib/type";
 import { title } from "@/lib/brand";
 import { optionalSession } from "@/lib/session";
 import { findOrderByReference, orderSecret } from "@/lib/api/orders";
+import { PAYMENT_METHOD } from "@/lib/schemas/order";
 import { verifyOrderToken } from "@/lib/utils/order-token";
 
 export const dynamic = "force-dynamic";
@@ -35,16 +36,16 @@ const OrderPage = async ({ params, searchParams }) => {
     <InteriorPage heading={`Order ${order.reference}`}>
       <OrderStatus status={order.status} />
 
-      {order.payment.method !== "cod" && (
-        <p className={cn(META, "mt-6 text-black/45")}>
+      {order.payment.method !== PAYMENT_METHOD.cod && (
+        <p className={cn(META, "mt-6 text-ink-soft")}>
           Paid by {order.payment.method} — {order.payment.status}
           {order.payment.verification === "unverified_postback" &&
             " (awaiting gateway confirmation)"}
         </p>
       )}
 
-      {order.payment.method === "cod" && (
-        <p className={cn(META, "mt-6 text-black/45")}>
+      {order.payment.method === PAYMENT_METHOD.cod && (
+        <p className={cn(META, "mt-6 text-ink-soft")}>
           Cash on delivery — pay the courier on arrival.
         </p>
       )}
@@ -58,8 +59,8 @@ const OrderPage = async ({ params, searchParams }) => {
       </div>
 
       <div className="mt-10">
-        <p className={cn(META, "text-black/70")}>Shipping to</p>
-        <address className={cn(BODY, "mt-2 not-italic text-black/70")}>
+        <p className={cn(META, "text-ink-muted")}>Shipping to</p>
+        <address className={cn(BODY, "mt-2 not-italic text-ink-muted")}>
           {order.shipping.name}
           <br />
           {order.shipping.address}

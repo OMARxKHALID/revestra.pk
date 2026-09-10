@@ -1,23 +1,35 @@
-import { orderSchema } from "@/lib/schemas/order";
-import { getAllProducts } from "@/lib/api/products";
+import {
+  ORDER_STATUS,
+  PAYMENT_METHOD,
+  PAYMENT_STATUS,
+  orderSchema,
+} from "@/lib/schemas/order";
+import { getSellableProducts } from "@/lib/api/products";
 import { buildReference, insertOrder, orderSecret } from "@/lib/api/orders";
 import { signOrderToken } from "@/lib/utils/order-token";
-import { getPromoByCode, recordRedemption } from "@/lib/api/promos";
-import { reserveStock, releaseStock, markSold } from "@/lib/api/inventory";
+import { getPromoByCode } from "@/lib/api/promos";
+import { reserveStock, releaseStock } from "@/lib/api/inventory";
+import { completeSale } from "@/lib/api/fulfilment";
 import { priceOrderLines, subtotalOf } from "@/lib/utils/order-lines";
+import { CURRENCY } from "@/lib/utils/price";
 import { promoProblem } from "@/lib/utils/promo-validity";
+import { getSettings } from "@/lib/api/settings";
 import { buildTotals } from "@/lib/utils/totals";
-import { createRateLimiter, tooManyRequests } from "@/lib/rate-limit";
+import { createLimiter, tooManyRequests } from "@/lib/rate-limit";
+import RATE_LIMITS from "@/lib/rate-limits";
+import { sameOrigin, badOrigin } from "@/lib/api/origin";
 import requestIp from "@/lib/utils/request-ip";
 import { sendOrderConfirmation } from "@/lib/email";
 import { siteUrl } from "@/lib/payments/config";
 import { optionalSession } from "@/lib/session";
 import { listMethods } from "@/lib/payments";
 
-const limiter = createRateLimiter({ limit: 10, windowMs: 10 * 60 * 1000 });
+const limiter = createLimiter(RATE_LIMITS.order);
 
 export const POST = async (request) => {
-  const gate = limiter.check(requestIp(request));
+  if (!sameOrigin(request)) return badOrigin();
+
+  const gate = await limiter.check(requestIp(request));
 
   if (!gate.ok) return tooManyRequests(gate.resetAt);
 
@@ -39,7 +51,9 @@ export const POST = async (request) => {
 
   const { shipping, items, promoCode, rateId, method } = parsed.data;
 
-  const available = listMethods().find(
+  const settings = await getSettings();
+
+  const available = listMethods(settings).find(
     (option) => option.id === method && option.available
   );
 
@@ -49,7 +63,7 @@ export const POST = async (request) => {
       { status: 409 }
     );
 
-  const catalogue = await getAllProducts();
+  const catalogue = await getSellableProducts();
   const priced = priceOrderLines(catalogue, items);
 
   if (!priced.ok) return Response.json({ error: priced.error }, { status: 409 });
@@ -64,17 +78,26 @@ export const POST = async (request) => {
     if (problem) return Response.json({ error: problem }, { status: 422 });
   }
 
-  const totals = buildTotals({ subtotalCents, promo, rateId });
-  const reservation = await reserveStock(priced.lines);
+  const { commerce } = settings;
+  const totals = buildTotals({ subtotalCents, promo, rateId, commerce });
+  const reference = buildReference();
+  const reservation = await reserveStock(priced.lines, {
+    reference,
+    holdFor: commerce.holdMinutes,
+  });
 
   if (!reservation.ok)
     return Response.json({ error: reservation.error }, { status: 409 });
 
   const session = await optionalSession();
+  const isCod = method === PAYMENT_METHOD.cod;
+  const openingStatus = isCod
+    ? ORDER_STATUS.received
+    : ORDER_STATUS.pendingPayment;
 
   const order = {
-    reference: buildReference(),
-    currency: "PKR",
+    reference,
+    currency: CURRENCY,
     userId: session?.user?.id ?? null,
     email: shipping.email.toLowerCase(),
     shipping,
@@ -93,30 +116,32 @@ export const POST = async (request) => {
     payment: {
       method,
       mode: null,
-      status: method === "cod" ? "not_required" : "pending",
+      status: isCod ? PAYMENT_STATUS.notRequired : PAYMENT_STATUS.pending,
       amountCents: totals.totalCents,
       verification: "none",
       providerTxnId: null,
       settledAt: null,
       attempts: [],
     },
-    status: method === "cod" ? "received" : "pending_payment",
-    history: [{ status: method === "cod" ? "received" : "pending_payment", at: new Date() }],
+    status: openingStatus,
+    history: [{ status: openingStatus, at: new Date() }],
+    promoRedeemed: false,
     stockReserved: reservation.reserved,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 
   let persisted = false;
+  let duplicate = false;
 
   try {
-    ({ persisted } = await insertOrder(order));
+    ({ persisted, duplicate = false } = await insertOrder(order));
   } catch (error) {
     console.error(
       `[orders] could not store ${order.reference}: ${error.message}`
     );
 
-    if (reservation.reserved) await releaseStock(priced.lines);
+    if (reservation.reserved) await releaseStock(priced.lines, reference);
 
     return Response.json(
       {
@@ -127,15 +152,21 @@ export const POST = async (request) => {
     );
   }
 
-  if (persisted && method === "cod") await markSold(priced.lines);
+  if (duplicate) {
+    await releaseStock(priced.lines, reference);
 
-  if (promo && persisted && method === "cod")
-    await recordRedemption(promo.code);
+    return Response.json(
+      { error: "That order could not be recorded. Please try again." },
+      { status: 409 }
+    );
+  }
+
+  if (persisted && isCod) await completeSale(order, priced.lines);
 
   const token = signOrderToken(order.reference, orderSecret());
   const trackUrl = `${siteUrl()}/orders/${order.reference}?t=${encodeURIComponent(token)}`;
 
-  if (method === "cod" && persisted)
+  if (isCod && persisted)
     await sendOrderConfirmation(order, trackUrl);
 
   return Response.json({
@@ -148,7 +179,7 @@ export const POST = async (request) => {
     persisted,
     token,
     payUrl:
-      method === "cod"
+      isCod
         ? null
         : `/checkout/pay/${order.reference}?t=${encodeURIComponent(token)}`,
   });
