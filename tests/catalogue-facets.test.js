@@ -2,8 +2,10 @@ import { describe, expect, test } from "bun:test";
 import {
   EMPTY_FILTERS,
   buildFacets,
+  filtersToParams,
   matchesFilters,
   readFilters,
+  toSearchParams,
 } from "../src/lib/utils/catalogue.js";
 
 const piece = (overrides) => ({
@@ -50,7 +52,110 @@ describe("readFilters", () => {
       size: "W32 L30",
       brand: "Levi's",
       condition: "Good",
+      minCents: null,
+      maxCents: null,
+      availableOnly: false,
     });
+  });
+
+  test("reads a price range in rupees and stores it in cents", () => {
+    const filters = readFilters(new URLSearchParams("min=1500&max=4000"));
+
+    expect(filters.minCents).toBe(150000);
+    expect(filters.maxCents).toBe(400000);
+  });
+
+  test("ignores a price that is not a usable number", () => {
+    const filters = readFilters(new URLSearchParams("min=abc&max=-5"));
+
+    expect(filters.minCents).toBeNull();
+    expect(filters.maxCents).toBeNull();
+  });
+
+  test("round-trips filters through the query string", () => {
+    const params = new URLSearchParams("q=levi&category=Jeans&min=1500&available=1");
+
+    expect(filtersToParams(readFilters(params)).toString()).toBe(
+      new URLSearchParams({
+        q: "levi",
+        category: "Jeans",
+        min: "1500",
+        available: "1",
+      }).toString()
+    );
+  });
+});
+
+describe("filtering", () => {
+  const item = (overrides) => ({
+    name: "Levi's 501",
+    brand: "Levi's",
+    tagline: "",
+    description: "",
+    category: "Jeans",
+    sizeLabel: "W32 L30",
+    condition: "Good",
+    priceCents: 420000,
+    salePriceCents: null,
+    status: "available",
+    ...overrides,
+  });
+
+  test("a price range excludes pieces outside it", () => {
+    const filters = { ...EMPTY_FILTERS, minCents: 500000 };
+
+    expect(matchesFilters(item(), filters)).toBe(false);
+    expect(matchesFilters(item({ priceCents: 600000 }), filters)).toBe(true);
+  });
+
+  test("a sale price is what the range is measured against", () => {
+    const filters = { ...EMPTY_FILTERS, maxCents: 200000 };
+
+    expect(matchesFilters(item({ salePriceCents: 150000 }), filters)).toBe(true);
+  });
+
+  test("the available-only filter hides reserved and sold pieces", () => {
+    const filters = { ...EMPTY_FILTERS, availableOnly: true };
+
+    expect(matchesFilters(item({ status: "reserved" }), filters)).toBe(false);
+    expect(matchesFilters(item({ status: "sold" }), filters)).toBe(false);
+    expect(matchesFilters(item(), filters)).toBe(true);
+  });
+});
+
+describe("size ordering", () => {
+  test("alpha sizes sort small to large, not alphabetically", () => {
+    const products = ["L", "S", "XL", "M"].map((sizeLabel) => ({
+      category: "Shirts",
+      brand: "x",
+      condition: "Good",
+      sizeLabel,
+      name: "",
+      tagline: "",
+      description: "",
+      priceCents: 1,
+      salePriceCents: null,
+      status: "available",
+    }));
+
+    expect(buildFacets(products).sizes).toEqual(["S", "M", "L", "XL"]);
+  });
+
+  test("numeric sizes sort by value, not by string", () => {
+    const products = ["W40", "W9", "W32"].map((sizeLabel) => ({
+      category: "Jeans",
+      brand: "x",
+      condition: "Good",
+      sizeLabel,
+      name: "",
+      tagline: "",
+      description: "",
+      priceCents: 1,
+      salePriceCents: null,
+      status: "available",
+    }));
+
+    expect(buildFacets(products).sizes).toEqual(["W9", "W32", "W40"]);
   });
 });
 
@@ -127,5 +232,21 @@ describe("buildFacets", () => {
         expect(results.length).toBeGreaterThan(0);
       }
     }
+  });
+});
+
+describe("toSearchParams", () => {
+  test("a repeated query parameter keeps its first value, not a joined string", () => {
+    const params = toSearchParams({ category: ["Jeans", "Shirts"] });
+
+    expect(params.get("category")).toBe("Jeans");
+    expect(readFilters(params).category).toBe("Jeans");
+  });
+
+  test("undefined values are dropped rather than stringified", () => {
+    const params = toSearchParams({ q: "levi", category: undefined });
+
+    expect(params.has("category")).toBe(false);
+    expect(params.get("q")).toBe("levi");
   });
 });

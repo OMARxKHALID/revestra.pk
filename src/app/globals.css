@@ -5,12 +5,20 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: var(--font-inter), sans-serif;
-  --font-serif: var(--font-pt-serif), serif;
+  --font-sans: var(--font-space-grotesk), sans-serif;
+  --font-serif: var(--font-space-grotesk), sans-serif;
 
   --color-blurple: #3667f6;
   --color-sale: #e0342a;
-  --spacing-header: 77px;
+
+  --color-ink: #000000;
+  --color-ink-muted: oklch(0 0 0 / 0.7);
+  --color-ink-soft: oklch(0 0 0 / 0.45);
+  --color-ink-faint: oklch(0 0 0 / 0.3);
+  --color-rule: oklch(0 0 0 / 0.1);
+  --color-rule-strong: oklch(0 0 0 / 0.2);
+
+  --spacing-header: 4.8125rem;
 
   --animate-fade-up: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-marquee: marquee 46s linear infinite;
@@ -73,8 +81,6 @@ html.lenis.lenis-smooth {
 }
 
 @theme inline {
-  --font-heading: var(--font-sans);
-  --font-sans: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -106,6 +112,16 @@ html.lenis.lenis-smooth {
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --color-success: var(--success, oklch(0.52 0.13 150));
+  --color-warning: var(--warning, oklch(0.52 0.12 70));
+  --color-info: var(--info, oklch(0.52 0.13 250));
+  --shadow-2xs: var(--shadow-2xs, 0 1px rgb(0 0 0 / 0.05));
+  --shadow-xs: var(--shadow-xs, 0 1px 2px 0 rgb(0 0 0 / 0.05));
+  --shadow-sm: var(--shadow-sm, 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1));
+  --shadow-md: var(--shadow-md, 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1));
+  --shadow-lg: var(--shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1));
+  --shadow-xl: var(--shadow-xl, 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1));
+  --shadow-2xl: var(--shadow-2xl, 0 25px 50px -12px rgb(0 0 0 / 0.25));
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -194,4 +210,111 @@ html.lenis.lenis-smooth {
   html {
     @apply font-sans;
   }
+}
+.admin-theme {
+  --background: oklch(0.9761 0.0021 264.5419);
+  --foreground: oklch(0.15 0.01 264.5);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.01 264.5);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.01 264.5);
+  --primary: oklch(0.6716 0.1368 48.513);
+  --primary-foreground: oklch(0.15 0.01 264.5);
+  --secondary: oklch(0.536 0.0398 196.028);
+  --secondary-foreground: oklch(0.15 0.01 264.5);
+  --muted: oklch(0.967 0.0029 264.5419);
+  --muted-foreground: oklch(0.551 0.0234 264.3637);
+  --accent: oklch(0.9491 0 0);
+  --accent-foreground: oklch(0.15 0.01 264.5);
+  --destructive: oklch(0.6368 0.2078 25.3313);
+  --destructive-foreground: oklch(0.15 0.01 264.5);
+  --border: oklch(0.8854 0.006 264.5313);
+  --input: oklch(0.8532 0.0072 264.5313);
+  --ring: oklch(0.6716 0.1368 48.513);
+  --success: oklch(0.52 0.13 150);
+  --warning: oklch(0.52 0.12 70);
+  --info: oklch(0.52 0.13 250);
+  --chart-1: oklch(0.594 0.0443 196.0233);
+  --chart-2: oklch(0.7214 0.1337 49.9802);
+  --chart-3: oklch(0.8721 0.0864 68.5474);
+  --chart-4: oklch(0.6268 0 0);
+  --chart-5: oklch(0.683 0 0);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.15 0.01 264.5);
+  --sidebar-primary: oklch(0.6716 0.1368 48.513);
+  --sidebar-primary-foreground: oklch(0.15 0.01 264.5);
+  --sidebar-accent: oklch(0.9491 0 0);
+  --sidebar-accent-foreground: oklch(0.15 0.01 264.5);
+  --sidebar-border: oklch(0.8854 0.006 264.5313);
+  --sidebar-ring: oklch(0.6716 0.1368 48.513);
+  --font-sans: var(--font-space-grotesk), sans-serif;
+  --font-serif: var(--font-space-grotesk), sans-serif;
+  --font-mono: ui-monospace, "Geist Mono", "SFMono-Regular", Menlo, Consolas,
+    monospace;
+  --radius: 0.75rem;
+  --shadow-2xs: 0px 1px 4px 0px hsl(0 0% 0% / 0.03);
+  --shadow-xs: 0px 1px 4px 0px hsl(0 0% 0% / 0.03);
+  --shadow-sm: 0px 1px 4px 0px hsl(0 0% 0% / 0.05),
+    0px 1px 2px -1px hsl(0 0% 0% / 0.05);
+  --shadow: 0px 1px 4px 0px hsl(0 0% 0% / 0.05),
+    0px 1px 2px -1px hsl(0 0% 0% / 0.05);
+  --shadow-md: 0px 1px 4px 0px hsl(0 0% 0% / 0.05),
+    0px 2px 4px -1px hsl(0 0% 0% / 0.05);
+  --shadow-lg: 0px 1px 4px 0px hsl(0 0% 0% / 0.05),
+    0px 4px 6px -1px hsl(0 0% 0% / 0.05);
+  --shadow-xl: 0px 1px 4px 0px hsl(0 0% 0% / 0.05),
+    0px 8px 10px -1px hsl(0 0% 0% / 0.05);
+  --shadow-2xl: 0px 1px 4px 0px hsl(0 0% 0% / 0.13);
+}
+
+.dark .admin-theme,
+.admin-theme.dark {
+  --background: oklch(0.1797 0.0043 308.1928);
+  --foreground: oklch(0.8109 0 0);
+  --card: oklch(0.2262 0.0039 308.1928);
+  --card-foreground: oklch(0.8109 0 0);
+  --popover: oklch(0.2262 0.0039 308.1928);
+  --popover-foreground: oklch(0.8109 0 0);
+  --primary: oklch(0.7214 0.1337 49.9802);
+  --primary-foreground: oklch(0.1797 0.0043 308.1928);
+  --secondary: oklch(0.594 0.0443 196.0233);
+  --secondary-foreground: oklch(0.1797 0.0043 308.1928);
+  --muted: oklch(0.252 0 0);
+  --muted-foreground: oklch(0.6268 0 0);
+  --accent: oklch(0.3211 0 0);
+  --accent-foreground: oklch(0.8109 0 0);
+  --destructive: oklch(0.6845 0.1943 26.0637);
+  --destructive-foreground: oklch(0.1797 0.0043 308.1928);
+  --border: oklch(0.3078 0 0);
+  --input: oklch(0.3479 0 0);
+  --ring: oklch(0.7214 0.1337 49.9802);
+  --success: oklch(0.78 0.14 150);
+  --warning: oklch(0.82 0.14 78);
+  --info: oklch(0.75 0.11 245);
+  --sidebar: oklch(0.2059 0.0039 308.1928);
+  --sidebar-foreground: oklch(0.8109 0 0);
+  --sidebar-primary: oklch(0.7214 0.1337 49.9802);
+  --sidebar-primary-foreground: oklch(0.1797 0.0043 308.1928);
+  --sidebar-accent: oklch(0.3211 0 0);
+  --sidebar-accent-foreground: oklch(0.8109 0 0);
+  --sidebar-border: oklch(0.3078 0 0);
+  --sidebar-ring: oklch(0.7214 0.1337 49.9802);
+  --shadow-2xs: 0px 1px 4px 0px hsl(0 0% 0% / 0.24);
+  --shadow-xs: 0px 1px 4px 0px hsl(0 0% 0% / 0.3);
+  --shadow-sm: 0px 1px 4px 0px hsl(0 0% 0% / 0.36),
+    0px 1px 2px -1px hsl(0 0% 0% / 0.36);
+  --shadow: 0px 1px 4px 0px hsl(0 0% 0% / 0.4),
+    0px 1px 2px -1px hsl(0 0% 0% / 0.4);
+  --shadow-md: 0px 1px 4px 0px hsl(0 0% 0% / 0.4),
+    0px 2px 4px -1px hsl(0 0% 0% / 0.4);
+  --shadow-lg: 0px 1px 4px 0px hsl(0 0% 0% / 0.44),
+    0px 4px 6px -1px hsl(0 0% 0% / 0.44);
+  --shadow-xl: 0px 1px 4px 0px hsl(0 0% 0% / 0.48),
+    0px 8px 10px -1px hsl(0 0% 0% / 0.48);
+  --shadow-2xl: 0px 1px 4px 0px hsl(0 0% 0% / 0.62);
+}
+
+.admin-theme ::selection {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
 }

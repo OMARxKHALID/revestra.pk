@@ -2,12 +2,12 @@
 
 const GlobalError = ({ reset }) => (
   <html lang="en">
-    <body className="bg-white text-black antialiased">
+    <body className="bg-white text-ink antialiased">
       <main className="flex min-h-svh items-center justify-center px-6 text-center">
         <div className="max-w-[46ch]">
           <h1 className="text-[30px] leading-[1.15]">Something went wrong</h1>
 
-          <p className="mt-5 text-sm leading-relaxed text-black/70">
+          <p className="mt-5 text-sm leading-relaxed text-ink-muted">
             The application failed to start. Reload the page, or try again in a
             moment.
           </p>

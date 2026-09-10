@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
@@ -9,59 +9,49 @@ import { signUpSchema } from "@/lib/schemas/user";
 import Field from "@/components/ui/field";
 import { LockIcon, MailIcon, UserIcon } from "@/components/ui/icons";
 import PillButton from "@/components/ui/pill-button";
+import ErrorNotice from "@/components/ui/error-notice";
 import cn from "@/lib/utils/cn";
-import { BODY, NOTICE } from "@/lib/type";
+import { BODY } from "@/lib/type";
+import { request } from "@/lib/api-client";
 
 const SignUpForm = ({ available }) => {
   const router = useRouter();
-  const [submitError, setSubmitError] = useState(null);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({ resolver: zodResolver(signUpSchema) });
 
-  const onSubmit = async (values) => {
-    setSubmitError(null);
+  const createAccount = useMutation({
+    mutationFn: async (values) => {
+      await request("/api/account/register", { body: values });
 
-    try {
-      const response = await fetch("/api/account/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-
-      const body = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        setSubmitError(body.error ?? "Could not create the account.");
-        return;
-      }
-
-      await signIn("credentials", {
+      return signIn("credentials", {
         email: values.email,
         password: values.password,
         redirect: false,
       });
-
+    },
+    onSuccess: () => {
       router.push("/account");
       router.refresh();
-    } catch {
-      setSubmitError("Network error. Try again.");
-    }
-  };
+    },
+  });
+
+  const submitError = createAccount.isError ? createAccount.error.message : null;
+  const handleCreateAccount = (values) => createAccount.mutate(values);
 
   if (!available)
     return (
-      <p className={cn(BODY, "mt-10 text-black/70")}>
+      <p className={cn(BODY, "mt-10 text-ink-muted")}>
         Accounts need a database, and this deployment has none configured. Guest
         checkout still works.
       </p>
     );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-10">
+    <form onSubmit={handleSubmit(handleCreateAccount)} noValidate className="mt-10">
       <div className="grid grid-cols-1 gap-7">
         <Field
           id="name"
@@ -100,13 +90,11 @@ const SignUpForm = ({ available }) => {
         />
       </div>
 
-      <PillButton type="submit" disabled={isSubmitting} className="mt-9 w-full">
-        {isSubmitting ? "Creating…" : "Create account"}
+      <PillButton type="submit" disabled={createAccount.isPending} className="mt-9 w-full">
+        {createAccount.isPending ? "Creating…" : "Create account"}
       </PillButton>
 
-      <p aria-live="polite" className={cn(NOTICE, "mt-4 text-sale")}>
-        {submitError ?? " "}
-      </p>
+      <ErrorNotice error={createAccount.error} className="mt-4" />
     </form>
   );
 };

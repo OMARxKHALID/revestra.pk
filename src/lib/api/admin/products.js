@@ -1,6 +1,7 @@
 import "server-only";
 import { getDb } from "@/lib/db";
-import { invalidateCatalogue } from "@/lib/api/products";
+import { invalidateCatalogue } from "@/lib/api/catalogue-cache";
+import slugify from "@/lib/utils/slugify";
 
 const COLLECTION = "products";
 
@@ -79,6 +80,12 @@ export const nextSku = async (prefix = "GS") => {
   return `${prefix}-${String(current + 1).padStart(4, "0")}`;
 };
 
+export const derive = async (input) => ({
+  ...input,
+  slug: input.slug || slugify(input.brand, input.name, input.sizeLabel),
+  sku: input.sku || (await nextSku()),
+});
+
 export const createProduct = async (product) => {
   const db = await getDb();
 
@@ -108,7 +115,7 @@ export const createProduct = async (product) => {
 
   invalidateCatalogue();
 
-  return { ok: true, slug: product.slug };
+  return { ok: true, product };
 };
 
 export const updateProduct = async (slug, patch) => {
@@ -124,7 +131,7 @@ export const updateProduct = async (slug, patch) => {
       { returnDocument: "after", projection: { _id: 0 } }
     );
 
-  const product = result?.value ?? result ?? null;
+  const product = result ?? null;
 
   if (!product) return { ok: false, error: "No such piece" };
 
@@ -171,4 +178,47 @@ export const countByStatus = async () => {
     (counts, row) => ({ ...counts, [row._id]: row.count }),
     { available: 0, reserved: 0, sold: 0 }
   );
+};
+
+export const setStatus = async (slug, status) =>
+  updateProduct(slug, {
+    status,
+    soldAt: status === "sold" ? new Date() : null,
+    reservedUntil: null,
+  });
+
+export const countProductsByCategory = async () => {
+  const db = await getDb();
+
+  if (!db) return {};
+
+  const rows = await db
+    .collection(COLLECTION)
+    .aggregate([{ $group: { _id: "$category", count: { $sum: 1 } } }])
+    .toArray();
+
+  return rows.reduce(
+    (counts, row) => ({ ...counts, [row._id]: row.count }),
+    {}
+  );
+};
+
+export const listImageLibrary = async (limit = 120) => {
+  const db = await getDb();
+
+  if (!db) return [];
+
+  const rows = await db
+    .collection(COLLECTION)
+    .find({}, { projection: { _id: 0, image: 1, images: 1 } })
+    .limit(limit)
+    .toArray();
+
+  const seen = new Set();
+
+  for (const row of rows)
+    for (const url of [row.image, ...(row.images ?? [])])
+      if (url) seen.add(url);
+
+  return [...seen];
 };

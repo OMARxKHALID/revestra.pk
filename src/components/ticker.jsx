@@ -79,7 +79,9 @@ const readClock = () => {
   };
 };
 
-const Ticker = () => {
+const ICONS = { globe: GlobeIcon, clock: ClockIcon, shield: ShieldIcon };
+
+const Ticker = ({ entries = [] }) => {
   const [state, setState] = useState(null);
 
   useEffect(() => {
@@ -89,19 +91,21 @@ const Ticker = () => {
     return () => clearInterval(id);
   }, []);
 
-  const items = [
-    { Icon: GlobeIcon, text: "Everyday goods, plainly made — shipped across Pakistan" },
-    {
-      Icon: ClockIcon,
-      text: state
-        ? `It's ${state.time} in Karachi, we're ${state.open ? "open" : "closed"}`
-        : "Karachi time",
-    },
-    {
-      Icon: ShieldIcon,
-      text: `${state ? state.days.toLocaleString("en-US") : "—"} days without an accident`,
-    },
-  ];
+  const live = {
+    clock: state
+      ? `It's ${state.time} in Karachi, we're ${state.open ? "open" : "closed"}`
+      : "Karachi time",
+    shield: `${state ? state.days.toLocaleString("en-US") : "—"} days without an accident`,
+  };
+
+  const items = entries
+    .map(({ icon, text }) => ({
+      Icon: ICONS[icon] ?? GlobeIcon,
+      text: text || live[icon] || "",
+    }))
+    .filter(({ text }) => text);
+
+  if (items.length === 0) return null;
 
   const lane = [...items, ...items, ...items, ...items];
 

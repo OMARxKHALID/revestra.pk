@@ -18,17 +18,14 @@ export const listReviews = async ({ status = "" } = {}) => {
     .toArray();
 };
 
-export const setReviewStatus = async ({ author, createdAt, status }) => {
+export const setReviewStatus = async ({ id, status }) => {
   const db = await getDb();
 
   if (!db) return { ok: false, error: "No database is configured" };
 
   const result = await db
     .collection(COLLECTION)
-    .updateOne(
-      { author, createdAt: new Date(createdAt) },
-      { $set: { status, updatedAt: new Date() } }
-    );
+    .updateOne({ id }, { $set: { status, updatedAt: new Date() } });
 
   if (result.matchedCount === 0) return { ok: false, error: "No such review" };
 

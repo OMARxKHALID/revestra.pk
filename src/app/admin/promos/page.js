@@ -1,11 +1,8 @@
+import { Coupon01Icon } from "@hugeicons/core-free-icons";
+import PageLayout from "@/components/admin/page-layout";
+import PageHeader from "@/components/admin/page-header";
 import PromoManager from "@/components/admin/promo-manager";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { listPromos } from "@/lib/api/admin/promos";
 
 export const dynamic = "force-dynamic";
@@ -14,19 +11,19 @@ const PromosPage = async () => {
   const promos = await listPromos();
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Promo codes</CardTitle>
-        <CardDescription>
-          Saving a code that already exists updates it and keeps its redemption
-          count.
-        </CardDescription>
-      </CardHeader>
+    <PageLayout>
+      <PageHeader
+        title="Promo codes"
+        description="Saving a code that already exists updates it and keeps its redemption count."
+        icon={Coupon01Icon}
+      />
 
-      <CardContent>
-        <PromoManager promos={promos} />
-      </CardContent>
-    </Card>
+      <Card>
+        <CardContent>
+          <PromoManager promos={promos} />
+        </CardContent>
+      </Card>
+    </PageLayout>
   );
 };
 

@@ -3,29 +3,56 @@ import { MongoClient } from "mongodb";
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB ?? "general-store";
 
-let cached = globalThis.__mongo;
+const RETRY_AFTER_MS = 5_000;
 
-if (!cached) cached = globalThis.__mongo = { client: null, promise: null };
+const OPTIONS = {
+  serverSelectionTimeoutMS: 5_000,
+  connectTimeoutMS: 10_000,
+  socketTimeoutMS: 20_000,
+  maxPoolSize: 10,
+  minPoolSize: 0,
+  maxIdleTimeMS: 60_000,
+  retryWrites: true,
+  retryReads: true,
+};
+
+export class DatabaseUnavailableError extends Error {
+  constructor() {
+    super("The catalogue database is unreachable");
+    this.name = "DatabaseUnavailableError";
+    this.expected = true;
+  }
+}
+
+const safeReason = (error) => {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return message.replace(/mongodb(\+srv)?:\/\/[^\s]*/gi, "<uri>").slice(0, 200);
+};
+
+const state = (globalThis.__mongo ??= { promise: null, failedAt: 0 });
 
 export const isDatabaseConfigured = () => Boolean(uri);
 
 export const getDb = async () => {
   if (!uri) return null;
 
-  if (!cached.promise) {
-    cached.promise = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 5000,
-    })
+  if (!state.promise && Date.now() - state.failedAt < RETRY_AFTER_MS)
+    throw new DatabaseUnavailableError();
+
+  if (!state.promise) {
+    state.promise = new MongoClient(uri, OPTIONS)
       .connect()
-      .then((client) => {
-        cached.client = client;
-        return client.db(dbName);
-      })
+      .then((client) => client.db(dbName))
       .catch((error) => {
-        cached.promise = null;
-        throw error;
+        state.promise = null;
+        state.failedAt = Date.now();
+
+        console.error(`[db] could not reach the database: ${safeReason(error)}`);
+
+        throw new DatabaseUnavailableError();
       });
   }
 
-  return cached.promise;
+  return state.promise;
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -20,6 +21,9 @@ const LABELS = {
   promos: "Promo codes",
   reviews: "Reviews",
   subscribers: "Subscribers",
+  categories: "Categories",
+  settings: "Site settings",
+  account: "Your account",
   new: "New piece",
 };
 
@@ -42,20 +46,21 @@ const AdminHeader = () => {
       <Breadcrumb>
         <BreadcrumbList>
           {crumbs.map((crumb) => (
-            <BreadcrumbItem key={crumb.href}>
-              {crumb.last ? (
-                <BreadcrumbPage className="truncate max-w-[42vw]">
-                  {crumb.label}
-                </BreadcrumbPage>
-              ) : (
-                <>
+            <Fragment key={crumb.href}>
+              <BreadcrumbItem>
+                {crumb.last ? (
+                  <BreadcrumbPage className="truncate max-w-[42vw]">
+                    {crumb.label}
+                  </BreadcrumbPage>
+                ) : (
                   <BreadcrumbLink render={<Link href={crumb.href} />}>
                     {crumb.label}
                   </BreadcrumbLink>
-                  <BreadcrumbSeparator />
-                </>
-              )}
-            </BreadcrumbItem>
+                )}
+              </BreadcrumbItem>
+
+              {!crumb.last && <BreadcrumbSeparator />}
+            </Fragment>
           ))}
         </BreadcrumbList>
       </Breadcrumb>

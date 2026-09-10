@@ -42,19 +42,23 @@ const ProductGallery = ({ frames, name, sold = false, label }) => {
       </div>
 
       {!single && (
-        <div className="flex flex-wrap justify-center gap-3">
+        <div
+          role="group"
+          aria-label={`${name} — other views`}
+          className="flex flex-wrap justify-center gap-3"
+        >
           {frames.map((frame, index) => (
             <button
               key={frame}
               type="button"
               onClick={() => handleSelect(index)}
               aria-label={`${name} — view ${index + 1}`}
-              aria-current={index === active}
+              aria-pressed={index === active}
               className={cn(
                 "flex h-16 w-16 items-center justify-center border transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple",
                 index === active
                   ? "border-blurple"
-                  : "border-black/10 hover:border-black/60"
+                  : "border-rule hover:border-ink-muted"
               )}
             >
               <Image

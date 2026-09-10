@@ -18,6 +18,9 @@ const Pager = ({ page, perPage, total }) => {
     return `${pathname}?${next.toString()}`;
   };
 
+  const hasPrevious = page > 1;
+  const hasNext = page < pages;
+
   return (
     <div className="flex items-center justify-between gap-4 pt-2">
       <p className="text-xs text-muted-foreground">
@@ -28,8 +31,9 @@ const Pager = ({ page, perPage, total }) => {
         <Button
           variant="outline"
           size="sm"
-          disabled={page <= 1}
-          render={page <= 1 ? undefined : <Link href={href(page - 1)} />}
+          disabled={!hasPrevious}
+          nativeButton={!hasPrevious}
+          render={hasPrevious ? <Link href={href(page - 1)} /> : undefined}
         >
           Previous
         </Button>
@@ -37,8 +41,9 @@ const Pager = ({ page, perPage, total }) => {
         <Button
           variant="outline"
           size="sm"
-          disabled={page >= pages}
-          render={page >= pages ? undefined : <Link href={href(page + 1)} />}
+          disabled={!hasNext}
+          nativeButton={!hasNext}
+          render={hasNext ? <Link href={href(page + 1)} /> : undefined}
         >
           Next
         </Button>

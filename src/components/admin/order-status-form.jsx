@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,39 +15,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SETTABLE_ORDER_STATUSES } from "@/lib/schemas/admin";
+import { request } from "@/lib/api-client";
 
 const OrderStatusForm = ({ reference, status: current }) => {
   const router = useRouter();
   const [status, setStatus] = useState(current);
   const [note, setNote] = useState("");
-  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setSaving(true);
-
-    try {
-      const response = await fetch(`/api/admin/orders/${reference}`, {
+  const save = useMutation({
+    mutationFn: () =>
+      request(`/api/admin/orders/${reference}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, note }),
-      });
-
-      const body = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        toast.error(body.error ?? "Could not update the order");
-        return;
-      }
-
+        body: { status, note },
+      }),
+    onSuccess: () => {
       toast.success(`${reference} is now ${status}`);
       setNote("");
       router.refresh();
-    } catch {
-      toast.error("Network error. Try again.");
-    } finally {
-      setSaving(false);
-    }
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    save.mutate();
   };
 
   return (
@@ -79,8 +71,8 @@ const OrderStatusForm = ({ reference, status: current }) => {
         />
       </div>
 
-      <Button type="submit" disabled={saving || status === current}>
-        {saving ? "Saving…" : "Update status"}
+      <Button type="submit" disabled={save.isPending || status === current}>
+        {save.isPending ? "Saving…" : "Update status"}
       </Button>
 
       <p className="text-xs text-muted-foreground">

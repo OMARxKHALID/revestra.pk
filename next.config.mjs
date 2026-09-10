@@ -1,4 +1,28 @@
+const GATEWAY_FORM_TARGETS = [
+  "https://payments.jazzcash.com.pk",
+  "https://sandbox.jazzcash.com.pk",
+  "https://easypay.easypaisa.com.pk",
+  "https://easypaystg.easypaisa.com.pk",
+];
+
+const isDev = process.env.NODE_ENV !== "production";
+
+const CSP = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "img-src 'self' data: blob: https://res.cloudinary.com",
+  "font-src 'self' data:",
+  "style-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `connect-src 'self' https://api.cloudinary.com${isDev ? " ws: http://localhost:*" : ""}`,
+  `form-action 'self' ${GATEWAY_FORM_TARGETS.join(" ")}`,
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
+
 const SECURITY_HEADERS = [
+  { key: "Content-Security-Policy", value: CSP },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -22,6 +46,9 @@ const nextConfig = {
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
+    ],
   },
   headers: async () => [
     { source: "/:path*", headers: SECURITY_HEADERS },

@@ -13,30 +13,54 @@ export const getPromoByCode = async (raw) => {
 
   if (!isDatabaseConfigured()) return fromStatic(code);
 
-  try {
-    const db = await getDb();
+  const db = await getDb();
 
-    if (!db) return fromStatic(code);
+  if (!db) return fromStatic(code);
 
-    const document = await db
-      .collection(COLLECTION)
-      .findOne({ code }, { projection: { _id: 0 } });
+  const document = await db
+    .collection(COLLECTION)
+    .findOne({ code }, { projection: { _id: 0 } });
 
-    if (!document) return fromStatic(code);
+  if (!document) return null;
 
-    return promoSchema.parse(document);
-  } catch (error) {
-    console.warn(`[promos] lookup failed for ${code}: ${error.message}`);
-    return fromStatic(code);
-  }
+  return promoSchema.parse(document);
 };
 
-export const recordRedemption = async (code) => {
+const claimRedemption = async (db, reference, redeemed) => {
+  if (!reference) return true;
+
+  const result = await db
+    .collection("orders")
+    .updateOne(
+      { reference, promoRedeemed: redeemed ? { $ne: true } : true },
+      { $set: { promoRedeemed: redeemed } }
+    );
+
+  return result.modifiedCount > 0;
+};
+
+export const recordRedemption = async (code, reference = null) => {
   if (!isDatabaseConfigured()) return;
 
   const db = await getDb();
 
   if (!db) return;
+  if (!(await claimRedemption(db, reference, true))) return;
 
-  await db.collection(COLLECTION).updateOne({ code }, { $inc: { redemptions: 1 } });
+  await db
+    .collection(COLLECTION)
+    .updateOne({ code }, { $inc: { redemptions: 1 } });
+};
+
+export const releaseRedemption = async (code, reference = null) => {
+  if (!isDatabaseConfigured()) return;
+
+  const db = await getDb();
+
+  if (!db) return;
+  if (!(await claimRedemption(db, reference, false))) return;
+
+  await db
+    .collection(COLLECTION)
+    .updateOne({ code, redemptions: { $gt: 0 } }, { $inc: { redemptions: -1 } });
 };

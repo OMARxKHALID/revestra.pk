@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete02Icon } from "@hugeicons/core-free-icons";
@@ -16,36 +17,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { request } from "@/lib/api-client";
 
 const DeleteProductButton = ({ slug, name }) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [working, setWorking] = useState(false);
 
-  const handleDelete = async () => {
-    setWorking(true);
-
-    try {
-      const response = await fetch(`/api/admin/products/${slug}`, {
-        method: "DELETE",
-      });
-
-      const body = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        toast.error(body.error ?? "Could not delete that piece");
-        return;
-      }
-
+  const remove = useMutation({
+    mutationFn: () =>
+      request(`/api/admin/products/${slug}`, { method: "DELETE" }),
+    onSuccess: () => {
       toast.success(`${name} removed`);
       setOpen(false);
       router.refresh();
-    } catch {
-      toast.error("Network error. Try again.");
-    } finally {
-      setWorking(false);
-    }
-  };
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const handleDelete = () => remove.mutate();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -72,9 +61,9 @@ const DeleteProductButton = ({ slug, name }) => {
           <Button
             variant="destructive"
             onClick={handleDelete}
-            disabled={working}
+            disabled={remove.isPending}
           >
-            {working ? "Deleting…" : "Delete"}
+            {remove.isPending ? "Deleting…" : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>

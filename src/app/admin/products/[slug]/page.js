@@ -1,14 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { HangerIcon } from "@hugeicons/core-free-icons";
+import PageLayout from "@/components/admin/page-layout";
+import PageHeader from "@/components/admin/page-header";
 import ProductForm from "@/components/admin/product-form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { getProduct } from "@/lib/api/admin/products";
+import { listCategories } from "@/lib/api/categories";
+import { Card, CardContent } from "@/components/ui/card";
+import { getProduct, listImageLibrary } from "@/lib/api/admin/products";
 
 export const dynamic = "force-dynamic";
 
@@ -18,25 +16,39 @@ const EditProductPage = async ({ params }) => {
 
   if (!product) notFound();
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{product.name}</CardTitle>
-        <CardDescription>
-          {product.sku} ·{" "}
-          <Link
-            href={`/products/${product.slug}`}
-            className="underline underline-offset-4"
-          >
-            View on the storefront
-          </Link>
-        </CardDescription>
-      </CardHeader>
+  const [categories, existingImages] = await Promise.all([
+    listCategories({ includeInactive: true }),
+    listImageLibrary(),
+  ]);
 
-      <CardContent>
-        <ProductForm product={product} />
-      </CardContent>
-    </Card>
+  return (
+    <PageLayout>
+      <PageHeader
+        title={product.name}
+        icon={HangerIcon}
+        description={
+          <>
+            {product.sku} ·{" "}
+            <Link
+              href={`/products/${product.slug}`}
+              className="underline underline-offset-4"
+            >
+              View on the storefront
+            </Link>
+          </>
+        }
+      />
+
+      <Card>
+        <CardContent>
+          <ProductForm
+            categories={categories}
+            product={product}
+            existingImages={existingImages}
+          />
+        </CardContent>
+      </Card>
+    </PageLayout>
   );
 };
 

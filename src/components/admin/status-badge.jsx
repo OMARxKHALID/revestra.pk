@@ -1,18 +1,18 @@
 import { Badge } from "@/components/ui/badge";
 
 const TONES = {
-  delivered: "default",
-  shipped: "secondary",
-  processing: "secondary",
-  received: "secondary",
-  pending_payment: "outline",
+  delivered: "success",
+  available: "success",
+  published: "success",
+  shipped: "info",
+  processing: "info",
+  received: "info",
+  pending_payment: "warning",
+  reserved: "warning",
+  sold: "neutral",
+  hidden: "neutral",
   cancelled: "destructive",
   failed: "destructive",
-  available: "secondary",
-  reserved: "outline",
-  sold: "default",
-  published: "secondary",
-  hidden: "outline",
 };
 
 const LABELS = {
@@ -20,7 +20,7 @@ const LABELS = {
 };
 
 const StatusBadge = ({ status }) => (
-  <Badge variant={TONES[status] ?? "outline"} className="capitalize">
+  <Badge variant={TONES[status] ?? "neutral"} className="capitalize">
     {LABELS[status] ?? status}
   </Badge>
 );

@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import useWishlist from "@/store/use-wishlist";
+import { useSaveWishlist } from "@/hooks/use-wishlist-sync";
 import Chip from "@/components/ui/chip";
 import { HeartIcon } from "@/components/ui/icons";
 
@@ -9,6 +10,7 @@ const SaveButton = ({ slug, className }) => {
   const slugs = useWishlist((state) => state.slugs);
   const toggle = useWishlist((state) => state.toggle);
   const { status } = useSession();
+  const { mutate: save } = useSaveWishlist();
   const saved = slugs.includes(slug);
 
   const handleToggle = () => {
@@ -16,13 +18,7 @@ const SaveButton = ({ slug, className }) => {
 
     if (status !== "authenticated") return;
 
-    fetch("/api/wishlist", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        slugs: saved ? slugs.filter((entry) => entry !== slug) : [...slugs, slug],
-      }),
-    }).catch(() => {});
+    save(saved ? slugs.filter((entry) => entry !== slug) : [...slugs, slug]);
   };
 
   return (

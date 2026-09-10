@@ -1,62 +1,55 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import cn from "@/lib/utils/cn";
 import { META } from "@/lib/type";
 import Field from "@/components/ui/field";
 import { TagIcon } from "@/components/ui/icons";
 import PillButton from "@/components/ui/pill-button";
+import { request } from "@/lib/api-client";
 
 const PromoField = ({ subtotalCents, rateId, promo, onApply, onClear }) => {
   const [code, setCode] = useState("");
-  const [error, setError] = useState(null);
-  const [pending, setPending] = useState(false);
+  const [emptyError, setEmptyError] = useState(null);
+
+  const apply = useMutation({
+    mutationFn: () =>
+      request("/api/promo", { body: { code, subtotalCents, rateId } }),
+    onSuccess: (body) => {
+      onApply(body.promo, body.totals);
+      setCode("");
+    },
+  });
+
+  const error =
+    emptyError ?? (apply.isError ? apply.error.message : null);
 
   const handleChange = (event) => {
     setCode(event.target.value);
-    setError(null);
+    setEmptyError(null);
+    apply.reset();
   };
 
-  const handleApply = async () => {
+  const handleApply = () => {
     if (!code.trim()) {
-      setError("Enter a code");
+      setEmptyError("Enter a code");
       return;
     }
 
-    setPending(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/promo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, subtotalCents, rateId }),
-      });
-
-      const body = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        setError(body.error ?? "That code did not work");
-        return;
-      }
-
-      onApply(body.promo, body.totals);
-      setCode("");
-    } catch {
-      setError("Network error. Try again.");
-    } finally {
-      setPending(false);
-    }
+    setEmptyError(null);
+    apply.mutate();
   };
 
   const handleClear = () => {
     onClear();
-    setError(null);
+    setEmptyError(null);
+    apply.reset();
   };
 
   if (promo)
     return (
-      <div className="mt-8 flex items-center justify-between gap-4 border-t border-black/10 pt-5">
+      <div className="mt-8 flex items-center justify-between gap-4 border-t border-rule pt-5">
         <p className={cn(META, "text-blurple")}>{promo.code} applied</p>
 
         <PillButton size="sm" onClick={handleClear}>
@@ -66,7 +59,7 @@ const PromoField = ({ subtotalCents, rateId, promo, onApply, onClear }) => {
     );
 
   return (
-    <div className="mt-8 border-t border-black/10 pt-5">
+    <div className="mt-8 border-t border-rule pt-5">
       <div className="flex items-end gap-3">
         <Field
           id="promo"
@@ -84,10 +77,10 @@ const PromoField = ({ subtotalCents, rateId, promo, onApply, onClear }) => {
         <PillButton
           size="sm"
           onClick={handleApply}
-          disabled={pending}
+          disabled={apply.isPending}
           className="mb-1 shrink-0"
         >
-          {pending ? "Checking" : "Apply"}
+          {apply.isPending ? "Checking" : "Apply"}
         </PillButton>
       </div>
     </div>

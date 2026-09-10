@@ -9,9 +9,12 @@ import {
   HangerIcon,
   Logout01Icon,
   Mail01Icon,
+  Settings02Icon,
   ShoppingBag03Icon,
+  UserCircleIcon,
   StarCircleIcon,
   Store01Icon,
+  Tag01Icon,
 } from "@hugeicons/core-free-icons";
 import { signOut } from "next-auth/react";
 import {
@@ -35,6 +38,7 @@ const SECTIONS = [
       { href: "/admin", label: "Overview", icon: Analytics01Icon, exact: true },
       { href: "/admin/orders", label: "Orders", icon: ShoppingBag03Icon },
       { href: "/admin/products", label: "Inventory", icon: HangerIcon },
+      { href: "/admin/categories", label: "Categories", icon: Tag01Icon },
     ],
   },
   {
@@ -43,6 +47,13 @@ const SECTIONS = [
       { href: "/admin/promos", label: "Promo codes", icon: Coupon01Icon },
       { href: "/admin/reviews", label: "Reviews", icon: StarCircleIcon },
       { href: "/admin/subscribers", label: "Subscribers", icon: Mail01Icon },
+    ],
+  },
+  {
+    label: "Shop",
+    links: [
+      { href: "/admin/settings", label: "Site settings", icon: Settings02Icon },
+      { href: "/admin/account", label: "Your account", icon: UserCircleIcon },
     ],
   },
 ];
@@ -65,7 +76,7 @@ const AdminSidebar = ({ name }) => {
           <span className="grid text-sm leading-tight">
             <span className="truncate font-medium">{BRAND.name}</span>
             <span className="truncate text-xs text-muted-foreground">
-              Back office
+              {name ?? "Back office"}
             </span>
           </span>
         </div>
@@ -104,9 +115,13 @@ const AdminSidebar = ({ name }) => {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleSignOut} tooltip="Sign out">
+            <SidebarMenuButton
+              onClick={handleSignOut}
+              tooltip="Sign out"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
               <HugeiconsIcon icon={Logout01Icon} size={18} />
-              <span className="truncate">{name ?? "Sign out"}</span>
+              <span className="truncate">Sign out</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

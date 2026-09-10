@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  adminProductFormSchema,
   adminProductPatchSchema,
   adminProductSchema,
   adminPromoSchema,
@@ -110,5 +111,97 @@ describe("listQuerySchema", () => {
 
   test("caps the page size", () => {
     expect(listQuerySchema.safeParse({ perPage: "5000" }).success).toBe(false);
+  });
+});
+
+describe("adminProductFormSchema", () => {
+  const filled = (overrides = {}) => ({
+    sku: "GS-0099",
+    slug: "levis-501-w32",
+    name: "Levi's 501",
+    tagline: "Honest fade",
+    brand: "Levi's",
+    category: "Jeans",
+    condition: "Good",
+    sizeSystem: "waist",
+    sizeLabel: "W32 L30",
+    status: "available",
+    priceCents: "4200",
+    salePriceCents: "",
+    costCents: "1500",
+    lot: "",
+    image: "/assets/WEBP/levis.webp",
+    images: "/assets/WEBP/a.webp\n\n/assets/WEBP/b.webp",
+    description: "A good pair of jeans",
+    conditionNotes: "",
+    details: "Made in USA\n\nSelvedge",
+    measurements: { Waist: '32"', Inseam: '30"', Rise: '11"', "Leg opening": '7"' },
+    ...overrides,
+  });
+
+  test("rupees typed by the admin become cents", () => {
+    const parsed = adminProductFormSchema.parse(filled());
+
+    expect(parsed.priceCents).toBe(420000);
+    expect(parsed.costCents).toBe(150000);
+    expect(parsed.salePriceCents).toBeNull();
+  });
+
+  test("newline lists become arrays with blanks dropped", () => {
+    const parsed = adminProductFormSchema.parse(filled());
+
+    expect(parsed.images).toEqual(["/assets/WEBP/a.webp", "/assets/WEBP/b.webp"]);
+    expect(parsed.details).toEqual(["Made in USA", "Selvedge"]);
+  });
+
+  test("empty optional text becomes null rather than an empty string", () => {
+    const parsed = adminProductFormSchema.parse(filled());
+
+    expect(parsed.lot).toBeNull();
+    expect(parsed.conditionNotes).toBeNull();
+  });
+
+  test("a price that is not a number is rejected before the network", () => {
+    const result = adminProductFormSchema.safeParse(
+      filled({ priceCents: "abc" })
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error.issues[0].message).toContain("must be a number");
+  });
+
+  test("a sale price above the list price is rejected", () => {
+    const result = adminProductFormSchema.safeParse(
+      filled({ salePriceCents: "9999" })
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error.issues[0].path).toEqual(["salePriceCents"]);
+  });
+
+  test("a missing measurement for the category is rejected", () => {
+    const result = adminProductFormSchema.safeParse(
+      filled({ measurements: { Waist: '32"' } })
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error.issues[0].message).toContain("Inseam");
+  });
+
+  test("a slug that is not kebab-case is rejected", () => {
+    const result = adminProductFormSchema.safeParse(
+      filled({ slug: "Levis 501" })
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error.issues[0].message).toContain("kebab-case");
+  });
+
+  test("an image outside /assets/ is rejected", () => {
+    const result = adminProductFormSchema.safeParse(
+      filled({ image: "https://evil.example/x.png" })
+    );
+
+    expect(result.success).toBe(false);
   });
 });

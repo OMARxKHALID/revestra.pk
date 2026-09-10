@@ -15,6 +15,13 @@ const Svg = ({ className, children }) => (
   </svg>
 );
 
+export const ArrowIcon = ({ className }) => (
+  <Svg className={className}>
+    <path d="M4 10h12" />
+    <path d="m11 5 5 5-5 5" />
+  </Svg>
+);
+
 export const HeartIcon = ({ className }) => (
   <Svg className={className}>
     <path d="M10 16.2c-.3 0-.6-.1-.8-.3C6.3 13.4 3 10.7 3 7.6a3.4 3.4 0 0 1 6.2-1.9l.8 1.1.8-1.1A3.4 3.4 0 0 1 17 7.6c0 3.1-3.3 5.8-6.2 8.3-.2.2-.5.3-.8.3Z" />
@@ -39,12 +46,6 @@ export const SearchIcon = ({ className }) => (
   <Svg className={className}>
     <circle cx="9" cy="9" r="5.2" />
     <path d="m13 13 3.4 3.4" />
-  </Svg>
-);
-
-export const MenuIcon = ({ className }) => (
-  <Svg className={className}>
-    <path d="M3.5 6h13M3.5 10h13M3.5 14h13" />
   </Svg>
 );
 
@@ -137,3 +138,12 @@ export const BuildingIcon = ({ className }) => (
     <path d="M4.4 17.2V4.4h7.6v12.8M12 8.8h3.6v8.4M2.8 17.2h14.4M6.8 7.2h2.4M6.8 10.4h2.4M6.8 13.6h2.4" />
   </Svg>
 );
+
+export const AlertIcon = ({ className }) => (
+  <Svg className={className}>
+    <circle cx="10" cy="10" r="7.4" />
+    <path d="M10 6.2v4.4" />
+    <path d="M10 13.6h.01" />
+  </Svg>
+);
+

@@ -18,10 +18,17 @@ const SignInPage = () => (
       <SignInForm available={authIsAvailable()} />
     </Suspense>
 
-    <p className={cn(META, "mt-8 text-black/45")}>
+    <p className={cn(META, "mt-8 text-ink-soft")}>
       No account yet?{" "}
       <Link href="/sign-up" className="text-blurple hover:underline">
         Create one
+      </Link>
+    </p>
+
+    <p className={cn(META, "mt-3 text-ink-soft")}>
+      Forgotten your password?{" "}
+      <Link href="/forgot-password" className="text-blurple hover:underline">
+        Email me a reset code
       </Link>
     </p>
   </InteriorPage>

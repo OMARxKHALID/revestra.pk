@@ -9,8 +9,9 @@ import { signInSchema } from "@/lib/schemas/user";
 import Field from "@/components/ui/field";
 import { LockIcon, MailIcon } from "@/components/ui/icons";
 import PillButton from "@/components/ui/pill-button";
+import ErrorNotice from "@/components/ui/error-notice";
 import cn from "@/lib/utils/cn";
-import { BODY, NOTICE } from "@/lib/type";
+import { BODY } from "@/lib/type";
 
 const SignInForm = ({ available }) => {
   const router = useRouter();
@@ -43,7 +44,7 @@ const SignInForm = ({ available }) => {
 
   if (!available)
     return (
-      <p className={cn(BODY, "mt-10 text-black/70")}>
+      <p className={cn(BODY, "mt-10 text-ink-muted")}>
         Accounts need a database, and this deployment has none configured. You
         can still browse, add to cart and check out as a guest.
       </p>
@@ -76,9 +77,7 @@ const SignInForm = ({ available }) => {
         {isSubmitting ? "Signing in…" : "Sign in"}
       </PillButton>
 
-      <p aria-live="polite" className={cn(NOTICE, "mt-4 text-sale")}>
-        {submitError ?? " "}
-      </p>
+      <ErrorNotice message={submitError} className="mt-4" />
     </form>
   );
 };

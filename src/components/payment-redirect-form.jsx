@@ -21,7 +21,7 @@ const PaymentRedirectForm = ({ action, fields, label }) => {
 
       <PillButton type="submit">Continue to {label}</PillButton>
 
-      <p className={cn(META, "mt-4 text-black/45")}>
+      <p className={cn(META, "mt-4 text-ink-soft")}>
         Taking you to {label}. If nothing happens, use the button above.
       </p>
     </form>

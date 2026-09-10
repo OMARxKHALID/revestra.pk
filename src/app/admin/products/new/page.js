@@ -1,31 +1,38 @@
+import { HangerIcon } from "@hugeicons/core-free-icons";
+import PageLayout from "@/components/admin/page-layout";
+import PageHeader from "@/components/admin/page-header";
 import ProductForm from "@/components/admin/product-form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { nextSku } from "@/lib/api/admin/products";
+import { listCategories } from "@/lib/api/categories";
+import { Card, CardContent } from "@/components/ui/card";
+import { listImageLibrary, nextSku } from "@/lib/api/admin/products";
 
 export const dynamic = "force-dynamic";
 
 const NewProductPage = async () => {
-  const sku = await nextSku();
+  const [sku, categories, existingImages] = await Promise.all([
+    nextSku(),
+    listCategories({ includeInactive: true }),
+    listImageLibrary(),
+  ]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Add a piece</CardTitle>
-        <CardDescription>
-          Measurements are required for most categories. Prices are in rupees.
-        </CardDescription>
-      </CardHeader>
+    <PageLayout>
+      <PageHeader
+        title="Add a piece"
+        description="Measurements are required for most categories. Prices are in rupees."
+        icon={HangerIcon}
+      />
 
-      <CardContent>
-        <ProductForm suggestedSku={sku} />
-      </CardContent>
-    </Card>
+      <Card>
+        <CardContent>
+          <ProductForm
+            categories={categories}
+            suggestedSku={sku}
+            existingImages={existingImages}
+          />
+        </CardContent>
+      </Card>
+    </PageLayout>
   );
 };
 

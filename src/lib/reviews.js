@@ -1,5 +1,6 @@
 export const MOCK_REVIEWS = [
   {
+    id: "seed-review-1",
     author: "Hina R.",
     rating: 5,
     title: "Measurements were exact",
@@ -8,6 +9,7 @@ export const MOCK_REVIEWS = [
     createdAt: "2026-06-02T10:00:00.000Z",
   },
   {
+    id: "seed-review-2",
     author: "Bilal A.",
     rating: 4,
     title: "Honest about the flaws",
@@ -16,6 +18,7 @@ export const MOCK_REVIEWS = [
     createdAt: "2026-07-19T08:30:00.000Z",
   },
   {
+    id: "seed-review-3",
     author: "Sana K.",
     rating: 5,
     title: "Fast delivery to Lahore",
@@ -24,6 +27,7 @@ export const MOCK_REVIEWS = [
     createdAt: "2026-05-11T19:15:00.000Z",
   },
   {
+    id: "seed-review-4",
     author: "Usman T.",
     rating: 4,
     title: "Good prices for the quality",
@@ -32,6 +36,7 @@ export const MOCK_REVIEWS = [
     createdAt: "2026-08-01T12:45:00.000Z",
   },
   {
+    id: "seed-review-5",
     author: "Ayesha M.",
     rating: 5,
     title: "Everything arrives washed",

@@ -12,7 +12,8 @@
     "order-status": "bun run scripts/order-status.js",
     "release-stale": "bun run scripts/release-stale.js",
     "make-admin": "bun run scripts/make-admin.js",
-    "create-admin": "bun run scripts/create-admin.js"
+    "create-admin": "bun run scripts/create-admin.js",
+    "typecheck": "tsc -p tsconfig.check.json"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -23,12 +24,10 @@
     "bcryptjs": "3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "cn": "^0.2.6",
     "lenis": "^1.1.13",
     "mongodb": "^7.6.0",
     "next": "16.2.10",
     "next-auth": "5.0.0-beta.32",
-    "next-themes": "^0.4.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.87.0",
@@ -43,6 +42,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.20.2",
     "eslint": "9",
     "eslint-config-next": "^16.3.4",
     "shadcn": "^4.21.0",

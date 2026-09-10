@@ -13,17 +13,20 @@ const SiteHeader = ({ overlay = false }) => {
   return (
     <header
       className={cn(
-        "grid h-[var(--spacing-header)] grid-cols-[1fr_auto_1fr] items-center px-5 sm:px-10",
+        "grid h-header grid-cols-[1fr_auto_1fr] items-center px-5 sm:px-10",
         overlay
           ? "absolute inset-x-0 top-0 z-30"
-          : "sticky top-0 z-40 border-b border-black/10 bg-white"
+          : "sticky top-0 z-40 border-b border-rule bg-white"
       )}
     >
-      <div className="flex items-center justify-self-start">
+      <nav
+        aria-label="Shop"
+        className="flex items-center justify-self-start"
+      >
         <NavAction href="/products" tone={tone}>
           SHOP
         </NavAction>
-      </div>
+      </nav>
 
       <div className="flex items-center justify-self-center">
         {!overlay && (
@@ -37,11 +40,14 @@ const SiteHeader = ({ overlay = false }) => {
         )}
       </div>
 
-      <div className="flex items-center gap-4 justify-self-end sm:gap-7">
+      <nav
+        aria-label="Account and cart"
+        className="flex items-center gap-4 justify-self-end sm:gap-7"
+      >
         <WishlistButton tone={tone} />
         <AccountLink tone={tone} />
         <CartButton tone={tone} />
-      </div>
+      </nav>
     </header>
   );
 };

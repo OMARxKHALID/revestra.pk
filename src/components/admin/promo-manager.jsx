@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete02Icon } from "@hugeicons/core-free-icons";
@@ -27,6 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatPrice } from "@/lib/utils/price";
+import { request } from "@/lib/api-client";
 
 const KINDS = [
   { value: "percent", label: "Percent off" },
@@ -53,70 +55,52 @@ const describe = (promo) => {
 const PromoManager = ({ promos }) => {
   const router = useRouter();
   const [values, setValues] = useState(EMPTY);
-  const [saving, setSaving] = useState(false);
 
   const set = (key) => (value) =>
     setValues((current) => ({ ...current, [key]: value }));
 
   const handleField = (key) => (event) => set(key)(event.target.value);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setSaving(true);
+  const buildPayload = () => ({
+    code: values.code.trim().toUpperCase(),
+    kind: values.kind,
+    value:
+      values.kind === "fixed"
+        ? Math.round(Number(values.value) * 100)
+        : Number(values.value),
+    minSubtotalCents: Math.round(Number(values.minSubtotalCents || 0) * 100),
+    active: values.active,
+    maxRedemptions: values.maxRedemptions ? Number(values.maxRedemptions) : null,
+    startsAt: null,
+    endsAt: null,
+  });
 
-    const payload = {
-      code: values.code.trim().toUpperCase(),
-      kind: values.kind,
-      value:
-        values.kind === "fixed"
-          ? Math.round(Number(values.value) * 100)
-          : Number(values.value),
-      minSubtotalCents: Math.round(Number(values.minSubtotalCents || 0) * 100),
-      active: values.active,
-      maxRedemptions: values.maxRedemptions
-        ? Number(values.maxRedemptions)
-        : null,
-      startsAt: null,
-      endsAt: null,
-    };
-
-    try {
-      const response = await fetch("/api/admin/promos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const body = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        toast.error(body.error ?? "Could not save that code");
-        return;
-      }
-
+  const savePromo = useMutation({
+    mutationFn: (payload) => request("/api/admin/promos", { body: payload }),
+    onSuccess: (_body, payload) => {
       toast.success(`${payload.code} saved`);
       setValues(EMPTY);
       router.refresh();
-    } catch {
-      toast.error("Network error. Try again.");
-    } finally {
-      setSaving(false);
-    }
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const deletePromo = useMutation({
+    mutationFn: (code) =>
+      request(`/api/admin/promos/${code}`, { method: "DELETE" }),
+    onSuccess: (_body, code) => {
+      toast.success(`${code} deleted`);
+      router.refresh();
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    savePromo.mutate(buildPayload());
   };
 
-  const handleDelete = async (code) => {
-    const response = await fetch(`/api/admin/promos/${code}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) {
-      toast.error("Could not delete that code");
-      return;
-    }
-
-    toast.success(`${code} deleted`);
-    router.refresh();
-  };
+  const handleDelete = (code) => deletePromo.mutate(code);
 
   return (
     <div className="grid gap-6">
@@ -204,8 +188,8 @@ const PromoManager = ({ promos }) => {
             <Label htmlFor="active">Active</Label>
           </div>
 
-          <Button type="submit" disabled={saving}>
-            {saving ? "Saving…" : "Save code"}
+          <Button type="submit" disabled={savePromo.isPending}>
+            {savePromo.isPending ? "Saving…" : "Save code"}
           </Button>
         </div>
       </form>
@@ -240,7 +224,7 @@ const PromoManager = ({ promos }) => {
                   {promo.maxRedemptions ? ` / ${promo.maxRedemptions}` : ""}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={promo.active ? "secondary" : "outline"}>
+                  <Badge variant={promo.active ? "success" : "neutral"}>
                     {promo.active ? "Active" : "Paused"}
                   </Badge>
                 </TableCell>

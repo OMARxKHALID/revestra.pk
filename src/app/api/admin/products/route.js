@@ -1,50 +1,63 @@
-import { intakeSchema } from "@/lib/schemas/product";
-import { createProduct, listInventory } from "@/lib/api/admin";
-import { requireAdmin, forbidden } from "@/lib/admin-guard";
+import { guard, readJson, invalid } from "@/lib/api/admin/guard";
+import {
+  createProduct,
+  derive,
+  listProducts,
+  nextSku,
+} from "@/lib/api/admin/products";
+import { adminProductSchema, listQuerySchema } from "@/lib/schemas/admin";
+import { categoryNames } from "@/lib/api/categories";
 
 export const dynamic = "force-dynamic";
 
-export const GET = async () => {
-  if (!(await requireAdmin())) return forbidden();
+export const GET = async (request) => {
+  const { response } = await guard(request);
 
-  return Response.json({ products: await listInventory() });
+  if (response) return response;
+
+  const { searchParams } = new URL(request.url);
+  const query = listQuerySchema.safeParse(Object.fromEntries(searchParams));
+
+  if (!query.success) return invalid(query.error);
+
+  const result = await listProducts(query.data);
+
+  return Response.json({ ...result, nextSku: await nextSku() });
 };
 
 export const POST = async (request) => {
-  if (!(await requireAdmin())) return forbidden();
+  const { response } = await guard(request, { mutation: true });
 
-  let payload;
+  if (response) return response;
 
-  try {
-    payload = await request.json();
-  } catch {
-    return Response.json({ error: "Malformed request" }, { status: 400 });
-  }
+  const body = await readJson(request);
 
-  const parsed = intakeSchema
-    .safeParse({ ...payload, slug: payload.slug ?? "placeholder", sku: payload.sku ?? "GS-0000" });
+  if (!body.ok) return body.response;
 
-  if (!parsed.success)
+  const parsed = adminProductSchema.safeParse(await derive(body.payload));
+
+  if (!parsed.success) return invalid(parsed.error);
+
+  const known = await categoryNames();
+
+  if (!known.includes(parsed.data.category))
     return Response.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid piece" },
+      { error: `"${parsed.data.category}" is not a category. Add it first.` },
       { status: 422 }
     );
 
   try {
-    const result = await createProduct({ ...payload, slug: undefined, sku: undefined });
+    const created = await createProduct(parsed.data);
 
-    if (!result.ok)
-      return Response.json(
-        { error: `A piece already exists at ${result.slug}` },
-        { status: 409 }
-      );
+    if (!created.ok)
+      return Response.json({ error: created.error }, { status: 409 });
 
-    return Response.json({ product: result.product }, { status: 201 });
+    return Response.json({ product: created.product }, { status: 201 });
   } catch (error) {
     console.error(`[admin] could not create a piece: ${error.message}`);
 
     return Response.json(
-      { error: "We could not save that piece. Try again." },
+      { error: "We could not save that piece." },
       { status: 503 }
     );
   }

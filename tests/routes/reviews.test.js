@@ -45,13 +45,17 @@ const review = (overrides) => ({
   ...overrides,
 });
 
-const post = async (body, ip) => {
+const post = async (body, ip, origin = "http://localhost:3000") => {
   const { POST } = await import("@/app/api/reviews/route");
 
   return POST(
     new Request("http://localhost/api/reviews", {
       method: "POST",
-      headers: { "content-type": "application/json", "x-forwarded-for": ip },
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": ip,
+        ...(origin ? { origin } : {}),
+      },
       body: JSON.stringify(body),
     })
   );
@@ -116,5 +120,22 @@ describe("POST /api/reviews", () => {
       last = await post(review(), "10.1.0.7");
 
     expect(last.status).toBe(429);
+  });
+
+  test("a new review waits for moderation instead of publishing itself", async () => {
+    const response = await post(review(), "10.1.0.8");
+    const body = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(inserted.status).toBe("pending");
+    expect(body.review.status).toBe("pending");
+    expect(inserted.id).toBeTruthy();
+  });
+
+  test("rejects a cross-origin review with 403", async () => {
+    const response = await post(review(), "10.1.0.9", "https://evil.example");
+
+    expect(response.status).toBe(403);
+    expect(inserted).toBeNull();
   });
 });
