@@ -4,6 +4,7 @@ import SiteHeader from "@/components/site-header";
 import Footer from "@/components/footer";
 import AddToCart from "@/components/add-to-cart";
 import AnalyticsProductView from "@/components/analytics-product-view";
+import JsonLd from "@/components/json-ld";
 import RelatedProducts from "@/components/related-products";
 import {
   getAllProducts,
@@ -16,6 +17,7 @@ import { DISPLAY, EYEBROW, ITEM, META, NOTICE, SPEC } from "@/lib/type";
 import { title } from "@/lib/brand";
 import ProductGallery from "@/components/product-gallery";
 import { availabilityLabel, gallery, isSold } from "@/lib/utils/stock";
+import { productJsonLd } from "@/lib/structured-data";
 import SaveButton from "@/components/save-button";
 import MeasurementsTable from "@/components/measurements-table";
 import ConditionBadge from "@/components/condition-badge";
@@ -60,6 +62,14 @@ export const generateMetadata = async ({ params }) => {
   };
 };
 
+const Related = async ({ product }) => {
+  const related = await getRelatedProducts(product);
+
+  if (related.length === 0) return null;
+
+  return <RelatedProducts products={related} />;
+};
+
 const ProductPage = async ({ params }) => {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
@@ -78,13 +88,17 @@ const ProductPage = async ({ params }) => {
     description,
     details,
   } = product;
-  const related = await getRelatedProducts(product);
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const frames = gallery(product);
   const sold = isSold(product);
   const label = sold || product.status === "reserved" ? availabilityLabel(product) : null;
 
   return (
     <main id="main" className="bg-white">
+      <JsonLd
+        data={productJsonLd(product, { base, images: frames, reviews: null })}
+      />
+
       <SiteHeader />
 
       <article className="grid grid-cols-1 lg:grid-cols-2">
@@ -165,7 +179,9 @@ const ProductPage = async ({ params }) => {
         </div>
       </article>
 
-      {related.length > 0 && <RelatedProducts products={related} />}
+      <Suspense fallback={null}>
+        <Related product={product} />
+      </Suspense>
 
       <Footer />
     </main>
