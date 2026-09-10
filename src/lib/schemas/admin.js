@@ -119,6 +119,8 @@ export const adminProductFormSchema = adminProductFormBase.superRefine(
 export const orderStatusSchema = z.object({
   status: z.enum(SETTABLE_ORDER_STATUSES),
   note: z.string().trim().max(200).optional().or(z.literal("")),
+  courier: z.string().trim().max(40).optional().or(z.literal("")),
+  trackingNumber: z.string().trim().max(60).optional().or(z.literal("")),
 });
 
 
@@ -143,8 +145,9 @@ export const listQuerySchema = z.object({
   q: z.string().trim().max(80).default(""),
   status: z.string().trim().max(24).default(""),
   category: z.string().trim().max(24).default(""),
+  attention: z.string().trim().max(1).default(""),
   page: z.coerce.number().int().min(1).default(1),
-  perPage: z.coerce.number().int().min(1).max(100).default(25),
+  perPage: z.coerce.number().int().min(1).max(100).default(10),
 });
 
 export const staleReleaseSchema = z.object({

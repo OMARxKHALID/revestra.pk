@@ -12,6 +12,7 @@ const sitemap = async () => {
     { url: `${BASE_URL}/`, lastModified, priority: 1 },
     { url: `${BASE_URL}/products`, lastModified, priority: 0.8 },
     { url: `${BASE_URL}/reviews`, lastModified, priority: 0.5 },
+    { url: `${BASE_URL}/policies`, lastModified, priority: 0.4 },
     ...categories.map(({ slug }) => ({
       url: `${BASE_URL}/products/category/${slug}`,
       lastModified,

@@ -101,6 +101,7 @@ const SettingsForm = ({ settings }) => {
   const socials = useFieldArray({ control, name: "socials" });
   const ticker = useFieldArray({ control, name: "ticker" });
   const rates = useFieldArray({ control, name: "commerce.shippingRates" });
+  const policies = useFieldArray({ control, name: "policies" });
 
   const save = useMutation({
     mutationFn: (payload) =>
@@ -474,6 +475,81 @@ const SettingsForm = ({ settings }) => {
               label="Accept new accounts"
               description="Turning this off closes sign-up for everyone."
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Policies</CardTitle>
+            <CardDescription>
+              Shown on /policies and linked from the footer. Payment gateways
+              ask to see these before they approve a live merchant account.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="grid gap-5">
+            {policies.fields.map((policy, index) => (
+              <div
+                key={policy.id}
+                className="grid gap-3 rounded-md border border-border p-3"
+              >
+                <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+                  <TextField
+                    control={control}
+                    name={`policies.${index}.title`}
+                    label="Title"
+                  />
+
+                  <TextField
+                    control={control}
+                    name={`policies.${index}.slug`}
+                    label="Link anchor"
+                    description="Lowercase, hyphens only."
+                  />
+
+                  <div className="flex items-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label={`Remove policy ${index + 1}`}
+                      onClick={() => policies.remove(index)}
+                    >
+                      <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
+                    </Button>
+                  </div>
+                </div>
+
+                <FormField
+                  control={control}
+                  name={`policies.${index}.body`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Text</FormLabel>
+                      <FormControl>
+                        <Textarea rows={6} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            ))}
+
+            <div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={policies.fields.length >= 8}
+                onClick={() =>
+                  policies.append({ slug: "", title: "", body: "" })
+                }
+              >
+                <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} />
+                Add a policy
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

@@ -48,6 +48,11 @@ const OrdersPage = async ({ searchParams }) => {
             placeholder="Reference, email, name"
             filters={[
               { key: "status", label: "Any status", options: STATUS_OPTIONS },
+              {
+                key: "attention",
+                label: "Any condition",
+                options: [{ value: "1", label: "Needs attention" }],
+              },
             ]}
           />
 

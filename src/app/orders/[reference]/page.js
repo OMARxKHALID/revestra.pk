@@ -50,6 +50,17 @@ const OrderPage = async ({ params, searchParams }) => {
         </p>
       )}
 
+      {order.tracking?.number || order.tracking?.courier ? (
+        <p className={cn(META, "mt-4 text-ink-soft")}>
+          {[
+            order.tracking.courier && `Courier: ${order.tracking.courier}`,
+            order.tracking.number && `Tracking: ${order.tracking.number}`,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+      ) : null}
+
       <div className="mt-10 max-w-[460px]">
         <OrderSummary
           items={order.items}

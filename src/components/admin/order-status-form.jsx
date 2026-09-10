@@ -21,16 +21,20 @@ const OrderStatusForm = ({ reference, status: current }) => {
   const router = useRouter();
   const [status, setStatus] = useState(current);
   const [note, setNote] = useState("");
+  const [courier, setCourier] = useState("");
+  const [trackingNumber, setTrackingNumber] = useState("");
 
   const save = useMutation({
     mutationFn: () =>
       request(`/api/admin/orders/${reference}`, {
         method: "PATCH",
-        body: { status, note },
+        body: { status, note, courier, trackingNumber },
       }),
     onSuccess: () => {
       toast.success(`${reference} is now ${status}`);
       setNote("");
+      setCourier("");
+      setTrackingNumber("");
       router.refresh();
     },
     onError: (error) => toast.error(error.message),
@@ -61,13 +65,35 @@ const OrderStatusForm = ({ reference, status: current }) => {
         </Select>
       </div>
 
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid gap-2">
+          <Label htmlFor="courier">Courier (optional)</Label>
+          <Input
+            id="courier"
+            value={courier}
+            onChange={(event) => setCourier(event.target.value)}
+            placeholder="TCS, Leopards, M&P"
+          />
+        </div>
+
+        <div className="grid gap-2">
+          <Label htmlFor="trackingNumber">Tracking number (optional)</Label>
+          <Input
+            id="trackingNumber"
+            value={trackingNumber}
+            onChange={(event) => setTrackingNumber(event.target.value)}
+            placeholder="Consignment number"
+          />
+        </div>
+      </div>
+
       <div className="grid gap-2">
         <Label htmlFor="note">Note (optional)</Label>
         <Input
           id="note"
           value={note}
           onChange={(event) => setNote(event.target.value)}
-          placeholder="Tracking number, courier, reason"
+          placeholder="Reason, or anything worth recording"
         />
       </div>
 
@@ -76,7 +102,8 @@ const OrderStatusForm = ({ reference, status: current }) => {
       </Button>
 
       <p className="text-xs text-muted-foreground">
-        Cancelling puts every piece on this order back on sale.
+        Cancelling puts every piece on this order back on sale. Shipped,
+        delivered and cancelled each email the customer.
       </p>
     </form>
   );

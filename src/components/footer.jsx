@@ -36,6 +36,14 @@ const Footer = async () => {
             Read our reviews
           </Link>
 
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:justify-end">
+            {settings.policies.map(({ slug, title }) => (
+              <Link key={slug} href={`/policies#${slug}`} className={linkClass}>
+                {title}
+              </Link>
+            ))}
+          </div>
+
           <div className="flex items-center gap-3">
             <span className={cn(META, "text-blurple")}>Follow us on:</span>
             {settings.socials.map(({ name, label, href }) => (

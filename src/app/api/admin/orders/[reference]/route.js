@@ -1,6 +1,10 @@
 import { guard, readJson, invalid } from "@/lib/api/admin/guard";
 import { getOrder, setOrderStatus } from "@/lib/api/admin/orders";
 import { orderStatusSchema } from "@/lib/schemas/admin";
+import { orderSecret } from "@/lib/api/orders";
+import { signOrderToken } from "@/lib/utils/order-token";
+import { sendOrderStatusUpdate } from "@/lib/email";
+import { siteUrl } from "@/lib/payments/config";
 
 export const dynamic = "force-dynamic";
 
@@ -34,13 +38,19 @@ export const PATCH = async (request, { params }) => {
 
   const updated = await setOrderStatus({
     reference,
-    status: parsed.data.status,
-    note: parsed.data.note,
+    ...parsed.data,
     adminId,
   });
 
   if (!updated.ok)
     return Response.json({ error: updated.error }, { status: 409 });
+
+  if (updated.order) {
+    const token = signOrderToken(reference, orderSecret());
+    const trackUrl = `${siteUrl()}/orders/${reference}?t=${encodeURIComponent(token)}`;
+
+    await sendOrderStatusUpdate(updated.order, trackUrl);
+  }
 
   return Response.json({ order: updated.order });
 };

@@ -11,13 +11,13 @@ export const SOCIAL_NETWORKS = [
   "x",
 ];
 
-export const socialSchema = z.object({
+const socialSchema = z.object({
   name: z.enum(SOCIAL_NETWORKS),
   label: z.string().trim().min(1, "Give the link a label"),
   href: z.url("Enter a full URL, including https://"),
 });
 
-export const tickerItemSchema = z
+const tickerItemSchema = z
   .object({
     icon: z.enum(["globe", "clock", "shield"]).default("globe"),
     text: z.string().trim().max(120).default(""),
@@ -27,14 +27,14 @@ export const tickerItemSchema = z
     message: "A globe row needs a message",
   });
 
-export const shippingRateSchema = z.object({
+const shippingRateSchema = z.object({
   id: z.enum(SHIPPING_RATE_IDS),
   label: z.string().trim().min(1, "Give the rate a name"),
   note: z.string().trim().max(80).default(""),
   cents: z.coerce.number().int().min(0, "A rate cannot be negative"),
 });
 
-export const commerceSchema = z.object({
+const commerceSchema = z.object({
   freeShippingThresholdCents: z.coerce
     .number()
     .int()
@@ -51,6 +51,15 @@ export const commerceSchema = z.object({
   shippingRates: z
     .array(shippingRateSchema)
     .min(1, "Keep at least one shipping rate"),
+});
+
+export const policySchema = z.object({
+  slug: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9-]+$/, "Use lowercase letters, digits and hyphens"),
+  title: z.string().trim().min(1, "Give the policy a title"),
+  body: z.string().trim().min(1, "Write the policy").max(6000),
 });
 
 export const settingsSchema = z.object({
@@ -78,9 +87,5 @@ export const settingsSchema = z.object({
     )
     .default({}),
   signupOpen: z.boolean().default(true),
-});
-
-export const settingsDocSchema = settingsSchema.extend({
-  updatedAt: z.union([z.string(), z.date()]).nullable().default(null),
-  updatedBy: z.string().nullable().default(null),
+  policies: z.array(policySchema).max(8).default([]),
 });

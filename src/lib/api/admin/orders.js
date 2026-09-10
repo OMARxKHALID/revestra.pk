@@ -8,10 +8,17 @@ const COLLECTION = "orders";
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const buildFilter = ({ q, status }) => {
+const NEEDS_ATTENTION = [
+  { stockConflict: { $exists: true, $ne: [] } },
+  { "payment.attempts.status": "unverified" },
+];
+
+const buildFilter = ({ q, status, attention }) => {
   const filter = {};
 
   if (status) filter.status = status;
+
+  if (attention) filter.$and = [{ $or: NEEDS_ATTENTION }];
 
   if (q) {
     const pattern = new RegExp(escapeRegex(q), "i");
@@ -27,16 +34,17 @@ const buildFilter = ({ q, status }) => {
 };
 
 export const listOrders = async ({
+  attention = "",
   q = "",
   status = "",
   page = 1,
-  perPage = 25,
+  perPage = 10,
 } = {}) => {
   const db = await getDb();
 
   if (!db) return { orders: [], total: 0, page, perPage };
 
-  const filter = buildFilter({ q, status });
+  const filter = buildFilter({ q, status, attention });
   const collection = db.collection(COLLECTION);
 
   const [orders, total] = await Promise.all([
@@ -62,7 +70,14 @@ export const getOrder = async (reference) => {
     .findOne({ reference }, { projection: { _id: 0 } });
 };
 
-export const setOrderStatus = async ({ reference, status, note, adminId }) => {
+export const setOrderStatus = async ({
+  reference,
+  status,
+  note,
+  courier,
+  trackingNumber,
+  adminId,
+}) => {
   const db = await getDb();
 
   if (!db) return { ok: false, error: "No database is configured" };
@@ -74,11 +89,15 @@ export const setOrderStatus = async ({ reference, status, note, adminId }) => {
     return { ok: false, error: `That order is already ${status}` };
 
   const now = new Date();
+  const tracking =
+    courier || trackingNumber
+      ? { courier: courier || "", number: trackingNumber || "", at: now }
+      : null;
 
   const result = await db.collection(COLLECTION).findOneAndUpdate(
     { reference },
     {
-      $set: { status, updatedAt: now },
+      $set: { status, updatedAt: now, ...(tracking ? { tracking } : {}) },
       $push: {
         history: { status, at: now, note: note || "", by: adminId ?? null },
       },
