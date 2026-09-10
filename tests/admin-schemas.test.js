@@ -106,7 +106,7 @@ describe("listQuerySchema", () => {
     const parsed = listQuerySchema.parse({});
 
     expect(parsed.page).toBe(1);
-    expect(parsed.perPage).toBe(25);
+    expect(parsed.perPage).toBe(10);
   });
 
   test("caps the page size", () => {

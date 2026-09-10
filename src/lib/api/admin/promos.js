@@ -3,16 +3,24 @@ import { getDb } from "@/lib/db";
 
 const COLLECTION = "promo_codes";
 
-export const listPromos = async () => {
+export const listPromos = async ({ page = 1, perPage = 10 } = {}) => {
   const db = await getDb();
 
-  if (!db) return [];
+  if (!db) return { promos: [], total: 0, page, perPage };
 
-  return db
-    .collection(COLLECTION)
-    .find({}, { projection: { _id: 0 } })
-    .sort({ code: 1 })
-    .toArray();
+  const collection = db.collection(COLLECTION);
+
+  const [promos, total] = await Promise.all([
+    collection
+      .find({}, { projection: { _id: 0 } })
+      .sort({ code: 1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage)
+      .toArray(),
+    collection.countDocuments({}),
+  ]);
+
+  return { promos, total, page, perPage };
 };
 
 export const upsertPromo = async (promo) => {

@@ -3,12 +3,15 @@ import PageLayout from "@/components/admin/page-layout";
 import PageHeader from "@/components/admin/page-header";
 import PromoManager from "@/components/admin/promo-manager";
 import { Card, CardContent } from "@/components/ui/card";
+import Pager from "@/components/admin/pager";
 import { listPromos } from "@/lib/api/admin/promos";
+import { listQuerySchema } from "@/lib/schemas/admin";
 
 export const dynamic = "force-dynamic";
 
-const PromosPage = async () => {
-  const promos = await listPromos();
+const PromosPage = async ({ searchParams }) => {
+  const query = listQuerySchema.parse(await searchParams);
+  const { promos, total, page, perPage } = await listPromos(query);
 
   return (
     <PageLayout>
@@ -19,8 +22,10 @@ const PromosPage = async () => {
       />
 
       <Card>
-        <CardContent>
+        <CardContent className="grid gap-4">
           <PromoManager promos={promos} />
+
+          <Pager page={page} perPage={perPage} total={total} />
         </CardContent>
       </Card>
     </PageLayout>

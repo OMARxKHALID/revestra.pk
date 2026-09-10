@@ -1,6 +1,6 @@
 import { guard, readJson, invalid } from "@/lib/api/admin/guard";
 import { listPromos, upsertPromo } from "@/lib/api/admin/promos";
-import { adminPromoSchema } from "@/lib/schemas/admin";
+import { adminPromoSchema, listQuerySchema } from "@/lib/schemas/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +9,11 @@ export const GET = async (request) => {
 
   if (response) return response;
 
-  return Response.json({ promos: await listPromos() });
+  const query = listQuerySchema.parse(
+    Object.fromEntries(new URL(request.url).searchParams)
+  );
+
+  return Response.json(await listPromos(query));
 };
 
 export const POST = async (request) => {

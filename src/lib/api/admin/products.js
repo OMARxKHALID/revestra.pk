@@ -33,7 +33,7 @@ export const listProducts = async ({
   status = "",
   category = "",
   page = 1,
-  perPage = 25,
+  perPage = 10,
 } = {}) => {
   const db = await getDb();
 

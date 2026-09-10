@@ -4,13 +4,15 @@ import PageHeader from "@/components/admin/page-header";
 import ReviewRow from "@/components/admin/review-row";
 import FilterBar from "@/components/admin/filter-bar";
 import { Card, CardContent } from "@/components/ui/card";
+import Pager from "@/components/admin/pager";
 import { listReviews } from "@/lib/api/admin/reviews";
+import { listQuerySchema } from "@/lib/schemas/admin";
 
 export const dynamic = "force-dynamic";
 
 const ReviewsPage = async ({ searchParams }) => {
-  const { status = "" } = await searchParams;
-  const reviews = await listReviews({ status });
+  const query = listQuerySchema.parse(await searchParams);
+  const { reviews, total, page, perPage } = await listReviews(query);
 
   return (
     <PageLayout>
@@ -50,6 +52,8 @@ const ReviewsPage = async ({ searchParams }) => {
               </p>
             )}
           </div>
+
+          <Pager page={page} perPage={perPage} total={total} />
         </CardContent>
       </Card>
     </PageLayout>

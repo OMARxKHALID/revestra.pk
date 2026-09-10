@@ -31,7 +31,7 @@ import slugify from "@/lib/utils/slugify";
 
 const EMPTY = { name: "", slug: "", blurb: "", measurements: "", order: "" };
 
-const CategoryManager = ({ categories, counts }) => {
+const CategoryManager = ({ categories, counts, total = categories.length }) => {
   const router = useRouter();
   const [values, setValues] = useState(EMPTY);
 
@@ -76,7 +76,7 @@ const CategoryManager = ({ categories, counts }) => {
         .split(",")
         .map((entry) => entry.trim())
         .filter(Boolean),
-      order: values.order === "" ? categories.length : Number(values.order),
+      order: values.order === "" ? total : Number(values.order),
       active: true,
     });
   };
@@ -223,7 +223,7 @@ const CategoryManager = ({ categories, counts }) => {
                 min="0"
                 value={values.order}
                 onChange={set("order")}
-                placeholder={String(categories.length)}
+                placeholder={String(total)}
               />
             </div>
 

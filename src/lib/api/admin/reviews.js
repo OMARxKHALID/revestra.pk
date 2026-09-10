@@ -3,19 +3,25 @@ import { getDb } from "@/lib/db";
 
 const COLLECTION = "reviews";
 
-export const listReviews = async ({ status = "" } = {}) => {
+export const listReviews = async ({ status = "", page = 1, perPage = 10 } = {}) => {
   const db = await getDb();
 
-  if (!db) return [];
+  if (!db) return { reviews: [], total: 0, page, perPage };
 
   const filter = status ? { status } : {};
+  const collection = db.collection(COLLECTION);
 
-  return db
-    .collection(COLLECTION)
-    .find(filter, { projection: { _id: 0 } })
-    .sort({ createdAt: -1 })
-    .limit(200)
-    .toArray();
+  const [reviews, total] = await Promise.all([
+    collection
+      .find(filter, { projection: { _id: 0 } })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage)
+      .toArray(),
+    collection.countDocuments(filter),
+  ]);
+
+  return { reviews, total, page, perPage };
 };
 
 export const setReviewStatus = async ({ id, status }) => {

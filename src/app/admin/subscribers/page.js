@@ -10,18 +10,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import Pager from "@/components/admin/pager";
 import { listSubscribers } from "@/lib/api/subscribers";
+import { listQuerySchema } from "@/lib/schemas/admin";
 
 export const dynamic = "force-dynamic";
 
-const SubscribersPage = async () => {
-  const subscribers = await listSubscribers();
+const SubscribersPage = async ({ searchParams }) => {
+  const query = listQuerySchema.parse(await searchParams);
+  const { subscribers, total, page, perPage } = await listSubscribers(query);
 
   return (
     <PageLayout>
       <PageHeader
         title="Subscribers"
-        description={`${subscribers.length} addresses from the newsletter form.`}
+        description={`${total} addresses from the newsletter form.`}
         icon={Mail01Icon}
       />
 
@@ -64,6 +67,10 @@ const SubscribersPage = async () => {
                 )}
               </TableBody>
             </Table>
+          </div>
+
+          <div className="px-6 sm:px-0">
+            <Pager page={page} perPage={perPage} total={total} />
           </div>
         </CardContent>
       </Card>

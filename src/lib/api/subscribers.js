@@ -19,15 +19,22 @@ export const subscribe = async (email) => {
   return { ok: true, persisted: true };
 };
 
-export const listSubscribers = async (limit = 500) => {
+export const listSubscribers = async ({ page = 1, perPage = 10 } = {}) => {
   const db = await getDb();
 
-  if (!db) return [];
+  if (!db) return { subscribers: [], total: 0, page, perPage };
 
-  return db
-    .collection(COLLECTION)
-    .find({}, { projection: { _id: 0 } })
-    .sort({ createdAt: -1 })
-    .limit(limit)
-    .toArray();
+  const collection = db.collection(COLLECTION);
+
+  const [subscribers, total] = await Promise.all([
+    collection
+      .find({}, { projection: { _id: 0 } })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage)
+      .toArray(),
+    collection.countDocuments({}),
+  ]);
+
+  return { subscribers, total, page, perPage };
 };

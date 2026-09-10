@@ -1,6 +1,7 @@
 import { reviewStatusSchema } from "@/lib/schemas/review";
 import { guard, readJson, invalid } from "@/lib/api/admin/guard";
 import { listReviews, setReviewStatus } from "@/lib/api/admin/reviews";
+import { listQuerySchema } from "@/lib/schemas/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -9,9 +10,11 @@ export const GET = async (request) => {
 
   if (response) return response;
 
-  const status = new URL(request.url).searchParams.get("status") ?? "";
+  const query = listQuerySchema.parse(
+    Object.fromEntries(new URL(request.url).searchParams)
+  );
 
-  return Response.json({ reviews: await listReviews({ status }) });
+  return Response.json(await listReviews(query));
 };
 
 export const PATCH = async (request) => {
