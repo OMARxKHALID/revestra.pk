@@ -18,3 +18,4 @@ export const authSecret = () => {
 
   return DEV_FALLBACK;
 };
+export const cronSecret = () => process.env.CRON_SECRET?.trim() || "";
