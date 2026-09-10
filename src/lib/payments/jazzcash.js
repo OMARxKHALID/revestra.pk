@@ -1,3 +1,5 @@
+import { PAYMENT_METHOD, PAYMENT_STATUS } from "@/lib/schemas/order";
+import { CURRENCY } from "@/lib/utils/price";
 import { jazzcashConfig, siteUrl } from "@/lib/payments/config";
 import { buildSecureHash, verifySecureHash } from "@/lib/payments/jazzcash-hash";
 
@@ -43,7 +45,7 @@ export const buildFields = ({
     pp_ProductID: "",
     pp_TxnRefNo: attemptRefFor(order.reference, attempt),
     pp_Amount: String(order.payment.amountCents),
-    pp_TxnCurrency: "PKR",
+    pp_TxnCurrency: CURRENCY,
     pp_TxnDateTime: stamp(now),
     pp_BillReference: order.reference.replace(/-/g, "").slice(0, 20),
     pp_Description: sanitizeDescription(
@@ -61,7 +63,7 @@ export const buildFields = ({
 };
 
 const jazzcash = {
-  id: "jazzcash",
+  id: PAYMENT_METHOD.jazzcash,
   label: "JazzCash",
   modes: ["wallet", "card", "bank", "otc"],
 
@@ -86,21 +88,21 @@ const jazzcash = {
   parseCallback: async (request) =>
     Object.fromEntries(await request.formData()),
 
-  verifyCallback: ({ fields, config = jazzcashConfig() }) => {
+  verifyCallback: async ({ fields, config = jazzcashConfig() }) => {
     const code = String(fields.pp_ResponseCode ?? "");
     const signed = verifySecureHash(fields, config.integritySalt);
 
     const status = PAID_CODES.includes(code)
-      ? "paid"
+      ? PAYMENT_STATUS.paid
       : PENDING_CODES.includes(code)
-        ? "pending"
-        : "failed";
+        ? PAYMENT_STATUS.pending
+        : PAYMENT_STATUS.failed;
 
     return {
       ok: signed,
       attemptRef: String(fields.pp_TxnRefNo ?? ""),
       reference: String(fields.ppmpf_1 ?? ""),
-      status: signed ? status : "failed",
+      status: signed ? status : PAYMENT_STATUS.failed,
       code,
       message: String(fields.pp_ResponseMessage ?? ""),
       amountCents: Number(fields.pp_Amount ?? 0),

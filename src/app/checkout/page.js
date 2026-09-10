@@ -1,6 +1,7 @@
 import InteriorPage from "@/components/interior-page";
 import CheckoutForm from "@/components/checkout-form";
 import { title } from "@/lib/brand";
+import { getSettings } from "@/lib/api/settings";
 
 export const metadata = {
   title: title("Checkout"),
@@ -8,10 +9,14 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-const CheckoutPage = () => (
-  <InteriorPage heading="Checkout" className="max-w-[1000px]">
-    <CheckoutForm />
-  </InteriorPage>
-);
+const CheckoutPage = async () => {
+  const { commerce } = await getSettings();
+
+  return (
+    <InteriorPage heading="Checkout" className="max-w-[1000px]">
+      <CheckoutForm commerce={commerce} />
+    </InteriorPage>
+  );
+};
 
 export default CheckoutPage;

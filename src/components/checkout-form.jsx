@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useCart, { selectSubtotal } from "@/store/use-cart";
-import { shippingSchema } from "@/lib/schemas/order";
+import { PAYMENT_METHOD, shippingSchema } from "@/lib/schemas/order";
 import { formatPrice } from "@/lib/utils/price";
 import { buildTotals } from "@/lib/utils/totals";
-import { FREE_SHIPPING_THRESHOLD_CENTS, SHIPPING_RATES } from "@/lib/shipping";
+import { DEFAULT_COMMERCE, ratesOf } from "@/lib/shipping";
 import Field from "@/components/ui/field";
 import cn from "@/lib/utils/cn";
-import { BODY, EYEBROW, HEADING, META, NOTICE, TITLE } from "@/lib/type";
+import { BODY, EYEBROW, HEADING, META, TITLE } from "@/lib/type";
 import PillButton from "@/components/ui/pill-button";
 import OptionTile from "@/components/ui/option-tile";
 import {
@@ -28,100 +28,105 @@ import {
 } from "@/components/ui/icons";
 import PromoField from "@/components/promo-field";
 import OrderSummary from "@/components/order-summary";
+import ErrorNotice from "@/components/ui/error-notice";
+import { request, ApiError } from "@/lib/api-client";
+import keys from "@/lib/query-keys";
 
-const fetchMethods = async () => {
-  const response = await fetch("/api/payments/methods");
-
-  if (!response.ok) throw new Error("Could not load payment methods");
-
-  return response.json();
-};
+const fetchMethods = ({ signal }) => request("/api/payments/methods", { signal });
 
 const FALLBACK_METHODS = [
-  { id: "cod", label: "Cash on delivery", note: "Pay the courier", available: true },
+  {
+    id: PAYMENT_METHOD.cod,
+    label: "Cash on delivery",
+    note: "Pay the courier",
+    available: true,
+  },
 ];
 
-const CheckoutForm = () => {
+const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
+  const rates = ratesOf(commerce);
+  const queryClient = useQueryClient();
   const items = useCart((state) => state.items);
   const subtotal = useCart(selectSubtotal);
   const clear = useCart((state) => state.clear);
   const [confirmation, setConfirmation] = useState(null);
-  const [submitError, setSubmitError] = useState(null);
-  const [rateId, setRateId] = useState(SHIPPING_RATES[0].id);
-  const [method, setMethod] = useState("cod");
+  const [rateId, setRateId] = useState(rates[0].id);
+  const [method, setMethod] = useState(PAYMENT_METHOD.cod);
   const [promo, setPromo] = useState(null);
 
   const { data } = useQuery({
-    queryKey: ["payment-methods"],
+    queryKey: keys.payments.methods(),
     queryFn: fetchMethods,
     staleTime: 5 * 60 * 1000,
   });
 
   const methods = data?.methods ?? FALLBACK_METHODS;
-  const totals = buildTotals({ subtotalCents: subtotal, promo, rateId });
+  const totals = buildTotals({
+    subtotalCents: subtotal,
+    promo,
+    rateId,
+    commerce,
+  });
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({ resolver: zodResolver(shippingSchema) });
+
+  const placeOrder = useMutation({
+    mutationFn: (shipping) =>
+      request("/api/orders", {
+        body: {
+          shipping,
+          rateId,
+          method,
+          promoCode: promo?.code ?? "",
+          items: items.map(({ slug }) => ({ slug })),
+        },
+      }),
+    onSuccess: (order) => {
+      queryClient.invalidateQueries({ queryKey: keys.products.all });
+      queryClient.invalidateQueries({ queryKey: keys.stock.all });
+
+      if (order.payUrl) {
+        window.location.assign(order.payUrl);
+        return;
+      }
+
+      setConfirmation(order);
+      clear();
+    },
+  });
+
+  const submitError = placeOrder.isError
+    ? placeOrder.error instanceof ApiError
+      ? placeOrder.error.message
+      : "Network error. Try again."
+    : null;
 
   const handleApplyPromo = (applied) => setPromo(applied);
   const handleClearPromo = () => setPromo(null);
   const handleRate = (id) => setRateId(id);
   const handleMethod = (id) => {
     setMethod(id);
-    setSubmitError(null);
+    placeOrder.reset();
   };
 
-  const onSubmit = async (shipping) => {
-    setSubmitError(null);
-
-    try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          shipping,
-          rateId,
-          method,
-          promoCode: promo?.code ?? "",
-          items: items.map(({ slug }) => ({ slug })),
-        }),
-      });
-
-      const body = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        setSubmitError(body.error ?? "Could not place the order. Try again.");
-        return;
-      }
-
-      if (body.payUrl) {
-        clear();
-        window.location.assign(body.payUrl);
-        return;
-      }
-
-      setConfirmation(body);
-      clear();
-    } catch {
-      setSubmitError("Network error. Try again.");
-    }
-  };
+  const handlePlaceOrder = (shipping) => placeOrder.mutate(shipping);
 
   if (confirmation)
     return (
-      <div className="mt-12 border-t border-black/10 py-16 text-center">
+      <div className="mt-12 border-t border-rule py-16 text-center">
         <p className={cn(EYEBROW, "text-blurple")}>Order received</p>
 
-        <h2 className={cn(HEADING, "mt-4 text-black")}>
+        <h2 className={cn(HEADING, "mt-4 text-ink")}>
           Thank you — we have it from here.
         </h2>
 
-        <p className={cn(BODY, "mt-4 text-black/70")}>
+        <p className={cn(BODY, "mt-4 text-ink-muted")}>
           Your reference is{" "}
-          <span className="tracking-[0.08em] tabular-nums text-black">
+          <span className="tracking-[0.08em] tabular-nums text-ink">
             {confirmation.reference}
           </span>
           . Pay the courier {formatPrice(confirmation.totals.totalCents)} on
@@ -152,8 +157,8 @@ const CheckoutForm = () => {
 
   if (items.length === 0)
     return (
-      <div className="mt-12 border-t border-black/10 py-16 text-center">
-        <p className={cn(TITLE, "text-black/70")}>
+      <div className="mt-12 border-t border-rule py-16 text-center">
+        <p className={cn(TITLE, "text-ink-muted")}>
           There is nothing to check out.
         </p>
 
@@ -165,8 +170,12 @@ const CheckoutForm = () => {
 
   return (
     <div className="mt-12 grid grid-cols-1 gap-12 lg:grid-cols-[1fr_360px] lg:gap-20">
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="order-2 lg:order-1">
-        <h2 className={cn(META, "border-b border-black/10 pb-4 text-black/70")}>
+      <form
+        onSubmit={handleSubmit(handlePlaceOrder)}
+        noValidate
+        className="order-2 lg:order-1"
+      >
+        <h2 className={cn(META, "border-b border-rule pb-4 text-ink-muted")}>
           Shipping details
         </h2>
 
@@ -248,14 +257,14 @@ const CheckoutForm = () => {
         <h2
           className={cn(
             META,
-            "mt-12 border-b border-black/10 pb-4 text-black/70"
+            "mt-12 border-b border-rule pb-4 text-ink-muted"
           )}
         >
           Delivery
         </h2>
 
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {SHIPPING_RATES.map((rate) => (
+          {rates.map((rate) => (
             <OptionTile
               key={rate.id}
               icon={<TruckIcon className="h-4 w-4" />}
@@ -267,14 +276,14 @@ const CheckoutForm = () => {
           ))}
         </div>
 
-        <p className={cn(META, "mt-3 text-black/45")}>
-          Free over {formatPrice(FREE_SHIPPING_THRESHOLD_CENTS)}.
+        <p className={cn(META, "mt-3 text-ink-soft")}>
+          Free over {formatPrice(commerce.freeShippingThresholdCents)}.
         </p>
 
         <h2
           className={cn(
             META,
-            "mt-12 border-b border-black/10 pb-4 text-black/70"
+            "mt-12 border-b border-rule pb-4 text-ink-muted"
           )}
         >
           Payment
@@ -285,7 +294,7 @@ const CheckoutForm = () => {
             <OptionTile
               key={option.id}
               icon={
-                option.id === "cod" ? (
+                option.id === PAYMENT_METHOD.cod ? (
                   <BagIcon className="h-4 w-4" />
                 ) : (
                   <WalletIcon className="h-4 w-4" />
@@ -302,29 +311,27 @@ const CheckoutForm = () => {
 
         <PillButton
           type="submit"
-          disabled={isSubmitting}
+          disabled={placeOrder.isPending}
           className="mt-10 w-full sm:w-auto"
         >
-          {isSubmitting
+          {placeOrder.isPending
             ? "Placing order…"
-            : method === "cod"
+            : method === PAYMENT_METHOD.cod
               ? "Place order"
               : `Pay ${formatPrice(totals.totalCents)}`}
         </PillButton>
 
-        <p aria-live="polite" className={cn(NOTICE, "mt-4 text-sale")}>
-          {submitError ?? ""}
-        </p>
+        <ErrorNotice error={placeOrder.error} className="mt-4" />
 
-        <p className={cn(META, "mt-6 leading-relaxed text-black/45")}>
-          {method === "cod"
+        <p className={cn(META, "mt-6 leading-relaxed text-ink-soft")}>
+          {method === PAYMENT_METHOD.cod
             ? "Nothing is charged now. Pay the courier when your order arrives."
             : "You are taken to the gateway to pay. Card and wallet details are never entered here."}
         </p>
       </form>
 
       <aside className="order-1 lg:sticky lg:top-[calc(var(--spacing-header)+2rem)] lg:order-2 lg:self-start lg:pt-1">
-        <h2 className={cn(META, "border-b border-black/10 pb-4 text-black/70")}>
+        <h2 className={cn(META, "border-b border-rule pb-4 text-ink-muted")}>
           Order summary
         </h2>
 

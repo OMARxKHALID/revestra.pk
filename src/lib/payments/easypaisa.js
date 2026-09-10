@@ -1,14 +1,18 @@
+import { PAYMENT_METHOD, PAYMENT_STATUS } from "@/lib/schemas/order";
 import { easypaisaConfig, siteUrl } from "@/lib/payments/config";
 import {
   buildMerchantHash,
   toEasypaisaAmount,
 } from "@/lib/payments/easypaisa-hash";
+import errorMessage from "@/lib/utils/error-message";
 
 const METHODS = {
   wallet: "MA_PAYMENT_METHOD",
   card: "CC_PAYMENT_METHOD",
   otc: "OTC_PAYMENT_METHOD",
 };
+
+const PAID_STATUSES = ["PAID", "0000"];
 
 export const expiryStamp = (date) =>
   [
@@ -23,6 +27,9 @@ export const expiryStamp = (date) =>
 
 export const attemptRefFor = (reference, attempt) =>
   `${reference.replace(/-/g, "")}${attempt}`.slice(0, 20);
+
+export const canInquire = (config) =>
+  Boolean(config.accountNum && config.username && config.password);
 
 export const buildFields = ({
   order,
@@ -48,14 +55,56 @@ export const buildFields = ({
   };
 };
 
+export const inquireTransaction = async ({
+  attemptRef,
+  config,
+  fetchImpl = fetch,
+}) => {
+  const credentials = Buffer.from(
+    `${config.username}:${config.password}`,
+    "utf8"
+  ).toString("base64");
+
+  const response = await fetchImpl(config.inquiryAction, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      credentials,
+    },
+    body: JSON.stringify({
+      orderId: attemptRef,
+      storeId: config.storeId,
+      accountNum: config.accountNum,
+    }),
+  });
+
+  if (!response.ok)
+    throw new Error(`the inquiry endpoint answered ${response.status}`);
+
+  return response.json();
+};
+
+const unverified = (attemptRef, verification, message) => ({
+  ok: false,
+  attemptRef,
+  reference: null,
+  status: PAYMENT_STATUS.failed,
+  code: "",
+  message,
+  amountCents: 0,
+  providerTxnId: null,
+  verification,
+  raw: {},
+});
+
 const easypaisa = {
-  id: "easypaisa",
+  id: PAYMENT_METHOD.easypaisa,
   label: "Easypaisa",
   modes: ["wallet", "card", "otc"],
 
   isConfigured: () => {
-    const { storeId, hashKey } = easypaisaConfig();
-    return Boolean(storeId && hashKey);
+    const config = easypaisaConfig();
+    return Boolean(config.storeId && config.hashKey) && canInquire(config);
   },
 
   createSession: ({ order, mode = "wallet", attempt = 1, now = new Date() }) => {
@@ -85,21 +134,48 @@ const easypaisa = {
     return Object.fromEntries(await request.formData());
   },
 
-  verifyCallback: ({ fields }) => {
-    const code = String(fields.status ?? fields.responseCode ?? "");
-    const paid = ["0000", "0", "SUCCESS", "success"].includes(code);
+  verifyCallback: async ({
+    fields,
+    config = easypaisaConfig(),
+    fetchImpl = fetch,
+  }) => {
+    const attemptRef = String(
+      fields.orderRefNumber ?? fields.orderRefNum ?? ""
+    );
+
+    if (!attemptRef)
+      return unverified(attemptRef, "no_reference", "No order reference");
+
+    if (!canInquire(config))
+      return unverified(
+        attemptRef,
+        "inquiry_unconfigured",
+        "Easypaisa settlement cannot be verified on this deployment"
+      );
+
+    let inquiry;
+
+    try {
+      inquiry = await inquireTransaction({ attemptRef, config, fetchImpl });
+    } catch (error) {
+      return unverified(attemptRef, "inquiry_failed", errorMessage(error));
+    }
+
+    const code = String(inquiry.responseCode ?? "");
+    const state = String(inquiry.transactionStatus ?? "").toUpperCase();
+    const paid = code === "0000" && PAID_STATUSES.includes(state);
 
     return {
       ok: true,
-      attemptRef: String(fields.orderRefNumber ?? fields.orderRefNum ?? ""),
+      attemptRef,
       reference: null,
-      status: paid ? "paid" : "failed",
+      status: paid ? PAYMENT_STATUS.paid : PAYMENT_STATUS.failed,
       code,
-      message: String(fields.desc ?? fields.description ?? ""),
-      amountCents: Math.round(Number(fields.transactionAmount ?? 0) * 100),
-      providerTxnId: String(fields.paymentToken ?? "") || null,
-      verification: "unverified_postback",
-      raw: fields,
+      message: String(inquiry.responseDesc ?? inquiry.desc ?? ""),
+      amountCents: Math.round(Number(inquiry.transactionAmount ?? 0) * 100),
+      providerTxnId: String(inquiry.paymentToken ?? "") || null,
+      verification: "server_inquiry",
+      raw: { postback: fields, inquiry },
     };
   },
 };

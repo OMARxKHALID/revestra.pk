@@ -1,6 +1,6 @@
-export const FREE_SHIPPING_THRESHOLD_CENTS = 500000;
+export const SHIPPING_RATE_IDS = ["standard", "express"];
 
-export const SHIPPING_RATES = [
+export const DEFAULT_SHIPPING_RATES = [
   {
     id: "standard",
     label: "Standard",
@@ -15,9 +15,19 @@ export const SHIPPING_RATES = [
   },
 ];
 
-export const TAX_RATE = 0.0;
+export const DEFAULT_COMMERCE = {
+  freeShippingThresholdCents: 500000,
+  taxRate: 0,
+  holdMinutes: 15,
+  shippingRates: DEFAULT_SHIPPING_RATES,
+};
 
-export const defaultRate = () => SHIPPING_RATES[0];
+export const ratesOf = (commerce) =>
+  commerce?.shippingRates?.length
+    ? commerce.shippingRates
+    : DEFAULT_SHIPPING_RATES;
 
-export const rateById = (id) =>
-  SHIPPING_RATES.find((rate) => rate.id === id) ?? defaultRate();
+export const defaultRate = (commerce = DEFAULT_COMMERCE) => ratesOf(commerce)[0];
+
+export const rateById = (id, commerce = DEFAULT_COMMERCE) =>
+  ratesOf(commerce).find((rate) => rate.id === id) ?? defaultRate(commerce);
