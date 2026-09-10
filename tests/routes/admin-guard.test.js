@@ -47,7 +47,7 @@ describe("admin guard", () => {
     expect(result.adminId).toBe("u2");
   });
 
-  test("a mutation from another origin is refused", async () => {
+  test("a mutation from another origin is refused as a 404, like every other admin refusal", async () => {
     session = { user: { id: "u2", role: "admin" } };
 
     const { guard } = await import("@/lib/api/admin/guard");
@@ -56,7 +56,7 @@ describe("admin guard", () => {
       { mutation: true }
     );
 
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(404);
   });
 
   test("a mutation from the site's own origin passes", async () => {

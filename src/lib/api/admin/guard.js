@@ -1,12 +1,11 @@
 import "server-only";
 import { auth } from "@/auth";
-import { siteUrl } from "@/lib/payments/config";
+import { ROLE } from "@/lib/roles";
+import { sameOrigin } from "@/lib/api/origin";
 
 const notFound = () => Response.json({ error: "Not found" }, { status: 404 });
 
-const badOrigin = () => Response.json({ error: "Bad origin" }, { status: 403 });
-
-export const isAdmin = (session) => session?.user?.role === "admin";
+export const isAdmin = (session) => session?.user?.role === ROLE.admin;
 
 export const adminSession = async () => {
   const session = await auth();
@@ -14,26 +13,14 @@ export const adminSession = async () => {
   return isAdmin(session) ? session : null;
 };
 
-const sameOrigin = (request) => {
-  const origin = request.headers.get("origin");
-
-  if (!origin) return true;
-
-  try {
-    return new URL(origin).origin === new URL(siteUrl()).origin;
-  } catch {
-    return false;
-  }
-};
-
 export const guard = async (request, { mutation = false } = {}) => {
   const session = await adminSession();
 
   if (!session) return { response: notFound() };
 
-  if (mutation && !sameOrigin(request)) return { response: badOrigin() };
+  if (mutation && !sameOrigin(request)) return { response: notFound() };
 
-  return { session, adminId: session.user.id };
+  return { session, adminId: session.user?.id ?? null };
 };
 
 export const readJson = async (request) => {
