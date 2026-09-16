@@ -42,8 +42,9 @@ const NO_STORE = [
 ];
 
 /** @type {import('next').NextConfig} */
-const POSTHOG_ASSETS = "https://eu-assets.i.posthog.com";
-const POSTHOG_INGEST = "https://eu.i.posthog.com";
+const POSTHOG_INGEST =
+  process.env.NEXT_PUBLIC_POSTHOG_HOST?.trim() || "https://eu.i.posthog.com";
+const POSTHOG_ASSETS = POSTHOG_INGEST.replace(".i.posthog.com", "-assets.i.posthog.com");
 
 const nextConfig = {
   reactStrictMode: true,
