@@ -9,7 +9,7 @@ export const orderSecret = () =>
   authSecret() ?? "development-order-token-secret";
 
 export const buildReference = (now = Date.now(), random = Math.random) =>
-  `CP-${now.toString(36).toUpperCase()}-${random()
+  `RV-${now.toString(36).toUpperCase()}-${random()
     .toString(36)
     .slice(2, 8)
     .padEnd(6, "0")

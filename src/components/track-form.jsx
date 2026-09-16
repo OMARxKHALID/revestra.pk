@@ -36,7 +36,7 @@ const TrackForm = () => {
             id="reference"
             label="Order reference"
             icon={<HashIcon className="h-4 w-4" />}
-            placeholder="CP-XXXXXXXX-XXXXXX"
+            placeholder="RV-XXXXXXXX-XXXXXX"
             registration={register("reference")}
             error={errors.reference?.message}
           />

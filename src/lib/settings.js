@@ -3,12 +3,12 @@ import { PAYMENT_METHODS } from "@/lib/schemas/order";
 import { DEFAULT_PAYMENT_NOTES } from "@/lib/payments/notes";
 
 export const DEFAULT_SETTINGS = {
-  name: "General Store",
-  legalName: "General Store",
+  name: "Revestra",
+  legalName: "Revestra",
   tagline: "Secondhand, washed and measured",
   description:
     "Secondhand jeans, jackets, shirts, shoes and belts — washed, measured and one of a kind, shipped across Pakistan.",
-  email: "hello@generalstore.pk",
+  email: "hello@revestra.pk",
   phone: "",
   addressLine: "",
   city: "Karachi, Pakistan",

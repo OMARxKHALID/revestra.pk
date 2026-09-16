@@ -6,7 +6,7 @@ import {
 
 export const DEMO_ORDERS = [
   {
-    reference: "CP-DEMO01-A1B2",
+    reference: "RV-DEMO01-A1B2",
     status: ORDER_STATUS.delivered,
     createdAt: "2026-07-14T09:12:00.000Z",
     payment: { method: PAYMENT_METHOD.jazzcash, status: PAYMENT_STATUS.paid },
@@ -20,7 +20,7 @@ export const DEMO_ORDERS = [
     items: [
       {
         slug: "carhartt-duck-jacket-l",
-        sku: "GS-0201",
+        sku: "RV-0201",
         name: "Carhartt Duck Chore Jacket",
         size: "L",
         condition: "Good",
@@ -30,7 +30,7 @@ export const DEMO_ORDERS = [
     ],
   },
   {
-    reference: "CP-DEMO02-C3D4",
+    reference: "RV-DEMO02-C3D4",
     status: ORDER_STATUS.shipped,
     createdAt: "2026-08-29T16:40:00.000Z",
     payment: {
@@ -47,7 +47,7 @@ export const DEMO_ORDERS = [
     items: [
       {
         slug: "ralph-lauren-oxford-shirt-m",
-        sku: "GS-0301",
+        sku: "RV-0301",
         name: "Ralph Lauren Oxford Shirt",
         size: "M",
         condition: "Excellent",
@@ -56,7 +56,7 @@ export const DEMO_ORDERS = [
       },
       {
         slug: "brown-leather-belt-34",
-        sku: "GS-0501",
+        sku: "RV-0501",
         name: "Brown Leather Belt",
         size: '34"',
         condition: "Good",

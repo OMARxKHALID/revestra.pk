@@ -1,4 +1,4 @@
-# general-store
+# revestra.pk
 
 A working storefront for the Pakistani market, built with Next.js 16 (App
 Router) and Tailwind CSS 4 — catalogue, cart, stock, accounts, reviews,

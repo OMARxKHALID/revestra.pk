@@ -4,7 +4,7 @@ import { cloudName, isCloudinaryConfigured, uploadUrl } from "@/lib/cloudinary";
 
 export const dynamic = "force-dynamic";
 
-const FOLDER = "general-store/products";
+const FOLDER = "revestra/products";
 
 export const POST = async (request) => {
   const { response } = await guard(request, { mutation: true });

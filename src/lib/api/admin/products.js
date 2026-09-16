@@ -63,7 +63,7 @@ export const getProduct = async (slug) => {
   return db.collection(COLLECTION).findOne({ slug }, { projection: { _id: 0 } });
 };
 
-export const nextSku = async (prefix = "GS") => {
+export const nextSku = async (prefix = "RV") => {
   const db = await getDb();
 
   if (!db) return `${prefix}-0001`;

@@ -3,7 +3,7 @@ const W = "/assets/WEBP/";
 export const PRODUCTS = [
   {
     slug: "levis-501-straight-w32-l30",
-    sku: "GS-0101",
+    sku: "RV-0101",
     name: "Levi's 501 Straight",
     tagline: "Honest fade, no stretch",
     brand: "Levi's",
@@ -33,7 +33,7 @@ export const PRODUCTS = [
   },
   {
     slug: "wrangler-cowboy-cut-w34-l32",
-    sku: "GS-0102",
+    sku: "RV-0102",
     name: "Wrangler Cowboy Cut",
     tagline: "Stiff, dark, barely worn",
     brand: "Wrangler",
@@ -63,7 +63,7 @@ export const PRODUCTS = [
   },
   {
     slug: "dickies-874-work-pant-w36",
-    sku: "GS-0103",
+    sku: "RV-0103",
     name: "Dickies 874 Work Pant",
     tagline: "Creased and unbothered",
     brand: "Dickies",
@@ -93,7 +93,7 @@ export const PRODUCTS = [
   },
   {
     slug: "carhartt-duck-jacket-l",
-    sku: "GS-0201",
+    sku: "RV-0201",
     name: "Carhartt Duck Chore Jacket",
     tagline: "Broken in by someone else",
     brand: "Carhartt",
@@ -123,7 +123,7 @@ export const PRODUCTS = [
   },
   {
     slug: "levis-trucker-jacket-m",
-    sku: "GS-0202",
+    sku: "RV-0202",
     name: "Levi's Trucker Jacket",
     tagline: "Mid wash, sharp collar",
     brand: "Levi's",
@@ -153,7 +153,7 @@ export const PRODUCTS = [
   },
   {
     slug: "champion-reverse-weave-hoodie-xl",
-    sku: "GS-0203",
+    sku: "RV-0203",
     name: "Champion Reverse Weave Hoodie",
     tagline: "Heavy, boxy, holds shape",
     brand: "Champion",
@@ -183,7 +183,7 @@ export const PRODUCTS = [
   },
   {
     slug: "ralph-lauren-oxford-shirt-m",
-    sku: "GS-0301",
+    sku: "RV-0301",
     name: "Ralph Lauren Oxford Shirt",
     tagline: "Blue, buttoned, unfussy",
     brand: "Ralph Lauren",
@@ -213,7 +213,7 @@ export const PRODUCTS = [
   },
   {
     slug: "flannel-overshirt-l",
-    sku: "GS-0302",
+    sku: "RV-0302",
     name: "Heavy Flannel Overshirt",
     tagline: "Wear it open over everything",
     brand: "Unbranded",
@@ -243,7 +243,7 @@ export const PRODUCTS = [
   },
   {
     slug: "plain-white-tee-m",
-    sku: "GS-0303",
+    sku: "RV-0303",
     name: "Blank Cotton Tee",
     tagline: "The one you actually reach for",
     brand: "Unbranded",
@@ -273,7 +273,7 @@ export const PRODUCTS = [
   },
   {
     slug: "leather-derby-shoes-uk9",
-    sku: "GS-0401",
+    sku: "RV-0401",
     name: "Leather Derby Shoes",
     tagline: "Resoled, not retired",
     brand: "Unbranded",
@@ -298,7 +298,7 @@ export const PRODUCTS = [
   },
   {
     slug: "canvas-low-tops-uk8",
-    sku: "GS-0402",
+    sku: "RV-0402",
     name: "Canvas Low Tops",
     tagline: "Scuffed in the right way",
     brand: "Unbranded",
@@ -323,7 +323,7 @@ export const PRODUCTS = [
   },
   {
     slug: "brown-leather-belt-34",
-    sku: "GS-0501",
+    sku: "RV-0501",
     name: "Brown Leather Belt",
     tagline: "Solid brass, real leather",
     brand: "Unbranded",
@@ -352,7 +352,7 @@ export const PRODUCTS = [
   },
   {
     slug: "black-woven-belt-36",
-    sku: "GS-0502",
+    sku: "RV-0502",
     name: "Black Woven Belt",
     tagline: "Stretches to whatever you are",
     brand: "Unbranded",
@@ -381,7 +381,7 @@ export const PRODUCTS = [
   },
   {
     slug: "wool-flat-cap-one-size",
-    sku: "GS-0601",
+    sku: "RV-0601",
     name: "Wool Flat Cap",
     tagline: "Grandad, but on purpose",
     brand: "Unbranded",

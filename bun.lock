@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "general-store",
+      "name": "revestra.pk",
       "dependencies": {
         "@base-ui/react": "^1.8.0",
         "@hookform/resolvers": "^5.9.1",
