@@ -28,7 +28,8 @@ const loadCatalogue = async () => {
   }
 };
 
-const LiveBrowser = async ({ filters }) => {
+const LiveBrowser = async ({ searchParams }) => {
+  const filters = readFilters(toSearchParams(await searchParams));
   const products = await loadCatalogue();
 
   if (!products) return <CatalogueUnavailable />;
@@ -44,22 +45,20 @@ const LiveBrowser = async ({ filters }) => {
   );
 };
 
-const ProductsPage = async ({ searchParams }) => {
-  const filters = readFilters(toSearchParams(await searchParams));
-
-  return (
-    <InteriorPage
-      heading="Everything in stock"
-      intro="One of each, measured and washed. When it sells, it is gone."
-      className="max-w-[1200px]"
-    >
-      <div className="mt-10 sm:mt-12">
-        <Suspense fallback={<Loader label="Loading the catalogue" />}>
-          <LiveBrowser filters={filters} />
-        </Suspense>
-      </div>
-    </InteriorPage>
-  );
-};
+const ProductsPage = ({ searchParams }) => (
+  <InteriorPage
+    heading="Everything in stock"
+    intro="One of each, measured and washed. When it sells, it is gone."
+    className="max-w-[1200px]"
+  >
+    <div className="mt-10 sm:mt-12">
+      <Suspense
+        fallback={<Loader label="Loading the catalogue" className="min-h-[60svh]" />}
+      >
+        <LiveBrowser searchParams={searchParams} />
+      </Suspense>
+    </div>
+  </InteriorPage>
+);
 
 export default ProductsPage;

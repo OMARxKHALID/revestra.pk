@@ -18,7 +18,7 @@ const LiveWishlist = async () => {
 
 const WishlistPage = () => (
   <InteriorPage heading="Saved for later" className="max-w-[1200px]">
-    <Suspense fallback={null}>
+    <Suspense fallback={<div className="min-h-[60svh]" aria-hidden="true" />}>
       <LiveWishlist />
     </Suspense>
   </InteriorPage>

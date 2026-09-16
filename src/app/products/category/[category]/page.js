@@ -91,7 +91,14 @@ const CategoryPage = async ({ params, searchParams }) => {
       className="max-w-[1200px]"
     >
       <div className="mt-10 sm:mt-12">
-        <Suspense fallback={<Loader label={`Loading ${category.toLowerCase()}`} />}>
+        <Suspense
+          fallback={
+            <Loader
+              label={`Loading ${category.toLowerCase()}`}
+              className="min-h-[60svh]"
+            />
+          }
+        >
           <LiveBrowser category={category} filters={filters} />
         </Suspense>
       </div>

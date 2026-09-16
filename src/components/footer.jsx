@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import Ticker from "@/components/ticker";
 import MonogramMark from "@/components/monogram-mark";
@@ -12,7 +13,7 @@ const linkClass = cn(
   "relative text-blurple transition before:absolute before:-inset-x-1 before:-inset-y-2 before:content-[''] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
 );
 
-const Footer = async () => {
+const FooterBody = async () => {
   const settings = await getSettings();
 
   return (
@@ -80,5 +81,15 @@ const Footer = async () => {
   </footer>
   );
 };
+
+const FooterFallback = () => (
+  <footer className="min-h-[560px] bg-black sm:min-h-[410px]" aria-hidden="true" />
+);
+
+const Footer = () => (
+  <Suspense fallback={<FooterFallback />}>
+    <FooterBody />
+  </Suspense>
+);
 
 export default Footer;

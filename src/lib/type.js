@@ -10,12 +10,12 @@ export const SPEC =
 export const NOTICE = "font-sans text-[11px] leading-relaxed";
 
 export const DISPLAY =
-  "font-serif text-[30px] leading-[1.15] sm:text-[34px]";
+  "font-sans text-[30px] leading-[1.15] sm:text-[34px]";
 
-export const HEADING = "font-serif text-[26px] leading-tight sm:text-[30px]";
+export const HEADING = "font-sans text-[26px] leading-tight sm:text-[30px]";
 
-export const TITLE = "font-serif text-[19px] leading-snug";
+export const TITLE = "font-sans text-[19px] leading-snug";
 
-export const ITEM = "font-serif text-[17px] leading-snug sm:text-[18px]";
+export const ITEM = "font-sans text-[17px] leading-snug sm:text-[18px]";
 
 export const BODY = "font-sans text-sm leading-relaxed";

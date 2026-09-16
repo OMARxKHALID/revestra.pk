@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import InteriorPage from "@/components/interior-page";
 import { getSettings } from "@/lib/api/settings";
 import { title } from "@/lib/brand";
@@ -9,15 +10,11 @@ export const metadata = {
   description: "Shipping, returns, privacy and terms.",
 };
 
-const PoliciesPage = async () => {
+const PolicyBodies = async () => {
   const { policies, email, phone } = await getSettings();
 
   return (
-    <InteriorPage
-      heading="Policies"
-      intro="How we ship, how returns work, what we do with your details."
-    >
-      <div className="grid max-w-[720px] gap-12">
+    <>
         {policies.map(({ slug, title: heading, body }) => (
           <section
             key={slug}
@@ -55,9 +52,21 @@ const PoliciesPage = async () => {
             .
           </p>
         </section>
-      </div>
-    </InteriorPage>
+    </>
   );
 };
+
+const PoliciesPage = () => (
+  <InteriorPage
+    heading="Policies"
+    intro="How we ship, how returns work, what we do with your details."
+  >
+    <div className="grid max-w-[720px] gap-12">
+      <Suspense fallback={<div className="min-h-[60svh]" aria-hidden="true" />}>
+        <PolicyBodies />
+      </Suspense>
+    </div>
+  </InteriorPage>
+);
 
 export default PoliciesPage;

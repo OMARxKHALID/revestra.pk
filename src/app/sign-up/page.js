@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import InteriorPage from "@/components/interior-page";
 import SignUpForm from "@/components/sign-up-form";
@@ -12,21 +13,25 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-const SignUpPage = async () => {
+const LiveSignUpForm = async () => {
   const { signupOpen } = await getSettings();
 
-  return (
-    <InteriorPage heading="Create an account" className="max-w-[440px]">
-      <SignUpForm available={authIsAvailable() && signupOpen} />
-
-      <p className={cn(META, "mt-8 text-ink-soft")}>
-        Already have one?{" "}
-        <Link href="/sign-in" className="text-blurple hover:underline">
-          Sign in
-        </Link>
-      </p>
-    </InteriorPage>
-  );
+  return <SignUpForm available={authIsAvailable() && signupOpen} />;
 };
+
+const SignUpPage = () => (
+  <InteriorPage heading="Create an account" className="max-w-[440px]">
+    <Suspense fallback={<div className="min-h-[360px]" aria-hidden="true" />}>
+      <LiveSignUpForm />
+    </Suspense>
+
+    <p className={cn(META, "mt-8 text-ink-soft")}>
+      Already have one?{" "}
+      <Link href="/sign-in" className="text-blurple hover:underline">
+        Sign in
+      </Link>
+    </p>
+  </InteriorPage>
+);
 
 export default SignUpPage;

@@ -14,7 +14,7 @@ export const metadata = {
 
 const SignInPage = () => (
   <InteriorPage heading="Sign in" className="max-w-[440px]">
-    <Suspense fallback={null}>
+    <Suspense fallback={<div className="min-h-[320px]" aria-hidden="true" />}>
       <SignInForm available={authIsAvailable()} />
     </Suspense>
 

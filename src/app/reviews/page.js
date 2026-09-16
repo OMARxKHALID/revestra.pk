@@ -26,7 +26,7 @@ const ReviewsPage = () => (
     intro="Every piece here is secondhand and one of one, so the thing worth judging is us — how we grade, how we describe, and how it turns up."
   >
     <div className="mt-12">
-      <Suspense fallback={null}>
+      <Suspense fallback={<div className="min-h-[60svh]" aria-hidden="true" />}>
         <LiveReviews />
       </Suspense>
     </div>

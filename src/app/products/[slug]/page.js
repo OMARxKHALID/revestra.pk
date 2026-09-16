@@ -106,8 +106,8 @@ const ProductPage = async ({ params }) => {
           <ProductGallery frames={frames} name={name} sold={sold} label={label} />
         </div>
 
-        <div className="flex flex-col items-center justify-center px-6 py-16 sm:px-10 sm:py-20 lg:sticky lg:top-header lg:h-[calc(100svh-var(--spacing-header))] lg:justify-start lg:overflow-y-auto lg:py-10">
-          <div className="w-full max-w-[420px] text-center lg:my-auto">
+        <div className="flex flex-col items-center justify-center px-6 py-16 sm:px-10 sm:py-20 lg:min-h-[calc(100svh-var(--spacing-header))] lg:py-16">
+          <div className="w-full max-w-[420px] text-center">
             <p className={cn(EYEBROW, "text-blurple")}>
               {tagline}
             </p>

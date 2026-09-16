@@ -6,7 +6,6 @@
 
 @theme {
   --font-sans: var(--font-space-grotesk), sans-serif;
-  --font-serif: var(--font-space-grotesk), sans-serif;
 
   --color-blurple: #3667f6;
   --color-sale: #e0342a;
@@ -248,7 +247,6 @@ html.lenis.lenis-smooth {
   --sidebar-border: oklch(0.8854 0.006 264.5313);
   --sidebar-ring: oklch(0.6716 0.1368 48.513);
   --font-sans: var(--font-space-grotesk), sans-serif;
-  --font-serif: var(--font-space-grotesk), sans-serif;
   --font-mono: ui-monospace, "Geist Mono", "SFMono-Regular", Menlo, Consolas,
     monospace;
   --radius: 0.75rem;
