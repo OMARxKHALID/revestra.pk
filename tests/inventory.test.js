@@ -10,6 +10,8 @@ const matches = (product, filter) => {
     return false;
   if (filter.status?.$ne !== undefined && product.status === filter.status.$ne)
     return false;
+  if (filter.status?.$in && !filter.status.$in.includes(product.status))
+    return false;
 
   if (filter.$or)
     return filter.$or.some((clause) =>
@@ -133,5 +135,34 @@ describe("one-off reservation", () => {
 
     expect(second.ok).toBe(true);
     expect(products[0].reservedBy).toBe("CP-B");
+  });
+
+  test("cancelling a sold order puts its piece back on sale", async () => {
+    await reserveStock(line, { reference: "CP-A" });
+    await markSold(line, "CP-A");
+    await releaseStock(line, "CP-A");
+
+    expect(products[0].status).toBe("available");
+    expect(products[0].soldAt).toBeNull();
+  });
+
+  test("a reopened order can hold and sell its piece again", async () => {
+    await reserveStock(line, { reference: "CP-A" });
+    await markSold(line, "CP-A");
+    await releaseStock(line, "CP-A");
+    await reserveStock(line, { reference: "CP-A" });
+
+    const result = await markSold(line, "CP-A");
+
+    expect(result.sold).toBe(true);
+    expect(products[0].status).toBe("sold");
+  });
+
+  test("releasing another order's sold piece is a no-op", async () => {
+    await reserveStock(line, { reference: "CP-A" });
+    await markSold(line, "CP-A");
+    await releaseStock(line, "CP-B");
+
+    expect(products[0].status).toBe("sold");
   });
 });

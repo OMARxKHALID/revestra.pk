@@ -8,7 +8,7 @@ import {
 
 const STEPS = FULFILLED_ORDER_STATUSES;
 
-const LABELS = {
+export const STATUS_LABELS = {
   pending_payment: "Awaiting payment",
   received: "Received",
   processing: "Processing",
@@ -32,7 +32,7 @@ const OrderStatus = ({ status }) => {
             : "text-blurple"
         )}
       >
-        {LABELS[status] ?? status}
+        {STATUS_LABELS[status] ?? status}
       </p>
 
       {!stalled && (
@@ -52,7 +52,7 @@ const OrderStatus = ({ status }) => {
                   position <= index ? "text-ink-muted" : "text-ink-soft"
                 )}
               >
-                {LABELS[step]}
+                {STATUS_LABELS[step]}
               </p>
             </li>
           ))}

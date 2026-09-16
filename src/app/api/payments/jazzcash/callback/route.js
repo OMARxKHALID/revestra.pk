@@ -12,6 +12,7 @@ import {
 } from "@/lib/api/orders";
 import { releaseStock } from "@/lib/api/inventory";
 import { completeSale, captureOrderCompleted } from "@/lib/api/fulfilment";
+import { sendOrderConfirmation } from "@/lib/email";
 import { signOrderToken } from "@/lib/utils/order-token";
 import { siteUrl } from "@/lib/payments/config";
 import reportPaymentAnomaly from "@/lib/api/payment-anomaly";
@@ -99,6 +100,10 @@ const settle = async (request) => {
   if (settled && paid) {
     await completeSale(order);
     await captureOrderCompleted({ ...order, status: ORDER_STATUS.received });
+    await sendOrderConfirmation(
+      { ...order, payment: { ...order.payment, status: PAYMENT_STATUS.paid } },
+      `${siteUrl()}/orders/${order.reference}?t=${token}`
+    );
   }
 
   return seeOther(`/orders/${order.reference}?t=${token}`);

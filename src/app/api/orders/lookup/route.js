@@ -26,15 +26,14 @@ export const POST = async (request) => {
   const order = await findOrderByReference(reference.trim().toUpperCase());
 
   if (!order) return notFound();
-  if (order.email !== email.trim().toLowerCase()) return notFound();
+  if (order.email !== email.toLowerCase()) return notFound();
 
   return Response.json({
     reference: order.reference,
     status: order.status,
-    createdAt: order.createdAt,
     totals: order.totals,
     items: order.items,
-    payment: { method: order.payment.method, status: order.payment.status },
+    tracking: order.tracking ?? null,
     token: signOrderToken(order.reference, orderSecret()),
   });
 };

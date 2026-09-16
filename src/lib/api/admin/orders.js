@@ -1,7 +1,7 @@
 import "server-only";
 import { ORDER_STATUS } from "@/lib/schemas/order";
 import { getDb } from "@/lib/db";
-import { releaseStock, markSold } from "@/lib/api/inventory";
+import { markSold, releaseStock, reserveStock } from "@/lib/api/inventory";
 import { recordRedemption, releaseRedemption } from "@/lib/api/promos";
 
 const COLLECTION = "orders";
@@ -85,25 +85,55 @@ export const setOrderStatus = async ({
   const order = await db.collection(COLLECTION).findOne({ reference });
 
   if (!order) return { ok: false, error: "No such order" };
-  if (order.status === status)
-    return { ok: false, error: `That order is already ${status}` };
 
   const now = new Date();
   const tracking =
     courier || trackingNumber
-      ? { courier: courier || "", number: trackingNumber || "", at: now }
+      ? {
+          courier: courier || order.tracking?.courier || "",
+          number: trackingNumber || order.tracking?.number || "",
+          at: now,
+        }
       : null;
+  const changed = order.status !== status;
+
+  if (!changed && !tracking)
+    return { ok: false, error: `That order is already ${status}` };
+
+  const reopening = changed && order.status === ORDER_STATUS.cancelled;
+
+  if (reopening) {
+    const held = await reserveStock(order.items, { reference });
+
+    if (!held.ok)
+      return { ok: false, error: `Cannot reopen ${reference}: ${held.error}` };
+  }
 
   const result = await db.collection(COLLECTION).findOneAndUpdate(
-    { reference },
+    { reference, status: order.status },
     {
       $set: { status, updatedAt: now, ...(tracking ? { tracking } : {}) },
       $push: {
-        history: { status, at: now, note: note || "", by: adminId ?? null },
+        history: {
+          status,
+          at: now,
+          note: note || (changed ? "" : "Tracking updated"),
+          by: adminId ?? null,
+        },
       },
     },
     { returnDocument: "after", projection: { _id: 0 } }
   );
+
+  if (!result && reopening) await releaseStock(order.items, reference);
+
+  if (!result)
+    return {
+      ok: false,
+      error: "That order changed while you were editing — reload and try again",
+    };
+
+  if (!changed) return { ok: true, changed, order: result };
 
   if (status === ORDER_STATUS.cancelled) {
     await releaseStock(order.items, reference);
@@ -111,16 +141,13 @@ export const setOrderStatus = async ({
     if (order.promo) await releaseRedemption(order.promo.code, reference);
   }
 
-  if (
-    status === ORDER_STATUS.received &&
-    order.status === ORDER_STATUS.cancelled
-  ) {
+  if (reopening) {
     await markSold(order.items, reference);
 
     if (order.promo) await recordRedemption(order.promo.code, reference);
   }
 
-  return { ok: true, order: result ?? null };
+  return { ok: true, changed, order: result };
 };
 
 export const countByStatus = async () => {

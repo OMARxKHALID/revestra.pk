@@ -47,15 +47,18 @@ export const PATCH = async (request, { params }) => {
   if (!updated.ok)
     return Response.json({ error: updated.error }, { status: 409 });
 
-  if (updated.order) {
+  const { order, changed } = updated;
+  const newTracking = !changed && order.status === ORDER_STATUS.shipped;
+
+  if (changed || newTracking) {
     const token = signOrderToken(reference, orderSecret());
     const trackUrl = `${siteUrl()}/orders/${reference}?t=${encodeURIComponent(token)}`;
 
-    await sendOrderStatusUpdate(updated.order, trackUrl);
-
-    if (updated.order.status === ORDER_STATUS.cancelled)
-      await captureOrderCancelled(updated.order);
+    await sendOrderStatusUpdate(order, trackUrl);
   }
 
-  return Response.json({ order: updated.order });
+  if (changed && order.status === ORDER_STATUS.cancelled)
+    await captureOrderCancelled(order);
+
+  return Response.json({ order });
 };

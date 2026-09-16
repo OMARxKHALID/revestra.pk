@@ -17,7 +17,7 @@ import {
 import { SETTABLE_ORDER_STATUSES } from "@/lib/schemas/admin";
 import { request } from "@/lib/api-client";
 
-const OrderStatusForm = ({ reference, status: current }) => {
+const OrderStatusForm = ({ reference, status: current, tracking }) => {
   const router = useRouter();
   const [status, setStatus] = useState(current);
   const [note, setNote] = useState("");
@@ -31,7 +31,11 @@ const OrderStatusForm = ({ reference, status: current }) => {
         body: { status, note, courier, trackingNumber },
       }),
     onSuccess: () => {
-      toast.success(`${reference} is now ${status}`);
+      toast.success(
+        status === current
+          ? `Tracking saved for ${reference}`
+          : `${reference} is now ${status}`
+      );
       setNote("");
       setCourier("");
       setTrackingNumber("");
@@ -97,8 +101,24 @@ const OrderStatusForm = ({ reference, status: current }) => {
         />
       </div>
 
-      <Button type="submit" disabled={save.isPending || status === current}>
-        {save.isPending ? "Saving…" : "Update status"}
+      {(tracking?.courier || tracking?.number) && (
+        <p className="text-xs text-muted-foreground">
+          Sent to the customer:{" "}
+          {[tracking.courier, tracking.number].filter(Boolean).join(" · ")}
+        </p>
+      )}
+
+      <Button
+        type="submit"
+        disabled={
+          save.isPending || (status === current && !courier && !trackingNumber)
+        }
+      >
+        {save.isPending
+          ? "Saving…"
+          : status === current
+            ? "Save tracking"
+            : "Update status"}
       </Button>
 
       <p className="text-xs text-muted-foreground">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import InteriorPage from "@/components/interior-page";
 import ClaimOrderForm from "@/components/claim-order-form";
+import { STATUS_LABELS } from "@/components/order-status";
 import cn from "@/lib/utils/cn";
 import { ITEM, META, TITLE } from "@/lib/type";
 import { title } from "@/lib/brand";
@@ -37,7 +38,13 @@ const OrdersPage = async () => {
         </p>
       )}
 
-      <ul className="mt-10 divide-y divide-rule border-y border-rule">
+      {orders.length === 0 && (
+        <p className={cn(META, "mt-10 text-ink-soft")}>
+          No orders on this account yet. Ordered as a guest? Add it below.
+        </p>
+      )}
+
+      <ul className="mt-10 divide-y divide-rule border-y border-rule empty:hidden">
         {orders.map((order) => (
           <li
             key={order.reference}
@@ -49,7 +56,8 @@ const OrdersPage = async () => {
               </p>
               <p className={cn(META, "mt-1 text-ink-soft")}>
                 {new Date(order.createdAt).toLocaleDateString("en-PK")} ·{" "}
-                {order.items.length} item(s) · {order.status}
+                {order.items.length} item(s) ·{" "}
+                {STATUS_LABELS[order.status] ?? order.status}
               </p>
             </div>
 

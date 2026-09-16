@@ -10,6 +10,8 @@ if (token) {
     person_profiles: "identified_only",
     capture_exceptions: true,
     cookieless_mode: "on_reject",
+    mask_personal_data_properties: true,
+    custom_personal_data_properties: ["t"],
     session_recording: {
       maskAllInputs: true,
       maskInputOptions: { password: true, email: true, text: true },

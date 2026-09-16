@@ -23,12 +23,17 @@ export const releaseStock = async (lines, reference = null) => {
   const collection = db.collection(COLLECTION);
 
   for (const line of lines) {
-    const filter = { slug: line.slug, status: "reserved" };
-
-    if (reference) filter.reservedBy = reference;
+    const filter = reference
+      ? { slug: line.slug, status: { $in: ["reserved", "sold"] }, reservedBy: reference }
+      : { slug: line.slug, status: "reserved" };
 
     const result = await collection.updateOne(filter, {
-      $set: { status: "available", reservedUntil: null, reservedBy: null },
+      $set: {
+        status: "available",
+        reservedUntil: null,
+        reservedBy: null,
+        soldAt: null,
+      },
     });
 
     if (reference && result.matchedCount === 0)

@@ -11,6 +11,7 @@ import ErrorNotice from "@/components/ui/error-notice";
 import OrderStatus from "@/components/order-status";
 import OrderSummary from "@/components/order-summary";
 import cn from "@/lib/utils/cn";
+import { META } from "@/lib/type";
 import { request } from "@/lib/api-client";
 
 const TrackForm = () => {
@@ -25,7 +26,6 @@ const TrackForm = () => {
   });
 
   const order = lookup.data ?? null;
-  const submitError = lookup.isError ? lookup.error.message : null;
   const handleLookup = (values) => lookup.mutate(values);
 
   return (
@@ -36,7 +36,7 @@ const TrackForm = () => {
             id="reference"
             label="Order reference"
             icon={<HashIcon className="h-4 w-4" />}
-            placeholder="CP-XXXXXX-XXXX"
+            placeholder="CP-XXXXXXXX-XXXXXX"
             registration={register("reference")}
             error={errors.reference?.message}
           />
@@ -63,6 +63,17 @@ const TrackForm = () => {
           <p className={cn(META, "text-ink-soft")}>{order.reference}</p>
 
           <OrderStatus status={order.status} />
+
+          {(order.tracking?.courier || order.tracking?.number) && (
+            <p className={cn(META, "mt-4 text-ink-soft")}>
+              {[
+                order.tracking.courier && `Courier: ${order.tracking.courier}`,
+                order.tracking.number && `Tracking: ${order.tracking.number}`,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          )}
 
           <div className="mt-10 max-w-[460px]">
             <OrderSummary items={order.items} totals={order.totals} promo={null} />

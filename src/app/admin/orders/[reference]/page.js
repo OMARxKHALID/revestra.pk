@@ -135,7 +135,11 @@ const OrderDetailPage = async ({ params }) => {
             </CardHeader>
 
             <CardContent>
-              <OrderStatusForm reference={order.reference} status={order.status} />
+              <OrderStatusForm
+                reference={order.reference}
+                status={order.status}
+                tracking={order.tracking}
+              />
             </CardContent>
           </Card>
 
