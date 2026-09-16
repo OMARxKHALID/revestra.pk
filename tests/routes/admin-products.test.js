@@ -76,6 +76,7 @@ const stubDb = {
 };
 
 mock.module("server-only", () => ({}));
+mock.module("next/cache", () => ({ revalidatePath: () => {} }));
 mock.module("@/auth", () => ({ auth: async () => session }));
 mock.module("@/lib/db", () => ({
   isDatabaseConfigured: () => true,

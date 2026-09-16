@@ -32,7 +32,6 @@ const Pager = ({ page, perPage, total }) => {
           variant="outline"
           size="sm"
           disabled={!hasPrevious}
-          nativeButton={!hasPrevious}
           render={hasPrevious ? <Link href={href(page - 1)} /> : undefined}
         >
           Previous
@@ -42,7 +41,6 @@ const Pager = ({ page, perPage, total }) => {
           variant="outline"
           size="sm"
           disabled={!hasNext}
-          nativeButton={!hasNext}
           render={hasNext ? <Link href={href(page + 1)} /> : undefined}
         >
           Next

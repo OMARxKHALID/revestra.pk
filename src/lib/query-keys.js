@@ -18,13 +18,6 @@ const keys = {
   wishlist: {
     all: ["wishlist"],
   },
-  admin: {
-    all: ["admin"],
-    products: (query) => ["admin", "products", query],
-    orders: (query) => ["admin", "orders", query],
-    promos: () => ["admin", "promos"],
-    reviews: (status) => ["admin", "reviews", status],
-  },
 };
 
 export default keys;

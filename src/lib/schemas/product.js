@@ -53,6 +53,7 @@ export const productBaseSchema = z.object({
   description: z.string().min(1),
   details: z.array(z.string().min(1)).min(1),
   status: z.enum(AVAILABILITY).default("available"),
+  active: z.boolean().default(true),
   reservedUntil: z.union([z.string(), z.date()]).nullable().default(null),
   uploadedBy: z.string().nullable().default(null),
   uploadedByName: z.string().nullable().default(null),

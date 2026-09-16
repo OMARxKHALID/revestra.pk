@@ -37,19 +37,26 @@ const buttonVariants = cva(
   }
 )
 
+const rendersNativeButton = (render) =>
+  !render || typeof render === "function" || render.type === "button";
+
 function Button({
   className,
   variant = "default",
   size = "default",
+  render,
+  nativeButton,
   ...props
 }) {
   return (
     <ButtonPrimitive
       data-slot="button"
+      render={render}
+      nativeButton={nativeButton ?? rendersNativeButton(render)}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
   )
 }
 
-export { Button, buttonVariants }
+export { Button, buttonVariants, rendersNativeButton }

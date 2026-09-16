@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Search01Icon } from "@hugeicons/core-free-icons";
+import useDebounced from "@/hooks/use-debounced";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -21,40 +22,41 @@ const labelsFor = (filter) =>
     { [ALL]: filter.label }
   );
 
+const hrefWith = (pathname, params, key, value) => {
+  const next = new URLSearchParams(params);
+
+  if (value) next.set(key, value);
+  else next.delete(key);
+
+  next.delete("page");
+
+  return next.size ? `${pathname}?${next}` : pathname;
+};
+
 const FilterBar = ({ placeholder = "Search", filters = [] }) => {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+
   const [query, setQuery] = useState(params.get("q") ?? "");
+  const settled = useDebounced(query, 300);
+  const pushed = useRef(settled);
 
-  const push = (next) => {
-    next.delete("page");
-    router.push(`${pathname}?${next.toString()}`);
-  };
+  useEffect(() => {
+    if (settled === pushed.current) return;
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+    pushed.current = settled;
+    router.replace(hrefWith(pathname, params, "q", settled), { scroll: false });
+  }, [settled, params, pathname, router]);
 
-    const next = new URLSearchParams(params);
-
-    if (query) next.set("q", query);
-    else next.delete("q");
-
-    push(next);
-  };
-
-  const handleFilter = (key) => (value) => {
-    const next = new URLSearchParams(params);
-
-    if (value === ALL) next.delete(key);
-    else next.set(key, value);
-
-    push(next);
-  };
+  const handleFilter = (key) => (value) =>
+    router.replace(hrefWith(pathname, params, key, value === ALL ? "" : value), {
+      scroll: false,
+    });
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={(event) => event.preventDefault()}
       className="flex flex-col gap-3 sm:flex-row sm:items-center"
     >
       <div className="relative w-full sm:max-w-xs">
@@ -63,6 +65,7 @@ const FilterBar = ({ placeholder = "Search", filters = [] }) => {
         </span>
 
         <Input
+          type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={placeholder}
@@ -75,7 +78,7 @@ const FilterBar = ({ placeholder = "Search", filters = [] }) => {
         <Select
           key={filter.key}
           items={labelsFor(filter)}
-          value={params.get(filter.key) ?? ALL}
+          value={params.get(filter.key) || ALL}
           onValueChange={handleFilter(filter.key)}
         >
           <SelectTrigger className="w-full sm:w-[190px]">

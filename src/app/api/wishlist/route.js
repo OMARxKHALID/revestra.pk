@@ -1,7 +1,7 @@
 import { wishlistSchema } from "@/lib/schemas/wishlist";
 import { auth } from "@/auth";
 import { getWishlist, setWishlist } from "@/lib/api/users";
-import { getAllProducts } from "@/lib/api/products";
+import { getAllProducts, getStockBySlugs } from "@/lib/api/products";
 import { createLimiter } from "@/lib/rate-limit";
 import RATE_LIMITS from "@/lib/rate-limits";
 import { gateRequest } from "@/lib/api/request";
@@ -42,11 +42,18 @@ export const PUT = async (request) => {
   if (!parsed.success)
     return Response.json({ error: "Invalid wishlist" }, { status: 422 });
 
-  const catalogue = await getAllProducts();
-  const known = new Set(catalogue.map((product) => product.slug));
+  const requested = [...new Set(parsed.data.slugs)];
+  const [catalogue, stored] = await Promise.all([
+    getAllProducts(),
+    getStockBySlugs(requested),
+  ]);
+  const known = new Set([
+    ...catalogue.map((product) => product.slug),
+    ...stored.keys(),
+  ]);
   const slugs = await setWishlist(
     session.user.id,
-    [...new Set(parsed.data.slugs)].filter((slug) => known.has(slug))
+    requested.filter((slug) => known.has(slug))
   );
 
   return Response.json({ slugs });

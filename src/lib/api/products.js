@@ -13,6 +13,8 @@ import {
 
 const COLLECTION = "products";
 
+const VISIBLE = { active: { $ne: false } };
+
 const fromStatic = () =>
   productsSchema.parse(STATIC_PRODUCTS.map(toPublicProduct));
 
@@ -23,7 +25,7 @@ const fromDatabase = async () => {
 
   const documents = await db
     .collection(COLLECTION)
-    .find({}, { projection: { _id: 0, costCents: 0, lot: 0 } })
+    .find(VISIBLE, { projection: { _id: 0, costCents: 0, lot: 0 } })
     .sort({ order: 1 })
     .toArray();
 
@@ -94,7 +96,7 @@ export const getLatestProducts = async (limit = 5) => {
   const documents = await db
     .collection(COLLECTION)
     .find(
-      { status: { $ne: "sold" } },
+      { status: { $ne: "sold" }, ...VISIBLE },
       { projection: { _id: 0, costCents: 0, lot: 0 } }
     )
     .sort({ createdAt: -1 })

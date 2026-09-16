@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { guard, readJson, invalid } from "@/lib/api/admin/guard";
 import {
   deleteProduct,
@@ -65,6 +66,8 @@ export const PATCH = async (request, { params }) => {
     if (!result.ok)
       return Response.json({ error: result.error }, { status: 404 });
 
+    revalidatePath(`/products/${slug}`);
+
     return Response.json({ ok: true, product: result.product });
   } catch (error) {
     console.error(`[admin] could not update ${slug}: ${error.message}`);
@@ -88,6 +91,8 @@ export const DELETE = async (request, { params }) => {
 
     if (!removed.ok)
       return Response.json({ error: removed.error }, { status: 409 });
+
+    revalidatePath(`/products/${slug}`);
 
     return Response.json({ ok: true });
   } catch (error) {

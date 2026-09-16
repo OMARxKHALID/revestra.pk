@@ -6,7 +6,9 @@ import PageHeader from "@/components/admin/page-header";
 import FilterBar from "@/components/admin/filter-bar";
 import Pager from "@/components/admin/pager";
 import StatusBadge from "@/components/admin/status-badge";
+import ProductActiveToggle from "@/components/admin/product-active-toggle";
 import DeleteProductButton from "@/components/admin/delete-product-button";
+import ProductCards from "@/components/admin/product-cards";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -36,6 +38,9 @@ const margin = (product) => {
 const ProductsPage = async ({ searchParams }) => {
   const query = listQuerySchema.parse(await searchParams);
   const { products, total, page, perPage } = await listProducts(query);
+  const margins = Object.fromEntries(
+    products.map((product) => [product.slug, margin(product)])
+  );
 
   return (
     <PageLayout>
@@ -44,7 +49,7 @@ const ProductsPage = async ({ searchParams }) => {
         description="One row per piece. Every piece is one of one."
         icon={HangerIcon}
       >
-        <Button nativeButton={false} render={<Link href="/admin/products/new" />}>
+        <Button render={<Link href="/admin/products/new" />}>
           Add a piece
         </Button>
       </PageHeader>
@@ -67,7 +72,9 @@ const ProductsPage = async ({ searchParams }) => {
             ]}
           />
 
-          <div className="overflow-x-auto">
+          <ProductCards products={products} margins={margins} />
+
+          <div className="hidden overflow-x-auto lg:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -77,6 +84,7 @@ const ProductsPage = async ({ searchParams }) => {
                   <TableHead className="hidden lg:table-cell">Cost</TableHead>
                   <TableHead className="hidden lg:table-cell">Margin</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-center">Live</TableHead>
                   <TableHead className="text-right">Price</TableHead>
                   <TableHead className="w-[92px]" />
                 </TableRow>
@@ -118,11 +126,19 @@ const ProductsPage = async ({ searchParams }) => {
                     </TableCell>
 
                     <TableCell className="hidden lg:table-cell tabular-nums text-muted-foreground">
-                      {margin(product)}
+                      {margins[product.slug]}
                     </TableCell>
 
                     <TableCell>
                       <StatusBadge status={product.status} />
+                    </TableCell>
+
+                    <TableCell className="text-center">
+                      <ProductActiveToggle
+                        slug={product.slug}
+                        name={product.name}
+                        active={product.active !== false}
+                      />
                     </TableCell>
 
                     <TableCell className="text-right tabular-nums">
@@ -141,7 +157,7 @@ const ProductsPage = async ({ searchParams }) => {
                 {products.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={9}
                       className="py-12 text-center text-muted-foreground"
                     >
                       Nothing matches that.
