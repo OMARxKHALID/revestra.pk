@@ -7,3 +7,4 @@ out
 
 # local mongodb data
 .mongo-data/
+.env
