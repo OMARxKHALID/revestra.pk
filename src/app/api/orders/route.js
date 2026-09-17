@@ -20,6 +20,7 @@ import { createLimiter } from "@/lib/rate-limit";
 import RATE_LIMITS from "@/lib/rate-limits";
 import { guardRequest } from "@/lib/api/request";
 import { sendOrderConfirmation } from "@/lib/email";
+import { alertStoreAboutOrder } from "@/lib/api/order-alert";
 import { siteUrl } from "@/lib/payments/config";
 import { optionalSession } from "@/lib/session";
 import { listMethods } from "@/lib/payments";
@@ -159,6 +160,7 @@ export const POST = async (request) => {
   if (persisted && isCod) {
     await completeSale(order, priced.lines);
     await captureOrderCompleted(order);
+    alertStoreAboutOrder(order);
   }
 
   const token = signOrderToken(order.reference, orderSecret());
