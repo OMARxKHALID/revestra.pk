@@ -49,9 +49,18 @@ const ProductsPage = async ({ searchParams }) => {
         description="One row per piece. Every piece is one of one."
         icon={HangerIcon}
       >
-        <Button render={<Link href="/admin/products/new" />}>
-          Add a piece
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            render={<Link href="/admin/products/import" />}
+          >
+            Import CSV
+          </Button>
+
+          <Button render={<Link href="/admin/products/new" />}>
+            Add a piece
+          </Button>
+        </div>
       </PageHeader>
 
       <Card>
