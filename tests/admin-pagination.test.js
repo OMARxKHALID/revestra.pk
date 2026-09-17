@@ -3,9 +3,11 @@ import { beforeEach, describe, expect, mock, test } from "bun:test";
 mock.module("server-only", () => ({}));
 
 let rows;
+let seen = [];
 
 const collection = () => ({
-  find: () => {
+  find: (filter) => {
+    seen.push(filter);
     let skipped = 0;
     let limited = rows.length;
 
@@ -94,26 +96,8 @@ describe("admin lists page at ten a page", () => {
 
 describe("the needs-attention order filter", () => {
   test("it selects stock conflicts and unverified payments only when asked", async () => {
-    const seen = [];
-
-    mock.module("@/lib/db", () => ({
-      isDatabaseConfigured: () => true,
-      getDb: async () => ({
-        collection: () => ({
-          find: (filter) => {
-            seen.push(filter);
-            const cursor = {
-              sort: () => cursor,
-              skip: () => cursor,
-              limit: () => cursor,
-              toArray: async () => [],
-            };
-            return cursor;
-          },
-          countDocuments: async () => 0,
-        }),
-      }),
-    }));
+    rows = [];
+    seen = [];
 
     const { listOrders } = await import("@/lib/api/admin/orders");
 

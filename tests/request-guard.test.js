@@ -3,7 +3,10 @@ import { z } from "zod";
 
 mock.module("server-only", () => ({}));
 
+const paymentsConfig = await import("@/lib/payments/config");
+
 mock.module("@/lib/payments/config", () => ({
+  ...paymentsConfig,
   siteUrl: () => "http://localhost:3000",
 }));
 
