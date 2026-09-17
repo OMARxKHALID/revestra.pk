@@ -14,7 +14,7 @@ const Hero = () => (
         src={bg}
         alt=""
         fill
-        priority
+        preload
         sizes="100vw"
         className="object-cover object-center"
       />
@@ -30,7 +30,7 @@ const Hero = () => (
           alt={BRAND.name}
           width={width}
           height={height}
-          priority
+          preload
           fetchPriority="high"
           sizes="(max-width: 768px) 92vw, 900px"
           className="h-auto w-full object-contain"

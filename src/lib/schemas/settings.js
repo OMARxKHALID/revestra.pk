@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { whatsappNumber } from "@/lib/utils/whatsapp";
 import { SHIPPING_RATE_IDS } from "@/lib/shipping";
 import { PAYMENT_METHODS } from "@/lib/schemas/order";
 
@@ -69,6 +70,15 @@ export const settingsSchema = z.object({
   description: z.string().trim().min(1, "Enter a description").max(300),
   email: z.email("Enter a valid contact address"),
   phone: z.string().trim().max(40).default(""),
+  whatsapp: z
+    .string()
+    .trim()
+    .max(40)
+    .refine(
+      (value) => value === "" || whatsappNumber(value) !== null,
+      "Enter a full mobile number, like +92 300 1234567"
+    )
+    .default(""),
   addressLine: z.string().trim().max(120).default(""),
   city: z.string().trim().min(1, "Enter a city"),
   hours: z.string().trim().min(1, "Enter opening hours"),

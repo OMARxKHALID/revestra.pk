@@ -172,6 +172,13 @@ const SettingsForm = ({ settings }) => {
             />
             <TextField
               control={control}
+              name="whatsapp"
+              label="WhatsApp number"
+              placeholder="+92 300 1234567"
+              description="Shows a Buy on WhatsApp button on every piece. Left blank, the phone number is used."
+            />
+            <TextField
+              control={control}
               name="addressLine"
               label="Street address"
               placeholder="Shop 4, Zamzama Boulevard"

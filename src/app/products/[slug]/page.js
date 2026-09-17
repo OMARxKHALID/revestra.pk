@@ -22,6 +22,8 @@ import SaveButton from "@/components/save-button";
 import MeasurementsTable from "@/components/measurements-table";
 import ConditionBadge from "@/components/condition-badge";
 import ShopRating from "@/components/shop-rating";
+import { getSettings } from "@/lib/api/settings";
+import { whatsappNumber } from "@/lib/utils/whatsapp";
 
 export const revalidate = 60;
 
@@ -72,7 +74,10 @@ const Related = async ({ product }) => {
 
 const ProductPage = async ({ params }) => {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const [product, settings] = await Promise.all([
+    getProductBySlug(slug),
+    getSettings(),
+  ]);
 
   if (!product) notFound();
 
@@ -155,7 +160,10 @@ const ProductPage = async ({ params }) => {
 
             <AnalyticsProductView product={product} />
 
-            <AddToCart product={product} />
+            <AddToCart
+              product={product}
+              whatsapp={whatsappNumber(settings.whatsapp || settings.phone)}
+            />
 
             <div className="mt-5 flex justify-center">
               <SaveButton slug={product.slug} />

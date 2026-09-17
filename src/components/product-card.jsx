@@ -47,6 +47,8 @@ const ProductCard = ({
             width={480}
             height={480}
             sizes="(max-width: 640px) 88vw, (max-width: 1024px) 44vw, 360px"
+            loading={index < 3 ? "eager" : "lazy"}
+            fetchPriority={index === 0 ? "high" : "auto"}
             className={cn(
               "h-[82%] w-auto object-contain transition-transform duration-500 ease-out group-hover:-translate-y-1.5",
               sold && "opacity-45"

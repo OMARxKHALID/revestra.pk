@@ -32,7 +32,7 @@ const ProductGallery = ({ frames, name, sold = false, label }) => {
           alt={name}
           width={900}
           height={900}
-          priority={active === 0}
+          preload={active === 0}
           sizes="(max-width: 1024px) 100vw, 50vw"
           className={cn(
             "h-auto w-[78%] object-contain",

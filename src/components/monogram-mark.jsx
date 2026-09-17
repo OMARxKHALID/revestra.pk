@@ -8,7 +8,7 @@ const MonogramMark = ({ className, priority = false }) => (
     alt={BRAND.name}
     width={571}
     height={256}
-    priority={priority}
+    preload={priority}
     className={cn("h-10 w-auto sm:h-14", className)}
   />
 );

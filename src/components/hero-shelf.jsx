@@ -52,7 +52,7 @@ const HeroShelf = async () => {
             alt={name}
             width={280}
             height={280}
-            priority={index === 0}
+            preload={index === 0}
             loading="eager"
             fetchPriority={index === 0 ? "high" : "low"}
             sizes="140px"

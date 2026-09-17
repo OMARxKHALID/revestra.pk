@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { WhatsappIcon } from "@hugeicons/core-free-icons";
 import useCart from "@/store/use-cart";
 import cn from "@/lib/utils/cn";
 import { META, NOTICE } from "@/lib/type";
@@ -11,8 +13,9 @@ import { request } from "@/lib/api-client";
 import keys from "@/lib/query-keys";
 import { track } from "@/lib/track";
 import { ANALYTICS_EVENT, productProperties } from "@/lib/analytics";
+import { whatsappLink } from "@/lib/utils/whatsapp";
 
-const AddToCart = ({ product }) => {
+const AddToCart = ({ product, whatsapp }) => {
   const addItem = useCart((state) => state.addItem);
   const items = useCart((state) => state.items);
   const [added, setAdded] = useState(false);
@@ -53,20 +56,41 @@ const AddToCart = ({ product }) => {
 
   return (
     <div className="mt-8">
-      <PillButton
-        onClick={handleAdd}
-        disabled={sold || takenBySomeoneElse || inCart}
-      >
-        {sold
-          ? "Sold"
-          : takenBySomeoneElse
-            ? "In someone's cart"
-            : inCart
-              ? "In your cart"
-              : added
-                ? "Added"
-                : "Add to Cart"}
-      </PillButton>
+      <div className="flex flex-wrap justify-center gap-3">
+        <PillButton
+          onClick={handleAdd}
+          disabled={sold || takenBySomeoneElse || inCart}
+          className="min-w-[260px]"
+        >
+          {sold
+            ? "Sold"
+            : takenBySomeoneElse
+              ? "In someone's cart"
+              : inCart
+                ? "In your cart"
+                : added
+                  ? "Added"
+                  : "Add to Cart"}
+        </PillButton>
+
+        {whatsapp && !sold && (
+          <PillButton
+            href={whatsappLink(
+              whatsapp,
+              product,
+              `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/products/${product.slug}`
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="min-w-[260px] hover:border-whatsapp hover:bg-whatsapp focus-visible:outline-whatsapp"
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <HugeiconsIcon icon={WhatsappIcon} size={20} strokeWidth={1.8} />
+              Buy on WhatsApp
+            </span>
+          </PillButton>
+        )}
+      </div>
 
       <p className={cn(META, "mt-4 text-ink-soft")}>
         {sold

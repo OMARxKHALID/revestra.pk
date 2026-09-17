@@ -10,6 +10,7 @@ export const DEFAULT_SETTINGS = {
     "Secondhand jeans, jackets, shirts, shoes and belts — washed, measured and one of a kind, shipped across Pakistan.",
   email: "hello@revestra.pk",
   phone: "",
+  whatsapp: "",
   addressLine: "",
   city: "Karachi, Pakistan",
   hours: "Office Hours: 9AM—6PM(ish)",
