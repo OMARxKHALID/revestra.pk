@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -45,6 +46,22 @@ const TICKER_ICONS = [
   { value: "shield", label: "Shield — accident-free counter when text is blank" },
 ];
 
+const TABS = [
+  { key: "general", label: "General" },
+  { key: "commerce", label: "Pricing and delivery" },
+  { key: "payments", label: "Payments and accounts" },
+  { key: "policies", label: "Policies" },
+];
+
+const TAB_OF_FIELD = {
+  commerce: "commerce",
+  couriers: "commerce",
+  enabledMethods: "payments",
+  paymentNotes: "payments",
+  signupOpen: "payments",
+  policies: "policies",
+};
+
 const ToggleField = ({ control, name, label, description }) => (
   <FormField
     control={control}
@@ -82,6 +99,7 @@ const TextField = ({ control, name, label, description, ...props }) => (
 
 const SettingsForm = ({ settings }) => {
   const router = useRouter();
+  const [tab, setTab] = useState("general");
 
   const form = useForm({
     resolver: zodResolver(settingsSchema),
@@ -114,9 +132,41 @@ const SettingsForm = ({ settings }) => {
 
   const handleSave = (payload) => save.mutate(payload);
 
+  const handleInvalid = (errors) => {
+    const first = Object.keys(errors)[0];
+
+    if (first) setTab(TAB_OF_FIELD[first] ?? "general");
+
+    toast.error("Some settings need fixing before they can be saved");
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSave)} className="grid gap-6">
+      <form
+        onSubmit={form.handleSubmit(handleSave, handleInvalid)}
+        className="grid gap-6"
+      >
+        <div
+          role="tablist"
+          aria-label="Settings sections"
+          className="flex flex-wrap gap-2 border-b border-border pb-4"
+        >
+          {TABS.map(({ key, label }) => (
+            <Button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={tab === key}
+              variant={tab === key ? "default" : "outline"}
+              size="sm"
+              onClick={() => setTab(key)}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+
+        <div className={tab === "general" ? "grid gap-6" : "hidden"}>
         <Card>
           <CardHeader>
             <CardTitle>The shop</CardTitle>
@@ -385,8 +435,10 @@ const SettingsForm = ({ settings }) => {
             </div>
           </CardContent>
         </Card>
+        </div>
 
 
+        <div className={tab === "commerce" ? "grid gap-6" : "hidden"}>
         <Card>
           <CardHeader>
             <CardTitle>Pricing and delivery</CardTitle>
@@ -548,7 +600,9 @@ const SettingsForm = ({ settings }) => {
             </div>
           </CardContent>
         </Card>
+        </div>
 
+        <div className={tab === "payments" ? "grid gap-6" : "hidden"}>
         <Card>
           <CardHeader>
             <CardTitle>Payments and accounts</CardTitle>
@@ -617,7 +671,9 @@ const SettingsForm = ({ settings }) => {
             />
           </CardContent>
         </Card>
+        </div>
 
+        <div className={tab === "policies" ? "grid gap-6" : "hidden"}>
         <Card>
           <CardHeader>
             <CardTitle>Policies</CardTitle>
@@ -692,6 +748,7 @@ const SettingsForm = ({ settings }) => {
             </div>
           </CardContent>
         </Card>
+        </div>
 
         <Separator />
 

@@ -48,6 +48,7 @@ const POSTHOG_ASSETS = POSTHOG_INGEST.replace(".i.posthog.com", "-assets.i.posth
 
 const nextConfig = {
   reactStrictMode: true,
+  devIndicators: false,
   poweredByHeader: false,
   skipTrailingSlashRedirect: true,
   rewrites: async () => [
