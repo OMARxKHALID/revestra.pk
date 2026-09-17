@@ -12,6 +12,7 @@ import {
 export const dynamic = "force-dynamic";
 
 const MAX_ROWS = 200;
+const PLACEHOLDER_SKU = "RV-PENDING";
 
 const importSchema = z.object({
   csv: z.string().min(1, "Paste or choose a CSV file").max(1_000_000),
@@ -94,7 +95,11 @@ export const POST = async (request) => {
       continue;
     }
 
-    const candidate = await derive(built.value);
+    const generatedSku = built.value.sku === "";
+    const candidate = await derive({
+      ...built.value,
+      sku: built.value.sku || PLACEHOLDER_SKU,
+    });
     const checked = adminProductSchema.safeParse(candidate);
 
     if (!checked.success) {
@@ -117,16 +122,16 @@ export const POST = async (request) => {
       continue;
     }
 
-    ready.push({ line, product: checked.data });
+    ready.push({ line, product: checked.data, generatedSku });
   }
 
   if (parsed.data.dryRun)
     return Response.json({
       checked: rows.length,
-      ready: ready.map(({ line, product }) => ({
+      ready: ready.map(({ line, product, generatedSku }) => ({
         line,
         name: product.name,
-        sku: product.sku,
+        sku: generatedSku ? "given on import" : product.sku,
         slug: product.slug,
       })),
       problems,
@@ -134,9 +139,11 @@ export const POST = async (request) => {
 
   const created = [];
 
-  for (const { line, product } of ready) {
+  for (const { line, product, generatedSku } of ready) {
     try {
-      const result = await createProduct(await derive(product));
+      const result = await createProduct(
+        await derive({ ...product, sku: generatedSku ? "" : product.sku })
+      );
 
       if (result.ok) created.push({ line, slug: result.product.slug });
       else problems.push({ line, name: product.name, error: result.error });
