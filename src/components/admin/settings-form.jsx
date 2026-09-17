@@ -462,7 +462,9 @@ const SettingsForm = ({ settings }) => {
 
             <Separator />
 
-            {PAYMENT_METHODS.filter((method) => enabledMethods.includes(method)).map((method) => (
+            {PAYMENT_METHODS.filter((method) =>
+              enabledMethods.includes(method)
+            ).map((method) => (
               <TextField
                 key={method}
                 control={control}
