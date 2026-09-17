@@ -1,5 +1,5 @@
 import { PAYMENT_METHOD, PAYMENT_STATUS } from "@/lib/schemas/order";
-import { easypaisaConfig, siteUrl } from "@/lib/payments/config";
+import { easypaisaConfig, pakistanTime, siteUrl } from "@/lib/payments/config";
 import {
   buildMerchantHash,
   toEasypaisaAmount,
@@ -13,17 +13,13 @@ const METHODS = {
 };
 
 const PAID_STATUSES = ["PAID", "0000"];
+const FAILED_STATUSES = ["FAILED", "REVERSED", "DROPPED", "EXPIRED", "CANCELLED"];
 
-export const expiryStamp = (date) =>
-  [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-    " ",
-    String(date.getHours()).padStart(2, "0"),
-    String(date.getMinutes()).padStart(2, "0"),
-    String(date.getSeconds()).padStart(2, "0"),
-  ].join("");
+export const expiryStamp = (date) => {
+  const { year, month, day, hour, minute, second } = pakistanTime(date);
+
+  return `${year}${month}${day} ${hour}${minute}${second}`;
+};
 
 export const attemptRefFor = (reference, attempt) =>
   `${reference.replace(/-/g, "")}${attempt}`.slice(0, 20);
@@ -164,12 +160,17 @@ const easypaisa = {
     const code = String(inquiry.responseCode ?? "");
     const state = String(inquiry.transactionStatus ?? "").toUpperCase();
     const paid = code === "0000" && PAID_STATUSES.includes(state);
+    const status = paid
+      ? PAYMENT_STATUS.paid
+      : FAILED_STATUSES.includes(state)
+        ? PAYMENT_STATUS.failed
+        : PAYMENT_STATUS.pending;
 
     return {
       ok: true,
       attemptRef,
       reference: null,
-      status: paid ? PAYMENT_STATUS.paid : PAYMENT_STATUS.failed,
+      status,
       code,
       message: String(inquiry.responseDesc ?? inquiry.desc ?? ""),
       amountCents: Math.round(Number(inquiry.transactionAmount ?? 0) * 100),

@@ -40,8 +40,22 @@ const settle = async (request) => {
     signOrderToken(order.reference, orderSecret())
   );
 
-  if (order.payment.status !== PAYMENT_STATUS.pending)
+  if (order.payment.status !== PAYMENT_STATUS.pending) {
+    const paidLate =
+      result.ok &&
+      result.status === PAYMENT_STATUS.paid &&
+      order.payment.status !== PAYMENT_STATUS.paid;
+
+    if (paidLate)
+      await reportPaymentAnomaly(
+        "jazzcash",
+        `paid after the order was closed as ${order.status}`,
+        order,
+        result
+      );
+
     return seeOther(`/orders/${order.reference}?t=${token}`);
+  }
 
   const amountMatches = result.amountCents === order.payment.amountCents;
   const paid =

@@ -36,6 +36,26 @@ describe("easypaisa callback verification", () => {
       }),
     });
 
+    expect(result.status).not.toBe("paid");
+  });
+
+  test("an Easypaisa payment still in progress stays pending instead of failing", async () => {
+    const result = await easypaisa.verifyCallback({
+      fields: { orderRefNumber: "CPMTU1BDGEKI5L1" },
+      config: easypaisaConfig,
+      fetchImpl: answering({ responseCode: "0000", transactionStatus: "PENDING" }),
+    });
+
+    expect(result.status).toBe("pending");
+  });
+
+  test("a declined Easypaisa payment is marked failed", async () => {
+    const result = await easypaisa.verifyCallback({
+      fields: { orderRefNumber: "CPMTU1BDGEKI5L1" },
+      config: easypaisaConfig,
+      fetchImpl: answering({ responseCode: "0000", transactionStatus: "FAILED" }),
+    });
+
     expect(result.status).toBe("failed");
   });
 

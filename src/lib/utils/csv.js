@@ -1,7 +1,14 @@
+const FORMULA_START = /^[=+\-@\t\r]/;
+const PLAIN_NUMBER = /^[+-]?[\d\s().-]+$/;
+
 const escape = (value) => {
   if (value === null || value === undefined) return "";
 
-  const text = String(value);
+  const raw = String(value);
+  const text =
+    typeof value === "string" && FORMULA_START.test(raw) && !PLAIN_NUMBER.test(raw)
+      ? `'${raw}`
+      : raw;
 
   return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 };

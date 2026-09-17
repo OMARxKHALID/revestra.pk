@@ -30,9 +30,11 @@ const releaseHolds = async (order) => {
 };
 
 export const cancelOrder = async (order, note, from) => {
-  await releaseHolds(order);
+  const result = await cancelOrderDocument(order.reference, note, from);
 
-  return cancelOrderDocument(order.reference, note, from);
+  if (result.cancelled) await releaseHolds(order);
+
+  return result;
 };
 
 export const cancelOwnOrder = async (reference) => {

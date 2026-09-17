@@ -28,6 +28,10 @@ export const POST = async (request) => {
   if (gated.response) return gated.response;
 
   const { email } = gated.data;
+  const perEmail = await limiter.check(`reset|email|${email.toLowerCase()}`);
+
+  if (!perEmail.ok) return accepted();
+
   const user = await findUserByEmail(email);
 
   if (!user) return accepted();

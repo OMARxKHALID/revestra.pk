@@ -1,6 +1,6 @@
 import { PAYMENT_METHOD, PAYMENT_STATUS } from "@/lib/schemas/order";
 import { CURRENCY } from "@/lib/utils/price";
-import { jazzcashConfig, siteUrl } from "@/lib/payments/config";
+import { jazzcashConfig, pakistanTime, siteUrl } from "@/lib/payments/config";
 import { buildSecureHash, verifySecureHash } from "@/lib/payments/jazzcash-hash";
 
 const PAID_CODES = ["000", "121"];
@@ -8,15 +8,11 @@ const PENDING_CODES = ["124", "157", "210", "200"];
 
 const TXN_TYPES = { wallet: "MWALLET", card: "MIGS", bank: "DD", otc: "OTC" };
 
-export const stamp = (date) =>
-  [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-    String(date.getHours()).padStart(2, "0"),
-    String(date.getMinutes()).padStart(2, "0"),
-    String(date.getSeconds()).padStart(2, "0"),
-  ].join("");
+export const stamp = (date) => {
+  const { year, month, day, hour, minute, second } = pakistanTime(date);
+
+  return `${year}${month}${day}${hour}${minute}${second}`;
+};
 
 export const attemptRefFor = (reference, attempt) =>
   `${reference.replace(/[^A-Za-z0-9./]/g, "")}${attempt}`.slice(0, 20);

@@ -31,6 +31,7 @@ const authConfig = {
         token.uid = user.id;
         token.role = user.role ?? ROLE.customer;
         token.roleCheckedAt = Date.now();
+        token.signedInAt = Date.now();
       }
 
       return token;

@@ -192,7 +192,6 @@ export const cancelOrderDocument = async (
         status: ORDER_STATUS.cancelled,
         stockReserved: false,
         "payment.status": PAYMENT_STATUS.failed,
-        promoRedeemed: false,
         updatedAt: now,
       },
       $push: { history: { status: ORDER_STATUS.cancelled, at: now, note } },

@@ -11,6 +11,7 @@ import errorMessage from "@/lib/utils/error-message";
 import requestIp from "@/lib/utils/request-ip";
 
 const limiter = createLimiter(RATE_LIMITS.signIn);
+const accountLimiter = createLimiter(RATE_LIMITS.signInAccount);
 
 const ROLE_TTL_MS = 5 * 60 * 1000;
 
@@ -20,9 +21,12 @@ const withFreshRole = async (token) => {
   if (Date.now() - (token.roleCheckedAt ?? 0) < ROLE_TTL_MS) return token;
 
   try {
-    const { reachable, role } = await getUserRole(token.uid);
+    const { reachable, role, passwordChangedAt } = await getUserRole(token.uid);
 
     if (!reachable) return token;
+
+    if (passwordChangedAt && passwordChangedAt > (token.signedInAt ?? 0))
+      return null;
 
     return { ...token, role: role ?? ROLE.customer, roleCheckedAt: Date.now() };
   } catch (error) {
@@ -77,6 +81,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const byAddress = await limiter.check(`signin|${ip}`);
 
         if (!byAddress.ok) return null;
+
+        const byEmail = await accountLimiter.check(
+          `signin|${email.toLowerCase()}`
+        );
+
+        if (!byEmail.ok) return null;
 
         return verifyCredentials(email, password);
       },

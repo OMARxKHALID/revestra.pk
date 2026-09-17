@@ -125,11 +125,21 @@ export const getUserRole = async (userId) => {
 
   if (!users || !id) return { reachable: false, role: null };
 
-  const document = await users.findOne({ _id: id }, { projection: { role: 1 } });
+  const document = await users.findOne(
+    { _id: id },
+    { projection: { role: 1, passwordChangedAt: 1 } }
+  );
 
-  if (!document) return { reachable: true, role: null };
+  if (!document)
+    return { reachable: true, role: null, passwordChangedAt: null };
 
-  return { reachable: true, role: document.role ?? ROLE.customer };
+  return {
+    reachable: true,
+    role: document.role ?? ROLE.customer,
+    passwordChangedAt: document.passwordChangedAt
+      ? new Date(document.passwordChangedAt).getTime()
+      : null,
+  };
 };
 
 export const findUserById = async (userId) => {
@@ -178,7 +188,13 @@ export const changePassword = async (userId, current, next) => {
 
   await users.updateOne(
     { _id: id },
-    { $set: { passwordHash: await hash(next, COST), updatedAt: new Date() } }
+    {
+      $set: {
+        passwordHash: await hash(next, COST),
+        passwordChangedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    }
   );
 
   return { ok: true };
@@ -191,7 +207,13 @@ export const setPasswordByEmail = async (email, password) => {
 
   const result = await users.updateOne(
     { email: email.trim().toLowerCase() },
-    { $set: { passwordHash: await hash(password, COST), updatedAt: new Date() } }
+    {
+      $set: {
+        passwordHash: await hash(password, COST),
+        passwordChangedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    }
   );
 
   if (result.matchedCount === 0) return { ok: false, error: "No such account" };

@@ -15,6 +15,7 @@ import { completeSale, captureOrderCompleted } from "@/lib/api/fulfilment";
 import { sendOrderConfirmation } from "@/lib/email";
 import { signOrderToken } from "@/lib/utils/order-token";
 import { easypaisaConfig, siteUrl } from "@/lib/payments/config";
+import reportPaymentAnomaly from "@/lib/api/payment-anomaly";
 
 export const dynamic = "force-dynamic";
 
@@ -61,8 +62,22 @@ const settle = async (request) => {
     signOrderToken(order.reference, orderSecret())
   );
 
-  if (order.payment.status !== PAYMENT_STATUS.pending)
+  if (order.payment.status !== PAYMENT_STATUS.pending) {
+    const paidLate =
+      result.ok &&
+      result.status === PAYMENT_STATUS.paid &&
+      order.payment.status !== PAYMENT_STATUS.paid;
+
+    if (paidLate)
+      await reportPaymentAnomaly(
+        "easypaisa",
+        `paid after the order was closed as ${order.status}`,
+        order,
+        result
+      );
+
     return seeOther(`/orders/${order.reference}?t=${token}`);
+  }
 
   if (!result.ok) {
     await reportPaymentAnomaly(
@@ -76,6 +91,19 @@ const settle = async (request) => {
       ref: result.attemptRef,
       at: new Date(),
       status: "unverified",
+      code: result.code,
+      message: result.message,
+      raw: result.raw,
+    });
+
+    return seeOther(`/orders/${order.reference}?t=${token}`);
+  }
+
+  if (result.status === PAYMENT_STATUS.pending) {
+    await recordAttempt(order.reference, {
+      ref: result.attemptRef,
+      at: new Date(),
+      status: PAYMENT_STATUS.pending,
       code: result.code,
       message: result.message,
       raw: result.raw,

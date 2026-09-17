@@ -81,8 +81,8 @@ describe("jazzcash session fields", () => {
 });
 
 describe("jazzcash helpers", () => {
-  test("stamp is yyyyMMddHHmmss in local time", () => {
-    expect(stamp(new Date(2026, 8, 9, 1, 2, 3))).toBe("20260909010203");
+  test("stamp is yyyyMMddHHmmss in Pakistan time, whatever the server clock", () => {
+    expect(stamp(new Date(Date.UTC(2026, 8, 8, 20, 2, 3)))).toBe("20260909010203");
   });
 
   test("attempt refs drop the hyphens and stay inside twenty characters", () => {
@@ -129,7 +129,7 @@ describe("easypaisa session fields", () => {
   });
 
   test("expiryStamp pads every component", () => {
-    expect(expiryStamp(new Date(2026, 0, 2, 3, 4, 5))).toBe("20260102 030405");
+    expect(expiryStamp(new Date(Date.UTC(2026, 0, 1, 22, 4, 5)))).toBe("20260102 030405");
   });
 });
 

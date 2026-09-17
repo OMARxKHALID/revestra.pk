@@ -18,14 +18,18 @@ export const requestReset = async (email) => {
 
   const code = generateCode();
   const now = new Date();
+  const key = email.trim().toLowerCase();
+  const collection = db.collection(COLLECTION);
+  const current = await collection.findOne({ _id: key });
+  const live = current && new Date(current.expiresAt).getTime() > now.getTime();
 
-  await db.collection(COLLECTION).updateOne(
-    { _id: email.trim().toLowerCase() },
+  await collection.updateOne(
+    { _id: key },
     {
       $set: {
         codeHash: digest(code),
         expiresAt: new Date(now.getTime() + CODE_TTL_MINUTES * 60 * 1000),
-        attempts: 0,
+        attempts: live ? (current.attempts ?? 0) : 0,
         createdAt: now,
       },
     },
@@ -42,18 +46,23 @@ export const verifyCode = async (email, code) => {
 
   const key = email.trim().toLowerCase();
   const collection = db.collection(COLLECTION);
-  const entry = await collection.findOne({ _id: key });
+  const entry = await collection.findOneAndUpdate(
+    {
+      _id: key,
+      expiresAt: { $gt: new Date() },
+      attempts: { $lt: MAX_ATTEMPTS },
+    },
+    { $inc: { attempts: 1 } },
+    { returnDocument: "before" }
+  );
 
-  if (!entry) return { ok: false, error: "That code is not valid" };
+  if (!entry) {
+    const stale = await collection.findOne({ _id: key });
 
-  if (new Date(entry.expiresAt).getTime() < Date.now()) {
-    await collection.deleteOne({ _id: key });
+    if (!stale) return { ok: false, error: "That code is not valid" };
 
-    return { ok: false, error: "That code has expired. Ask for a new one." };
-  }
-
-  if ((entry.attempts ?? 0) >= MAX_ATTEMPTS) {
-    await collection.deleteOne({ _id: key });
+    if (new Date(stale.expiresAt).getTime() <= Date.now())
+      return { ok: false, error: "That code has expired. Ask for a new one." };
 
     return { ok: false, error: "Too many wrong codes. Ask for a new one." };
   }
@@ -63,11 +72,7 @@ export const verifyCode = async (email, code) => {
   const matches =
     expected.length === supplied.length && timingSafeEqual(expected, supplied);
 
-  if (!matches) {
-    await collection.updateOne({ _id: key }, { $inc: { attempts: 1 } });
-
-    return { ok: false, error: "That code is not valid" };
-  }
+  if (!matches) return { ok: false, error: "That code is not valid" };
 
   await collection.deleteOne({ _id: key });
 

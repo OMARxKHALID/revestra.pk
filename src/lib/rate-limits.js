@@ -3,6 +3,7 @@ const ONE_HOUR = 60 * 60 * 1000;
 
 const RATE_LIMITS = {
   signIn: { limit: 10, windowMs: TEN_MINUTES },
+  signInAccount: { limit: 30, windowMs: TEN_MINUTES },
   register: { limit: 5, windowMs: ONE_HOUR },
   passwordResetRequest: { limit: 5, windowMs: ONE_HOUR },
   passwordResetConfirm: { limit: 10, windowMs: ONE_HOUR },

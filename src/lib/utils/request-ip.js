@@ -1,6 +1,11 @@
 const FALLBACK = "unknown";
 
-const TRUSTED_HEADERS = ["cf-connecting-ip", "x-vercel-forwarded-for", "x-real-ip"];
+const PLATFORM_HEADERS = ["x-vercel-forwarded-for", "x-real-ip"];
+
+const trustedHeaders = () => [
+  ...(process.env.VERCEL ? PLATFORM_HEADERS : []),
+  ...(process.env.TRUST_CLOUDFLARE === "1" ? ["cf-connecting-ip"] : []),
+];
 
 const trustProxyDepth = () => {
   const configured = Number(process.env.TRUSTED_PROXY_HOPS ?? "1");
@@ -9,8 +14,8 @@ const trustProxyDepth = () => {
 };
 
 const requestIp = (request) => {
-  for (const header of TRUSTED_HEADERS) {
-    const value = request.headers.get(header)?.trim();
+  for (const header of trustedHeaders()) {
+    const value = request.headers.get(header)?.split(",")[0]?.trim();
 
     if (value) return value;
   }

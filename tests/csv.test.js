@@ -7,6 +7,33 @@ const COLUMNS = [
   { header: "Total", value: (row) => row.total },
 ];
 
+describe("spreadsheet formula injection", () => {
+  test("a value that would run as a formula is neutralised", () => {
+    const csv = toCsv(
+      [{ header: "Customer", value: (row) => row.name }],
+      [{ name: "=HYPERLINK(\"http://evil\")" }, { name: "@SUM(A1)" }, { name: "Ayesha" }]
+    );
+
+    expect(csv.split("\r\n").slice(1)).toEqual([
+      '"\'=HYPERLINK(""http://evil"")"',
+      "'@SUM(A1)",
+      "Ayesha",
+    ]);
+  });
+
+  test("phone numbers keep their plus sign untouched", () => {
+    expect(toCsv([{ header: "Phone", value: (row) => row.phone }], [{ phone: "+92 300 1234567" }])).toBe(
+      "Phone\r\n+92 300 1234567"
+    );
+  });
+
+  test("negative numbers are left alone", () => {
+    expect(toCsv([{ header: "Total", value: (row) => row.total }], [{ total: -5 }])).toBe(
+      "Total\r\n-5"
+    );
+  });
+});
+
 describe("csv export", () => {
   test("it writes a header row and one row per record", () => {
     const csv = toCsv(COLUMNS, [
