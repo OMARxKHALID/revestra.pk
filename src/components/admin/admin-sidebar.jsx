@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Analytics01Icon,
+  ChartHistogramIcon,
   Coupon01Icon,
   HangerIcon,
   Logout01Icon,
@@ -41,6 +42,7 @@ const SECTIONS = [
       { href: "/admin/products", label: "Inventory", icon: HangerIcon },
       { href: "/admin/categories", label: "Categories", icon: Tag01Icon },
       { href: "/admin/customers", label: "Customers", icon: UserGroupIcon },
+      { href: "/admin/reports", label: "Reports", icon: ChartHistogramIcon },
     ],
   },
   {
