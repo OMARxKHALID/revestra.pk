@@ -3,18 +3,26 @@
 import { useSession } from "next-auth/react";
 import NavIcon from "@/components/ui/nav-icon";
 import { UserIcon } from "@/components/ui/icons";
+import { ROLE } from "@/lib/roles";
 
 const AccountLink = ({ tone }) => {
-  const { status } = useSession();
+  const { data, status } = useSession();
   const signedIn = status === "authenticated";
+  const admin = signedIn && data?.user?.role === ROLE.admin;
+
+  const link = admin
+    ? { href: "/admin", label: "ADMIN", aria: "Back office" }
+    : signedIn
+      ? { href: "/account", label: "ACCOUNT", aria: "Your account" }
+      : { href: "/sign-in", label: "SIGN IN", aria: "Sign in" };
 
   return (
     <NavIcon
-      href={signedIn ? "/account" : "/sign-in"}
+      href={link.href}
       tone={tone}
-      label={signedIn ? "ACCOUNT" : "SIGN IN"}
+      label={link.label}
       icon={<UserIcon />}
-      aria-label={signedIn ? "Your account" : "Sign in"}
+      aria-label={link.aria}
     />
   );
 };
