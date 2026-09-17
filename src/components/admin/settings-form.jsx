@@ -94,7 +94,11 @@ const SettingsForm = ({ settings }) => {
 
   const socials = useFieldArray({ control, name: "socials" });
   const ticker = useFieldArray({ control, name: "ticker" });
-  const rates = useFieldArray({ control, name: "commerce.shippingRates" });
+  const rates = useFieldArray({
+    control,
+    name: "commerce.shippingRates",
+    keyName: "fieldKey",
+  });
   const policies = useFieldArray({ control, name: "policies" });
 
   const save = useMutation({
@@ -386,13 +390,13 @@ const SettingsForm = ({ settings }) => {
             <div className="grid gap-4 sm:col-span-2">
               {rates.fields.map((rate, index) => (
                 <div
-                  key={rate.id}
+                  key={rate.fieldKey}
                   className="grid gap-3 rounded-md border border-border p-3 sm:grid-cols-3"
                 >
                   <TextField
                     control={control}
                     name={`commerce.shippingRates.${index}.label`}
-                    label={`${rate.id} name`}
+                    label={`${rate.id.charAt(0).toUpperCase()}${rate.id.slice(1)} name`}
                   />
                   <TextField
                     control={control}
@@ -402,7 +406,7 @@ const SettingsForm = ({ settings }) => {
                   <TextField
                     control={control}
                     name={`commerce.shippingRates.${index}.cents`}
-                    label="Price"
+                    label="Price (paisa)"
                     type="number"
                     min={0}
                   />
