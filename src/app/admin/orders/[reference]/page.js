@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getOrder } from "@/lib/api/admin/orders";
+import { getSettings } from "@/lib/api/settings";
 import { PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from "@/lib/schemas/order";
 import { formatPrice } from "@/lib/utils/price";
 
@@ -28,7 +29,10 @@ const Row = ({ label, children }) => (
 
 const OrderDetailPage = async ({ params }) => {
   const { reference } = await params;
-  const order = await getOrder(reference);
+  const [order, settings] = await Promise.all([
+    getOrder(reference),
+    getSettings(),
+  ]);
 
   if (!order) notFound();
 
@@ -140,6 +144,7 @@ const OrderDetailPage = async ({ params }) => {
                 reference={order.reference}
                 status={order.status}
                 tracking={order.tracking}
+                couriers={settings.couriers}
               />
             </CardContent>
           </Card>

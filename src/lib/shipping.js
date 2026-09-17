@@ -19,6 +19,8 @@ export const DEFAULT_COMMERCE = {
   freeShippingThresholdCents: 500000,
   taxRate: 0,
   holdMinutes: 15,
+  codMaxCents: 0,
+  codCities: [],
   shippingRates: DEFAULT_SHIPPING_RATES,
 };
 

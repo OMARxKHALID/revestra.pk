@@ -49,9 +49,48 @@ const commerceSchema = z.object({
     .int()
     .min(5, "Hold stock for at least 5 minutes")
     .max(240, "Hold stock for at most 4 hours"),
+  codMaxCents: z.coerce
+    .number()
+    .int()
+    .min(0, "A limit cannot be negative")
+    .default(0),
+  codCities: z.array(z.string().trim().min(1).max(60)).max(200).default([]),
   shippingRates: z
     .array(shippingRateSchema)
     .min(1, "Keep at least one shipping rate"),
+});
+
+const linkOrPath = (value) =>
+  value === "" || value.startsWith("/") || /^https?:\/\//.test(value);
+
+const announcementSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    text: z.string().trim().max(140).default(""),
+    href: z
+      .string()
+      .trim()
+      .max(300)
+      .refine(linkOrPath, "Use a path like /products or a full https:// link")
+      .default(""),
+    endsAt: z.string().trim().max(40).default(""),
+  })
+  .refine((value) => !value.enabled || value.text.length > 0, {
+    path: ["text"],
+    message: "Write the announcement, or switch it off",
+  });
+
+const courierSchema = z.object({
+  name: z.string().trim().min(1, "Name the courier").max(40),
+  trackingUrl: z
+    .string()
+    .trim()
+    .max(300)
+    .refine(
+      (value) => value === "" || /^https?:\/\//.test(value),
+      "Enter a full https:// link"
+    )
+    .default(""),
 });
 
 export const policySchema = z.object({
@@ -84,6 +123,13 @@ export const settingsSchema = z.object({
   hours: z.string().trim().min(1, "Enter opening hours"),
   socials: z.array(socialSchema).max(6).default([]),
   ticker: z.array(tickerItemSchema).max(6).default([]),
+  announcement: announcementSchema.default({
+    enabled: false,
+    text: "",
+    href: "",
+    endsAt: "",
+  }),
+  couriers: z.array(courierSchema).max(10).default([]),
   commerce: commerceSchema,
   enabledMethods: z.array(z.enum(PAYMENT_METHODS)).default(PAYMENT_METHODS),
   paymentNotes: z

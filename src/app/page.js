@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Hero from "@/components/hero";
+import AnnouncementBar from "@/components/announcement-bar";
 import ProductGrid from "@/components/product-grid";
 import ReviewHighlights from "@/components/review-highlights";
 import Footer from "@/components/footer";
@@ -18,6 +19,10 @@ const Home = () => (
   <main id="main">
     <Suspense fallback={null}>
       <StoreJsonLd />
+    </Suspense>
+
+    <Suspense fallback={null}>
+      <AnnouncementBar />
     </Suspense>
 
     <Hero />

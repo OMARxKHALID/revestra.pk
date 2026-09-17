@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useCart, { selectSubtotal } from "@/store/use-cart";
@@ -9,6 +9,7 @@ import { PAYMENT_METHOD, shippingSchema } from "@/lib/schemas/order";
 import { CURRENCY, formatPrice } from "@/lib/utils/price";
 import { buildTotals } from "@/lib/utils/totals";
 import { DEFAULT_COMMERCE, ratesOf } from "@/lib/shipping";
+import { codProblem } from "@/lib/utils/cod";
 import Field from "@/components/ui/field";
 import cn from "@/lib/utils/cn";
 import { BODY, EYEBROW, HEADING, META, TITLE } from "@/lib/type";
@@ -66,13 +67,6 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const methods = (
-    data?.methods ?? (methodsFailed ? FALLBACK_METHODS : [])
-  ).filter((option) => option.available);
-  const method = methods.some(({ id }) => id === chosenMethod)
-    ? chosenMethod
-    : (methods[0]?.id ?? null);
-  const cannotPay = !methodsLoading && !method;
   const totals = buildTotals({
     subtotalCents: subtotal,
     promo,
@@ -84,7 +78,25 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
     register,
     handleSubmit,
     formState: { errors },
+    control,
   } = useForm({ resolver: zodResolver(shippingSchema) });
+  const city = useWatch({ control, name: "city" });
+
+  const codBlocked = codProblem({
+    commerce,
+    totalCents: totals.totalCents,
+    city,
+  });
+  const methods = (
+    data?.methods ?? (methodsFailed ? FALLBACK_METHODS : [])
+  ).filter((option) => option.available);
+  const selectable = methods.filter(
+    ({ id }) => !(id === PAYMENT_METHOD.cod && codBlocked)
+  );
+  const method = selectable.some(({ id }) => id === chosenMethod)
+    ? chosenMethod
+    : (selectable[0]?.id ?? null);
+  const cannotPay = !methodsLoading && !method;
 
   const started = useRef(false);
 
@@ -330,8 +342,9 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
 
         {cannotPay && (
           <p className={cn(META, "mt-6 text-sale")}>
-            Checkout is paused right now — no payment method is available.
-            Please try again later.
+            {codBlocked && methods.length > 0
+              ? `${codBlocked}, and no other payment method is available.`
+              : "Checkout is paused right now — no payment method is available. Please try again later."}
           </p>
         )}
 
@@ -347,8 +360,13 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
                 )
               }
               label={option.label}
-              note={option.note}
+              note={
+                option.id === PAYMENT_METHOD.cod && codBlocked
+                  ? codBlocked
+                  : option.note
+              }
               selected={method === option.id}
+              disabled={option.id === PAYMENT_METHOD.cod && Boolean(codBlocked)}
               onClick={() => handleMethod(option.id)}
             />
           ))}

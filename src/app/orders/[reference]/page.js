@@ -17,6 +17,7 @@ import {
 } from "@/lib/schemas/order";
 import { verifyOrderToken } from "@/lib/utils/order-token";
 import CancelOrderButton from "@/components/cancel-order-button";
+import TrackingLine from "@/components/tracking-line";
 import { CANCELLABLE_STATUSES } from "@/lib/api/orders";
 
 export const dynamic = "force-dynamic";
@@ -59,16 +60,7 @@ const OrderPage = async ({ params, searchParams }) => {
         </p>
       )}
 
-      {order.tracking?.number || order.tracking?.courier ? (
-        <p className={cn(META, "mt-4 text-ink-soft")}>
-          {[
-            order.tracking.courier && `Courier: ${order.tracking.courier}`,
-            order.tracking.number && `Tracking: ${order.tracking.number}`,
-          ]
-            .filter(Boolean)
-            .join(" · ")}
-        </p>
-      ) : null}
+      <TrackingLine tracking={order.tracking} />
 
       <p className={cn(META, "mt-6")}>
         <Link

@@ -16,6 +16,7 @@ import { CURRENCY } from "@/lib/utils/price";
 import { promoProblem } from "@/lib/utils/promo-validity";
 import { getSettings } from "@/lib/api/settings";
 import { buildTotals } from "@/lib/utils/totals";
+import { codProblem } from "@/lib/utils/cod";
 import { createLimiter } from "@/lib/rate-limit";
 import RATE_LIMITS from "@/lib/rate-limits";
 import { guardRequest } from "@/lib/api/request";
@@ -68,6 +69,16 @@ export const POST = async (request) => {
 
   const { commerce } = settings;
   const totals = buildTotals({ subtotalCents, promo, rateId, commerce });
+
+  if (method === PAYMENT_METHOD.cod) {
+    const problem = codProblem({
+      commerce,
+      totalCents: totals.totalCents,
+      city: shipping.city,
+    });
+
+    if (problem) return Response.json({ error: problem }, { status: 422 });
+  }
   const reference = buildReference();
   const reservation = await reserveStock(priced.lines, {
     reference,

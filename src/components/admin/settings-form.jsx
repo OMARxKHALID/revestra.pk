@@ -100,6 +100,7 @@ const SettingsForm = ({ settings }) => {
     keyName: "fieldKey",
   });
   const policies = useFieldArray({ control, name: "policies" });
+  const couriers = useFieldArray({ control, name: "couriers" });
 
   const save = useMutation({
     mutationFn: (payload) =>
@@ -149,6 +150,45 @@ const SettingsForm = ({ settings }) => {
                   <FormMessage />
                 </FormItem>
               )}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Announcement bar</CardTitle>
+            <CardDescription>
+              A strip above the header on every storefront page, for sales and
+              delivery notices.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <ToggleField
+                control={control}
+                name="announcement.enabled"
+                label="Show the announcement"
+              />
+            </div>
+            <TextField
+              control={control}
+              name="announcement.text"
+              label="Message"
+              placeholder="Free delivery on every order this weekend"
+              className="sm:col-span-2"
+            />
+            <TextField
+              control={control}
+              name="announcement.href"
+              label="Link (optional)"
+              placeholder="/products"
+            />
+            <TextField
+              control={control}
+              name="announcement.endsAt"
+              label="Hide after (Pakistan time, optional)"
+              type="datetime-local"
             />
           </CardContent>
         </Card>
@@ -387,6 +427,45 @@ const SettingsForm = ({ settings }) => {
               description="How long an unpaid order keeps its items reserved."
             />
 
+            <TextField
+              control={control}
+              name="commerce.codMaxCents"
+              label="Cash on delivery limit (paisa)"
+              type="number"
+              min={0}
+              description="Orders above this total cannot pay on delivery. 0 means no limit."
+            />
+
+            <FormField
+              control={control}
+              name="commerce.codCities"
+              render={({ field }) => (
+                <FormItem className="sm:col-span-2">
+                  <FormLabel>Cash on delivery cities</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      value={(field.value ?? []).join("\n")}
+                      onChange={(event) =>
+                        field.onChange(
+                          event.target.value
+                            .split("\n")
+                            .map((city) => city.trim())
+                            .filter(Boolean)
+                        )
+                      }
+                      onBlur={field.onBlur}
+                      placeholder={"Karachi\nLahore\nIslamabad"}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    One city per line. Left empty, cash on delivery is offered everywhere.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid gap-4 sm:col-span-2">
               {rates.fields.map((rate, index) => (
                 <div
@@ -412,6 +491,60 @@ const SettingsForm = ({ settings }) => {
                   />
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Couriers</CardTitle>
+            <CardDescription>
+              Offered when you add tracking to an order. With a tracking link,
+              customers get a Track parcel link — put {"{number}"} where the
+              consignment number goes.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="grid gap-4">
+            {couriers.fields.length === 0 && (
+              <p className="text-sm text-muted-foreground">No couriers yet.</p>
+            )}
+
+            {couriers.fields.map((entry, index) => (
+              <div
+                key={entry.id}
+                className="grid gap-3 sm:grid-cols-[200px_1fr_auto] sm:items-end"
+              >
+                <TextField control={control} name={`couriers.${index}.name`} label="Name" />
+                <TextField
+                  control={control}
+                  name={`couriers.${index}.trackingUrl`}
+                  label="Tracking link (optional)"
+                  placeholder="https://courier.example/track?cn={number}"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label={`Remove courier ${index + 1}`}
+                  onClick={() => couriers.remove(index)}
+                >
+                  <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
+                </Button>
+              </div>
+            ))}
+
+            <div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={couriers.fields.length >= 10}
+                onClick={() => couriers.append({ name: "", trackingUrl: "" })}
+              >
+                <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} />
+                Add a courier
+              </Button>
             </div>
           </CardContent>
         </Card>

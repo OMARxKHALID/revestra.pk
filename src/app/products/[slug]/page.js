@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import SiteHeader from "@/components/site-header";
+import AnnouncementBar from "@/components/announcement-bar";
 import Footer from "@/components/footer";
 import AddToCart from "@/components/add-to-cart";
 import AnalyticsProductView from "@/components/analytics-product-view";
@@ -103,6 +104,10 @@ const ProductPage = async ({ params }) => {
       <JsonLd
         data={productJsonLd(product, { base, images: frames, reviews: null })}
       />
+
+      <Suspense fallback={null}>
+        <AnnouncementBar />
+      </Suspense>
 
       <SiteHeader />
 

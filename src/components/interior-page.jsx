@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import SiteHeader from "@/components/site-header";
+import AnnouncementBar from "@/components/announcement-bar";
 import Footer from "@/components/footer";
 import cn from "@/lib/utils/cn";
 import { BODY, DISPLAY, EYEBROW } from "@/lib/type";
@@ -13,6 +15,10 @@ const InteriorPage = ({
   children,
 }) => (
   <main id="main" className="flex min-h-svh flex-col bg-white">
+    <Suspense fallback={null}>
+      <AnnouncementBar />
+    </Suspense>
+
     <SiteHeader />
 
     <section

@@ -23,6 +23,12 @@ export const DEFAULT_SETTINGS = {
     { icon: "clock", text: "" },
     { icon: "shield", text: "" },
   ],
+  announcement: { enabled: false, text: "", href: "", endsAt: "" },
+  couriers: [
+    { name: "TCS", trackingUrl: "" },
+    { name: "Leopards", trackingUrl: "" },
+    { name: "M&P", trackingUrl: "" },
+  ],
   commerce: DEFAULT_COMMERCE,
   enabledMethods: PAYMENT_METHODS,
   paymentNotes: DEFAULT_PAYMENT_NOTES,

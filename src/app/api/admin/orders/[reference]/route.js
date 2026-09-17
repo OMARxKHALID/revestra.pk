@@ -7,6 +7,7 @@ import { orderSecret } from "@/lib/api/orders";
 import { signOrderToken } from "@/lib/utils/order-token";
 import { sendOrderStatusUpdate } from "@/lib/email";
 import { siteUrl } from "@/lib/payments/config";
+import { getSettings } from "@/lib/api/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -38,10 +39,12 @@ export const PATCH = async (request, { params }) => {
 
   const { reference } = await params;
 
+  const { couriers } = await getSettings();
   const updated = await setOrderStatus({
     reference,
     ...parsed.data,
     adminId,
+    couriers,
   });
 
   if (!updated.ok)

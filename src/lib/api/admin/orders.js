@@ -3,6 +3,7 @@ import { ORDER_STATUS } from "@/lib/schemas/order";
 import { getDb } from "@/lib/db";
 import { markSold, releaseStock, reserveStock } from "@/lib/api/inventory";
 import { recordRedemption, releaseRedemption } from "@/lib/api/promos";
+import { courierTrackingUrl } from "@/lib/utils/courier";
 
 const COLLECTION = "orders";
 
@@ -77,6 +78,7 @@ export const setOrderStatus = async ({
   courier,
   trackingNumber,
   adminId,
+  couriers = [],
 }) => {
   const db = await getDb();
 
@@ -87,11 +89,14 @@ export const setOrderStatus = async ({
   if (!order) return { ok: false, error: "No such order" };
 
   const now = new Date();
+  const trackingCourier = courier || order.tracking?.courier || "";
+  const trackingNo = trackingNumber || order.tracking?.number || "";
   const tracking =
     courier || trackingNumber
       ? {
-          courier: courier || order.tracking?.courier || "",
-          number: trackingNumber || order.tracking?.number || "",
+          courier: trackingCourier,
+          number: trackingNo,
+          url: courierTrackingUrl(couriers, trackingCourier, trackingNo),
           at: now,
         }
       : null;

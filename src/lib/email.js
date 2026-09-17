@@ -79,11 +79,12 @@ const STATUS_LINES = {
 const trackingLines = (order) => {
   if (!order.tracking) return [];
 
-  const { courier, number } = order.tracking;
+  const { courier, number, url } = order.tracking;
 
   return [
     courier ? `Courier: ${courier}` : null,
     number ? `Tracking number: ${number}` : null,
+    url ? `Track your parcel: ${url}` : null,
     "",
   ].filter((line) => line !== null);
 };

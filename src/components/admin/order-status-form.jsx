@@ -17,7 +17,12 @@ import {
 import { SETTABLE_ORDER_STATUSES } from "@/lib/schemas/admin";
 import { request } from "@/lib/api-client";
 
-const OrderStatusForm = ({ reference, status: current, tracking }) => {
+const OrderStatusForm = ({
+  reference,
+  status: current,
+  tracking,
+  couriers = [],
+}) => {
   const router = useRouter();
   const [status, setStatus] = useState(current);
   const [note, setNote] = useState("");
@@ -74,10 +79,16 @@ const OrderStatusForm = ({ reference, status: current, tracking }) => {
           <Label htmlFor="courier">Courier (optional)</Label>
           <Input
             id="courier"
+            list="courier-options"
             value={courier}
             onChange={(event) => setCourier(event.target.value)}
-            placeholder="TCS, Leopards, M&P"
+            placeholder={couriers.map(({ name }) => name).join(", ") || "Courier"}
           />
+          <datalist id="courier-options">
+            {couriers.map(({ name }) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
         </div>
 
         <div className="grid gap-2">
@@ -105,6 +116,19 @@ const OrderStatusForm = ({ reference, status: current, tracking }) => {
         <p className="text-xs text-muted-foreground">
           Sent to the customer:{" "}
           {[tracking.courier, tracking.number].filter(Boolean).join(" · ")}
+          {tracking.url && (
+            <>
+              {" · "}
+              <a
+                href={tracking.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-4"
+              >
+                Track parcel
+              </a>
+            </>
+          )}
         </p>
       )}
 

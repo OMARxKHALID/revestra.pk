@@ -10,6 +10,7 @@ import PillButton from "@/components/ui/pill-button";
 import ErrorNotice from "@/components/ui/error-notice";
 import OrderStatus from "@/components/order-status";
 import OrderSummary from "@/components/order-summary";
+import TrackingLine from "@/components/tracking-line";
 import cn from "@/lib/utils/cn";
 import { META } from "@/lib/type";
 import { request } from "@/lib/api-client";
@@ -64,16 +65,7 @@ const TrackForm = () => {
 
           <OrderStatus status={order.status} />
 
-          {(order.tracking?.courier || order.tracking?.number) && (
-            <p className={cn(META, "mt-4 text-ink-soft")}>
-              {[
-                order.tracking.courier && `Courier: ${order.tracking.courier}`,
-                order.tracking.number && `Tracking: ${order.tracking.number}`,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-          )}
+          <TrackingLine tracking={order.tracking} />
 
           <div className="mt-10 max-w-[460px]">
             <OrderSummary items={order.items} totals={order.totals} promo={null} />
