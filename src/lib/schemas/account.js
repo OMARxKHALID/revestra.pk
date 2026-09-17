@@ -16,6 +16,27 @@ export const passwordSchema = z
     message: "Those passwords do not match",
   });
 
+export const savedAddressSchema = z.object({
+  name: z.string().trim().min(2, "Enter your full name"),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^(?:\+92|0)3\d{2}[\s-]?\d{7}$/, "Enter a Pakistani mobile number"),
+  address: z.string().trim().min(4, "Enter your street address"),
+  apartment: z.string().trim().max(80).optional().or(z.literal("")),
+  city: z.string().trim().min(2, "Enter your city"),
+  postalCode: z.string().trim().min(3, "Enter your postal code"),
+  country: z.string().trim().min(2, "Enter your country"),
+});
+
+export const newsletterPreferenceSchema = z.object({
+  subscribed: z.boolean(),
+});
+
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, "Enter your password"),
+});
+
 export const resetRequestSchema = z.object({
   email: z.email("Enter a valid email address"),
 });

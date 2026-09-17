@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
+import TrackingLine from "@/components/tracking-line";
 import InteriorPage from "@/components/interior-page";
 import ClaimOrderForm from "@/components/claim-order-form";
 import { STATUS_LABELS } from "@/components/order-status";
@@ -48,17 +50,41 @@ const OrdersPage = async () => {
         {orders.map((order) => (
           <li
             key={order.reference}
-            className="flex flex-wrap items-baseline justify-between gap-4 py-5"
+            className="flex flex-wrap items-start justify-between gap-4 py-5"
           >
-            <div>
-              <p className={cn(TITLE, "text-ink")}>
-                {order.reference}
-              </p>
-              <p className={cn(META, "mt-1 text-ink-soft")}>
-                {new Date(order.createdAt).toLocaleDateString("en-PK")} ·{" "}
-                {order.items.length} item(s) ·{" "}
-                {STATUS_LABELS[order.status] ?? order.status}
-              </p>
+            <div className="flex min-w-0 items-start gap-4">
+              {order.items[0]?.image && (
+                <span className="relative size-14 shrink-0 overflow-hidden border border-rule bg-white">
+                  <Image
+                    src={order.items[0].image}
+                    alt=""
+                    fill
+                    sizes="56px"
+                    className="object-contain p-1"
+                  />
+                </span>
+              )}
+
+              <div className="min-w-0">
+                <p className={cn(TITLE, "text-ink")}>
+                  {order.reference}
+                </p>
+                <p className={cn(META, "mt-1 text-ink-soft")}>
+                  {new Date(order.createdAt).toLocaleDateString("en-PK")} ·{" "}
+                  {STATUS_LABELS[order.status] ?? order.status}
+                </p>
+                <p className={cn(META, "mt-1 max-w-[42ch] truncate text-ink-muted")}>
+                  {order.items.map(({ name }) => name).join(", ")}
+                </p>
+
+                <TrackingLine tracking={order.tracking} className="mt-2" />
+
+                {order.refundedCents > 0 && (
+                  <p className={cn(META, "mt-1 text-ink-soft")}>
+                    Refunded {formatPrice(order.refundedCents)}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="flex items-baseline gap-6">

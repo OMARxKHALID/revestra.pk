@@ -18,6 +18,9 @@ const keys = {
   wishlist: {
     all: ["wishlist"],
   },
+  account: {
+    profile: () => ["account", "profile"],
+  },
 };
 
 export default keys;

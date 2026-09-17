@@ -80,3 +80,34 @@ export const createReview = async (review) => {
 
   return { persisted: true };
 };
+
+export const listReviewsForUser = async (userId) => {
+  if (!userId || !isDatabaseConfigured()) return [];
+
+  const db = await getDb();
+
+  if (!db) return [];
+
+  return db
+    .collection(COLLECTION)
+    .find({ userId }, { projection: { _id: 0, email: 0 } })
+    .sort({ createdAt: -1 })
+    .limit(50)
+    .toArray();
+};
+
+export const deleteReviewForUser = async (id, userId) => {
+  if (!userId) return { ok: false, error: "Sign in first" };
+
+  const db = await getDb();
+
+  if (!db) return { ok: false, error: "No database is configured" };
+
+  const { deletedCount } = await db
+    .collection(COLLECTION)
+    .deleteOne({ id, userId });
+
+  return deletedCount > 0
+    ? { ok: true }
+    : { ok: false, error: "That review is not yours" };
+};

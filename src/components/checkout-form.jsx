@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { useSession } from "next-auth/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useCart, { selectSubtotal } from "@/store/use-cart";
@@ -60,6 +61,7 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
   const [rateId, setRateId] = useState(rates[0].id);
   const [chosenMethod, setMethod] = useState(PAYMENT_METHOD.cod);
   const [promo, setPromo] = useState(null);
+  const [saveAddress, setSaveAddress] = useState(true);
 
   const { data, isPending: methodsLoading, isError: methodsFailed } = useQuery({
     queryKey: keys.payments.methods(),
@@ -79,7 +81,38 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
     handleSubmit,
     formState: { errors },
     control,
+    reset,
   } = useForm({ resolver: zodResolver(shippingSchema) });
+
+  const { status: sessionStatus } = useSession();
+  const signedIn = sessionStatus === "authenticated";
+
+  const { data: accountData } = useQuery({
+    queryKey: keys.account.profile(),
+    queryFn: ({ signal }) => request("/api/account", { signal }),
+    enabled: signedIn,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const prefilled = useRef(false);
+
+  useEffect(() => {
+    if (prefilled.current || !accountData?.account) return;
+
+    const { address, email, name } = accountData.account;
+
+    prefilled.current = true;
+    reset({
+      name: address?.name ?? name ?? "",
+      email: email ?? "",
+      phone: address?.phone ?? "",
+      address: address?.address ?? "",
+      apartment: address?.apartment ?? "",
+      city: address?.city ?? "",
+      postalCode: address?.postalCode ?? "",
+      country: address?.country ?? "Pakistan",
+    });
+  }, [accountData, reset]);
   const city = useWatch({ control, name: "city" });
 
   const codBlocked = codProblem({
@@ -117,6 +150,11 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
     });
   }, [items, totals, promo]);
 
+  const saveShipping = useMutation({
+    mutationFn: ({ email: _email, ...address }) =>
+      request("/api/account/address", { method: "PUT", body: address }),
+  });
+
   const placeOrder = useMutation({
     mutationFn: (shipping) =>
       request("/api/orders", {
@@ -129,9 +167,11 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
           distinctId: viewerId(),
         },
       }),
-    onSuccess: (order) => {
+    onSuccess: (order, shipping) => {
       queryClient.invalidateQueries({ queryKey: keys.products.all });
       queryClient.invalidateQueries({ queryKey: keys.stock.all });
+
+      if (signedIn && saveAddress) saveShipping.mutate(shipping);
 
       if (order.payUrl) {
         window.location.assign(order.payUrl);
@@ -371,6 +411,18 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
             />
           ))}
         </div>
+
+        {signedIn && (
+          <label className={cn(META, "mt-6 flex items-center gap-2 text-ink-soft")}>
+            <input
+              type="checkbox"
+              checked={saveAddress}
+              onChange={(event) => setSaveAddress(event.target.checked)}
+              className="size-4 accent-blurple"
+            />
+            Save this address to my account
+          </label>
+        )}
 
         <PillButton
           type="submit"

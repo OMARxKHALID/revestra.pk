@@ -220,3 +220,57 @@ export const setPasswordByEmail = async (email, password) => {
 
   return { ok: true };
 };
+
+export const getAccount = async (userId) => {
+  const document = await findUserById(userId);
+
+  if (!document) return null;
+
+  return {
+    name: document.name,
+    email: document.email,
+    address: document.address ?? null,
+  };
+};
+
+export const setAddress = async (userId, address) => {
+  const users = await collection();
+  const id = await objectId(userId);
+
+  if (!users || !id) return { ok: false, error: "No such account" };
+
+  await users.updateOne(
+    { _id: id },
+    { $set: { address, updatedAt: new Date() } }
+  );
+
+  return { ok: true, address };
+};
+
+export const deleteAccount = async (userId, password) => {
+  const users = await collection();
+  const id = await objectId(userId);
+
+  if (!users || !id) return { ok: false, error: "No such account" };
+
+  const document = await users.findOne({ _id: id });
+
+  if (!document) return { ok: false, error: "No such account" };
+
+  if (!(await compare(password, document.passwordHash)))
+    return { ok: false, error: "That password is not right" };
+
+  const db = await getDb();
+  const userId_ = String(document._id);
+
+  await db
+    .collection("orders")
+    .updateMany({ userId: userId_ }, { $set: { userId: null } });
+  await db
+    .collection("reviews")
+    .updateMany({ userId: userId_ }, { $set: { userId: null } });
+  await db.collection("password_resets").deleteOne({ _id: document.email });
+  await users.deleteOne({ _id: id });
+
+  return { ok: true, email: document.email };
+};

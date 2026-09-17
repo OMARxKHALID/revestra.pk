@@ -14,6 +14,7 @@ const RATE_LIMITS = {
   orderLookup: { limit: 10, windowMs: TEN_MINUTES },
   orderClaim: { limit: 10, windowMs: TEN_MINUTES },
   orderCancel: { limit: 10, windowMs: TEN_MINUTES },
+  account: { limit: 30, windowMs: TEN_MINUTES },
   wishlist: { limit: 60, windowMs: TEN_MINUTES },
 };
 

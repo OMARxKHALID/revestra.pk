@@ -22,6 +22,16 @@ const LINKS = [
     note: "Everything you have bought",
   },
   { href: "/wishlist", label: "Wishlist", note: "Saved for later" },
+  {
+    href: "/account/reviews",
+    label: "Your reviews",
+    note: "What you wrote about the shop",
+  },
+  {
+    href: "/account/settings",
+    label: "Settings",
+    note: "Details, password, address, newsletter",
+  },
   { href: "/track", label: "Track an order", note: "By reference and email" },
 ];
 
