@@ -54,15 +54,13 @@ const list = (value) =>
 
 const pairs = (value) =>
   Object.fromEntries(
-    list(value)
-      .map((entry) => {
-        const at = entry.indexOf("=");
+    list(value).flatMap((entry) => {
+      const at = entry.indexOf("=");
 
-        return at === -1
-          ? null
-          : [entry.slice(0, at).trim(), entry.slice(at + 1).trim()];
-      })
-      .filter(Boolean)
+      return at === -1
+        ? []
+        : [[entry.slice(0, at).trim(), entry.slice(at + 1).trim()]];
+    })
   );
 
 const cents = (value) => {
