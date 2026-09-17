@@ -21,14 +21,6 @@ const categoryFor = async (slug) => {
   return found?.name ?? null;
 };
 
-export const generateStaticParams = async () => {
-  try {
-    return (await listCategories()).map(({ slug }) => ({ category: slug }));
-  } catch {
-    return [];
-  }
-};
-
 export const generateMetadata = async ({ params }) => {
   const { category: slug } = await params;
   const category = await categoryFor(slug);

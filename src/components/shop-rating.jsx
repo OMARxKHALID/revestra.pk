@@ -1,13 +1,10 @@
 import Link from "next/link";
-import { connection } from "next/server";
 import RatingStars from "@/components/ui/rating-stars";
 import cn from "@/lib/utils/cn";
 import { META } from "@/lib/type";
 import { getReviewHighlights } from "@/lib/api/reviews";
 
 const ShopRating = async ({ className }) => {
-  await connection();
-
   let summary;
 
   try {
