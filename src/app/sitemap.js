@@ -1,6 +1,8 @@
 import { getSellableProducts } from "@/lib/api/products";
 import { listCategories } from "@/lib/api/categories";
 
+export const revalidate = 3600;
+
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 const sitemap = async () => {

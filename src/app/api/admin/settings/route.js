@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { guard, readJson, invalid } from "@/lib/api/admin/guard";
 import { getSettings, saveSettings } from "@/lib/api/settings";
 import { settingsSchema } from "@/lib/schemas/settings";
@@ -28,6 +29,8 @@ export const PUT = async (request) => {
   const saved = await saveSettings(parsed.data, adminId);
 
   if (!saved.ok) return Response.json({ error: saved.error }, { status: 503 });
+
+  revalidatePath("/", "layout");
 
   return Response.json({ settings: saved.settings });
 };

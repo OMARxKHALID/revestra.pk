@@ -5,17 +5,8 @@ import { DEFAULT_SETTINGS } from "@/lib/settings";
 
 const COLLECTION = "settings";
 const DOCUMENT_ID = "site";
-const TTL_MS = 30_000;
-
-const cache = (globalThis.__settings ??= { value: null, expiresAt: 0 });
-
-const invalidateSettings = () => {
-  cache.expiresAt = 0;
-};
 
 export const getSettings = async () => {
-  if (cache.value && cache.expiresAt > Date.now()) return cache.value;
-
   if (!isDatabaseConfigured()) return DEFAULT_SETTINGS;
 
   let stored = null;
@@ -28,16 +19,12 @@ export const getSettings = async () => {
         .collection(COLLECTION)
         .findOne({ _id: DOCUMENT_ID }, { projection: { _id: 0 } });
   } catch {
-    return cache.value ?? DEFAULT_SETTINGS;
+    return DEFAULT_SETTINGS;
   }
 
   const parsed = settingsSchema.safeParse({ ...DEFAULT_SETTINGS, ...stored });
-  const value = parsed.success ? parsed.data : DEFAULT_SETTINGS;
 
-  cache.value = value;
-  cache.expiresAt = Date.now() + TTL_MS;
-
-  return value;
+  return parsed.success ? parsed.data : DEFAULT_SETTINGS;
 };
 
 export const saveSettings = async (settings, adminId = null) => {
@@ -50,8 +37,6 @@ export const saveSettings = async (settings, adminId = null) => {
     { $set: { ...settings, updatedAt: new Date(), updatedBy: adminId } },
     { upsert: true }
   );
-
-  invalidateSettings();
 
   return { ok: true, settings };
 };
