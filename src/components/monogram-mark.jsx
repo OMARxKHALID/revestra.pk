@@ -4,10 +4,10 @@ import cn from "@/lib/utils/cn";
 
 const MonogramMark = ({ className, priority = false }) => (
   <Image
-    src="/assets/SVG/6499ebd2cb78b6f1ed8520f8_CS - logo 1.svg"
+    src="/brand/revestra-monogram.png"
     alt={BRAND.name}
-    width={106}
-    height={64}
+    width={571}
+    height={256}
     priority={priority}
     className={cn("h-10 w-auto sm:h-14", className)}
   />

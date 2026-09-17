@@ -407,8 +407,8 @@ export const PRODUCTS = [
 ];
 
 export const HERO_LOGO = {
-  logo: "/assets/PNG/64b7173cdd6ff3285af61160_Jitter_00000.png",
-  width: 1840,
-  height: 710,
-  bg: "/assets/AVIF/6495fcd53cebe34b7b5a8fe4_Space-pic-3x-edited-3.avif",
+  logo: "/brand/revestra-wordmark.png",
+  width: 1800,
+  height: 615,
+  bg: "/brand/space.webp",
 };

@@ -5,11 +5,12 @@ Router) and Tailwind CSS 4 — catalogue, cart, stock, accounts, reviews,
 wishlist, discount codes, order tracking, and JazzCash / Easypaisa / cash on
 delivery checkout.
 
-> **Not an original design.** This is a local rebuild of the storefront at
-> `companypolicy.studio`. Layout, copy, brand name, wordmark and every file
-> under `public/assets/` come from that site — see `ASSETS.txt` for the
-> download record and copyright notice. Nothing here is licensed for reuse.
-> Keep this private, or replace the branding and imagery before publishing.
+> **Partly not original.** This started as a local rebuild of the storefront at
+> `companypolicy.studio`. The Revestra name, wordmark, monogram, tab icon and
+> hero background under `public/brand/` are this project's own. The product
+> photos under `public/assets/` still come from that site — see `ASSETS.txt`
+> for the download record and copyright notice. They are not licensed for
+> reuse, so keep this private or replace them before publishing.
 
 ## Stack
 
