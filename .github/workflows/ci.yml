@@ -31,6 +31,19 @@ jobs:
 
       - run: bun run typecheck
 
-      - run: bun test
+      - name: Run bun test
+        run: |
+          set -o pipefail
+          bun test 2>&1 | tee test-output.log
+
+      - name: Surface test failures
+        if: failure()
+        run: |
+          [ -f test-output.log ] || exit 0
+          grep -vE "rate-limit\]|findOneAndUpdate" test-output.log \
+            | grep -nE -B20 -A6 "^\(fail\)|^error|# Unhandled" \
+            | head -150 > failures.log || true
+          message=$(sed -e 's/%/%25/g' failures.log | awk '{printf "%s%%0A", $0}')
+          echo "::error title=bun test failures::${message}"
 
       - run: bun run build
