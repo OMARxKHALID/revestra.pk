@@ -27,7 +27,7 @@ const WishlistContents = ({ products }) => {
 
   return (
     <div className="mt-12">
-      <ProductList products={saved} />
+      <ProductList products={saved} eager />
     </div>
   );
 };

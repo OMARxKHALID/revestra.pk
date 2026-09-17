@@ -64,12 +64,29 @@ describe("password reset codes", () => {
     expect(result.error).toContain("Too many");
   });
 
-  test("asking for a new code does not reset the guess count", async () => {
+  test("a locked code cannot be replaced until the lock expires", async () => {
     const first = await requestReset("a@b.pk");
 
     for (let i = 0; i < 5; i += 1) await verifyCode("a@b.pk", wrong(first));
 
+    expect(await requestReset("a@b.pk")).toBeNull();
+
+    rows.get("a@b.pk").expiresAt = new Date(Date.now() - 1000);
+
+    const fresh = await requestReset("a@b.pk");
+
+    expect(fresh).not.toBeNull();
+    expect((await verifyCode("a@b.pk", fresh)).ok).toBe(true);
+  });
+
+  test("asking again before the lock keeps earlier wrong guesses", async () => {
+    const first = await requestReset("a@b.pk");
+
+    for (let i = 0; i < 4; i += 1) await verifyCode("a@b.pk", wrong(first));
+
     const second = await requestReset("a@b.pk");
+
+    await verifyCode("a@b.pk", wrong(second));
 
     expect((await verifyCode("a@b.pk", second)).ok).toBe(false);
   });

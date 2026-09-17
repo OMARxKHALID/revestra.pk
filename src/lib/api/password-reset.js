@@ -23,6 +23,8 @@ export const requestReset = async (email) => {
   const current = await collection.findOne({ _id: key });
   const live = current && new Date(current.expiresAt).getTime() > now.getTime();
 
+  if (live && (current.attempts ?? 0) >= MAX_ATTEMPTS) return null;
+
   await collection.updateOne(
     { _id: key },
     {
@@ -64,7 +66,10 @@ export const verifyCode = async (email, code) => {
     if (new Date(stale.expiresAt).getTime() <= Date.now())
       return { ok: false, error: "That code has expired. Ask for a new one." };
 
-    return { ok: false, error: "Too many wrong codes. Ask for a new one." };
+    return {
+      ok: false,
+      error: `Too many wrong codes. Wait ${CODE_TTL_MINUTES} minutes, then ask for a new one.`,
+    };
   }
 
   const expected = Buffer.from(entry.codeHash, "utf8");

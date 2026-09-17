@@ -362,7 +362,7 @@ const ProductBrowser = ({
         </div>
       ) : (
         <>
-          <ProductList products={visible} />
+          <ProductList products={visible} eager />
 
           <Pager
             page={current}
