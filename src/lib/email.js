@@ -62,6 +62,49 @@ export const sendEmail = async ({ to, subject, text }) => {
   }
 };
 
+export const sendBulkEmail = async (messages) => {
+  if (!isEmailConfigured()) {
+    console.info(
+      `[email] no RESEND_API_KEY set — would send ${messages.length} newsletters`
+    );
+
+    return { sent: 0, failed: messages.length, configured: false };
+  }
+
+  const { Resend } = await import("resend");
+  const resend = new Resend(apiKey());
+  const batches = [];
+
+  for (let index = 0; index < messages.length; index += 100)
+    batches.push(messages.slice(index, index + 100));
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const batch of batches) {
+    try {
+      const { error } = await resend.batch.send(
+        batch.map(({ to, subject, text, headers }) => ({
+          from: from(),
+          to,
+          subject,
+          text,
+          headers,
+        }))
+      );
+
+      if (error) throw new Error(error.message ?? "the provider refused it");
+
+      sent += batch.length;
+    } catch (error) {
+      failed += batch.length;
+      console.error(`[email] a newsletter batch failed: ${errorMessage(error)}`);
+    }
+  }
+
+  return { sent, failed, configured: true };
+};
+
 export const sendOrderConfirmation = async (order, trackUrl) =>
   sendEmail({
     to: order.email,

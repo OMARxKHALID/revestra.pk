@@ -38,3 +38,44 @@ export const listSubscribers = async ({ page = 1, perPage = 10 } = {}) => {
 
   return { subscribers, total, page, perPage };
 };
+
+export const unsubscribe = async (email) => {
+  const db = await getDb();
+
+  if (!db) return { ok: false };
+
+  const { deletedCount } = await db
+    .collection(COLLECTION)
+    .deleteOne({ email: String(email).trim().toLowerCase() });
+
+  return { ok: true, removed: deletedCount > 0 };
+};
+
+export const isSubscribed = async (email) => {
+  const db = await getDb();
+
+  if (!db) return false;
+
+  const found = await db
+    .collection(COLLECTION)
+    .findOne(
+      { email: String(email).trim().toLowerCase() },
+      { projection: { _id: 1 } }
+    );
+
+  return Boolean(found);
+};
+
+export const allSubscriberEmails = async (limit = 5000) => {
+  const db = await getDb();
+
+  if (!db) return [];
+
+  const rows = await db
+    .collection(COLLECTION)
+    .find({}, { projection: { _id: 0, email: 1 } })
+    .limit(limit)
+    .toArray();
+
+  return rows.map(({ email }) => email);
+};
