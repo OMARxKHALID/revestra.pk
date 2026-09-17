@@ -6,6 +6,8 @@ import { getSettings } from "@/lib/api/settings";
 import { formatPrice } from "@/lib/utils/price";
 import { title } from "@/lib/brand";
 import PrintButton from "@/components/print-button";
+import { STATUS_LABELS } from "@/components/order-status";
+import { paymentSummary } from "@/lib/schemas/order";
 
 export const dynamic = "force-dynamic";
 
@@ -137,8 +139,8 @@ const InvoicePage = async ({ params, searchParams }) => {
       </section>
 
       <p className="mt-10 text-black/60">
-        Paid by {order.payment.method} · {order.payment.status}. Order status:{" "}
-        {order.status}.
+        Payment: {paymentSummary(order.payment)}. Order status:{" "}
+        {STATUS_LABELS[order.status] ?? order.status}.
       </p>
 
       <PrintButton />

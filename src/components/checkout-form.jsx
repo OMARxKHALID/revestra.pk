@@ -57,16 +57,22 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
   const clear = useCart((state) => state.clear);
   const [confirmation, setConfirmation] = useState(null);
   const [rateId, setRateId] = useState(rates[0].id);
-  const [method, setMethod] = useState(PAYMENT_METHOD.cod);
+  const [chosenMethod, setMethod] = useState(PAYMENT_METHOD.cod);
   const [promo, setPromo] = useState(null);
 
-  const { data } = useQuery({
+  const { data, isPending: methodsLoading, isError: methodsFailed } = useQuery({
     queryKey: keys.payments.methods(),
     queryFn: fetchMethods,
     staleTime: 5 * 60 * 1000,
   });
 
-  const methods = data?.methods ?? FALLBACK_METHODS;
+  const methods = (
+    data?.methods ?? (methodsFailed ? FALLBACK_METHODS : [])
+  ).filter((option) => option.available);
+  const method = methods.some(({ id }) => id === chosenMethod)
+    ? chosenMethod
+    : (methods[0]?.id ?? null);
+  const cannotPay = !methodsLoading && !method;
   const totals = buildTotals({
     subtotalCents: subtotal,
     promo,
@@ -316,7 +322,20 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
           Payment
         </h2>
 
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {methodsLoading && (
+          <p className={cn(META, "mt-6 text-ink-soft")}>
+            Checking payment options…
+          </p>
+        )}
+
+        {cannotPay && (
+          <p className={cn(META, "mt-6 text-sale")}>
+            Checkout is paused right now — no payment method is available.
+            Please try again later.
+          </p>
+        )}
+
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 empty:hidden">
           {methods.map((option) => (
             <OptionTile
               key={option.id}
@@ -328,9 +347,8 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
                 )
               }
               label={option.label}
-              note={option.available ? option.note : "Unavailable"}
+              note={option.note}
               selected={method === option.id}
-              disabled={!option.available}
               onClick={() => handleMethod(option.id)}
             />
           ))}
@@ -338,7 +356,7 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
 
         <PillButton
           type="submit"
-          disabled={placeOrder.isPending}
+          disabled={placeOrder.isPending || !method}
           className="mt-10 w-full sm:w-auto"
         >
           {placeOrder.isPending
@@ -350,11 +368,13 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
 
         <ErrorNotice error={placeOrder.error} className="mt-4" />
 
-        <p className={cn(META, "mt-6 leading-relaxed text-ink-soft")}>
-          {method === PAYMENT_METHOD.cod
-            ? "Nothing is charged now. Pay the courier when your order arrives."
-            : "You are taken to the gateway to pay. Card and wallet details are never entered here."}
-        </p>
+        {method && (
+          <p className={cn(META, "mt-6 leading-relaxed text-ink-soft")}>
+            {method === PAYMENT_METHOD.cod
+              ? "Nothing is charged now. Pay the courier when your order arrives."
+              : "You are taken to the gateway to pay. Card and wallet details are never entered here."}
+          </p>
+        )}
       </form>
 
       <aside className="order-1 lg:sticky lg:top-[calc(var(--spacing-header)+2rem)] lg:order-2 lg:self-start lg:pt-1">

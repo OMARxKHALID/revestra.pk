@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getOrder } from "@/lib/api/admin/orders";
+import { PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from "@/lib/schemas/order";
 import { formatPrice } from "@/lib/utils/price";
 
 export const dynamic = "force-dynamic";
@@ -172,8 +173,12 @@ const OrderDetailPage = async ({ params }) => {
             </CardHeader>
 
             <CardContent className="grid gap-1 text-sm">
-              <Row label="Method">{order.payment.method}</Row>
-              <Row label="Status">{order.payment.status}</Row>
+              <Row label="Method">
+                {PAYMENT_METHOD_LABELS[order.payment.method] ?? order.payment.method}
+              </Row>
+              <Row label="Status">
+                {PAYMENT_STATUS_LABELS[order.payment.status] ?? order.payment.status}
+              </Row>
               <Row label="Verification">{order.payment.verification}</Row>
               {order.payment.providerTxnId && (
                 <Row label="Gateway ref">{order.payment.providerTxnId}</Row>

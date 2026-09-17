@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { SOCIAL_NETWORKS, settingsSchema } from "@/lib/schemas/settings";
-import { PAYMENT_METHODS } from "@/lib/schemas/order";
+import { PAYMENT_METHODS, PAYMENT_METHOD_LABELS } from "@/lib/schemas/order";
 import { request } from "@/lib/api-client";
 
 const TICKER_ICONS = [
@@ -44,13 +44,6 @@ const TICKER_ICONS = [
   { value: "clock", label: "Clock — live Karachi time when text is left blank" },
   { value: "shield", label: "Shield — accident-free counter when text is blank" },
 ];
-
-const METHOD_LABELS = {
-  jazzcash: "JazzCash",
-  easypaisa: "Easypaisa",
-  card: "Debit or credit card",
-  cod: "Cash on delivery",
-};
 
 const ToggleField = ({ control, name, label, description }) => (
   <FormField
@@ -97,6 +90,7 @@ const SettingsForm = ({ settings }) => {
   });
 
   const { control } = form;
+  const enabledMethods = useWatch({ control, name: "enabledMethods" }) ?? [];
 
   const socials = useFieldArray({ control, name: "socials" });
   const ticker = useFieldArray({ control, name: "ticker" });
@@ -439,7 +433,7 @@ const SettingsForm = ({ settings }) => {
                       className="flex items-center justify-between gap-4"
                     >
                       <FormLabel className="font-normal">
-                        {METHOD_LABELS[method]}
+                        {PAYMENT_METHOD_LABELS[method]}
                       </FormLabel>
                       <FormControl>
                         <Switch
@@ -464,12 +458,12 @@ const SettingsForm = ({ settings }) => {
 
             <Separator />
 
-            {PAYMENT_METHODS.map((method) => (
+            {PAYMENT_METHODS.filter((method) => enabledMethods.includes(method)).map((method) => (
               <TextField
                 key={method}
                 control={control}
                 name={`paymentNotes.${method}`}
-                label={`${METHOD_LABELS[method]} note`}
+                label={`${PAYMENT_METHOD_LABELS[method]} note`}
                 description="The small line shown under the method at checkout."
               />
             ))}

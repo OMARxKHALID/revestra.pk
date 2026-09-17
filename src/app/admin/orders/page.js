@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listOrders } from "@/lib/api/admin/orders";
+import { paymentSummary } from "@/lib/schemas/order";
 import {
   listQuerySchema,
   ORDER_STATUS,
@@ -98,7 +99,7 @@ const OrdersPage = async ({ searchParams }) => {
                     </TableCell>
 
                     <TableCell className="hidden lg:table-cell text-muted-foreground">
-                      {order.payment.method} · {order.payment.status}
+                      {paymentSummary(order.payment)}
                     </TableCell>
 
                     <TableCell>

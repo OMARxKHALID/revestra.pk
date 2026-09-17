@@ -2,7 +2,11 @@ import jazzcash from "@/lib/payments/jazzcash";
 import easypaisa from "@/lib/payments/easypaisa";
 import cod from "@/lib/payments/cod";
 import { cardProvider } from "@/lib/payments/config";
-import { PAYMENT_METHOD, PAYMENT_METHODS } from "@/lib/schemas/order";
+import {
+  PAYMENT_METHOD,
+  PAYMENT_METHODS,
+  PAYMENT_METHOD_LABELS,
+} from "@/lib/schemas/order";
 import { DEFAULT_PAYMENT_NOTES } from "@/lib/payments/notes";
 import { isDatabaseConfigured } from "@/lib/db";
 
@@ -24,7 +28,7 @@ export const listMethods = ({
   const methods = [
     {
       id: PAYMENT_METHOD.jazzcash,
-      label: "JazzCash",
+      label: PAYMENT_METHOD_LABELS.jazzcash,
       note:
         paymentNotes[PAYMENT_METHOD.jazzcash] ??
         DEFAULT_PAYMENT_NOTES.jazzcash,
@@ -32,7 +36,7 @@ export const listMethods = ({
     },
     {
       id: PAYMENT_METHOD.easypaisa,
-      label: "Easypaisa",
+      label: PAYMENT_METHOD_LABELS.easypaisa,
       note:
         paymentNotes[PAYMENT_METHOD.easypaisa] ??
         DEFAULT_PAYMENT_NOTES.easypaisa,
@@ -40,13 +44,13 @@ export const listMethods = ({
     },
     {
       id: PAYMENT_METHOD.card,
-      label: "Debit or credit card",
+      label: PAYMENT_METHOD_LABELS.card,
       note: paymentNotes[PAYMENT_METHOD.card] ?? DEFAULT_PAYMENT_NOTES.card,
       available: getAdapter(PAYMENT_METHOD.card)?.isConfigured() ?? false,
     },
     {
       id: PAYMENT_METHOD.cod,
-      label: "Cash on delivery",
+      label: PAYMENT_METHOD_LABELS.cod,
       note: paymentNotes[PAYMENT_METHOD.cod] ?? DEFAULT_PAYMENT_NOTES.cod,
       available: true,
     },

@@ -9,9 +9,13 @@ import { BODY, META } from "@/lib/type";
 import { title } from "@/lib/brand";
 import { optionalSession } from "@/lib/session";
 import { findOrderByReference, orderSecret } from "@/lib/api/orders";
-import { PAYMENT_METHOD, PAYMENT_STATUS } from "@/lib/schemas/order";
+import {
+  PAYMENT_METHOD,
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_STATUS,
+  PAYMENT_STATUS_LABELS,
+} from "@/lib/schemas/order";
 import { verifyOrderToken } from "@/lib/utils/order-token";
-import { listMethods } from "@/lib/payments";
 import CancelOrderButton from "@/components/cancel-order-button";
 import { CANCELLABLE_STATUSES } from "@/lib/api/orders";
 
@@ -20,12 +24,6 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: title("Order"),
   robots: { index: false, follow: false },
-};
-
-const PAYMENT_WORDS = {
-  pending: "awaiting payment",
-  paid: "paid",
-  failed: "payment failed",
 };
 
 const OrderPage = async ({ params, searchParams }) => {
@@ -48,9 +46,8 @@ const OrderPage = async ({ params, searchParams }) => {
 
       {order.payment.method !== PAYMENT_METHOD.cod && (
         <p className={cn(META, "mt-6 text-ink-soft")}>
-          {listMethods().find(({ id }) => id === order.payment.method)?.label ??
-            order.payment.method}{" "}
-          — {PAYMENT_WORDS[order.payment.status] ?? order.payment.status}
+          {PAYMENT_METHOD_LABELS[order.payment.method] ?? order.payment.method}{" "}
+          — {PAYMENT_STATUS_LABELS[order.payment.status] ?? order.payment.status}
           {order.payment.verification === "unverified_postback" &&
             " (awaiting gateway confirmation)"}
         </p>

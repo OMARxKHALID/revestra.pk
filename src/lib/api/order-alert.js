@@ -4,16 +4,10 @@ import { formatPrice } from "@/lib/utils/price";
 import { whatsappNumber } from "@/lib/utils/whatsapp";
 import { siteUrl } from "@/lib/payments/config";
 import errorMessage from "@/lib/utils/error-message";
+import { PAYMENT_METHOD_LABELS } from "@/lib/schemas/order";
 
 const ENDPOINT = "https://api.callmebot.com/whatsapp.php";
 const TIMEOUT_MS = 5000;
-
-const METHOD_LABELS = {
-  cod: "Cash on delivery",
-  jazzcash: "JazzCash",
-  easypaisa: "Easypaisa",
-  card: "Card",
-};
 
 export const alertConfig = () => {
   const number = whatsappNumber(process.env.CALLMEBOT_PHONE);
@@ -29,7 +23,7 @@ export const orderAlertText = (order, base = siteUrl()) =>
       (item) => `• ${item.name} (${item.size}) — ${formatPrice(item.unitCents)}`
     ),
     `Total: ${formatPrice(order.totals.totalCents)}`,
-    `Payment: ${METHOD_LABELS[order.payment.method] ?? order.payment.method}`,
+    `Payment: ${PAYMENT_METHOD_LABELS[order.payment.method] ?? order.payment.method}`,
     `City: ${order.shipping.city}`,
     `${base}/admin/orders/${order.reference}`,
   ].join("\n");

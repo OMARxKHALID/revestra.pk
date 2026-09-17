@@ -34,6 +34,23 @@ export const PAYMENT_STATUS = {
   notRequired: "not_required",
 };
 
+export const PAYMENT_METHOD_LABELS = {
+  jazzcash: "JazzCash",
+  easypaisa: "Easypaisa",
+  card: "Debit or credit card",
+  cod: "Cash on delivery",
+};
+
+export const PAYMENT_STATUS_LABELS = {
+  pending: "Awaiting payment",
+  paid: "Paid",
+  failed: "Failed",
+  not_required: "Pay on delivery",
+};
+
+export const paymentSummary = ({ method, status }) =>
+  `${PAYMENT_METHOD_LABELS[method] ?? method} · ${PAYMENT_STATUS_LABELS[status] ?? status}`;
+
 export const ORDER_STATUS = {
   pendingPayment: "pending_payment",
   received: "received",
