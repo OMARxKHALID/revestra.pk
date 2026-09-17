@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import { connection } from "next/server";
 import cn from "@/lib/utils/cn";
 import { getLatestProducts } from "@/lib/api/products";
+import { isCatalogueUnavailable } from "@/lib/utils/catalogue-guard";
 
 export const SHELF = [
   "w-[18%] min-w-[68px] max-w-[140px] -rotate-6",
@@ -18,8 +20,20 @@ export const HeroShelfFallback = () => (
   <div className={SHELF_FRAME} aria-hidden="true" />
 );
 
+const loadLatest = async () => {
+  try {
+    return await getLatestProducts(SHELF.length);
+  } catch (error) {
+    if (isCatalogueUnavailable(error)) return [];
+
+    throw error;
+  }
+};
+
 const HeroShelf = async () => {
-  const latest = await getLatestProducts(SHELF.length);
+  await connection();
+
+  const latest = await loadLatest();
 
   return (
     <div className={SHELF_FRAME}>
