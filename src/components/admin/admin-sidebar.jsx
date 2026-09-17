@@ -15,6 +15,7 @@ import {
   StarCircleIcon,
   Store01Icon,
   Tag01Icon,
+  UserGroupIcon,
 } from "@hugeicons/core-free-icons";
 import { signOut } from "next-auth/react";
 import {
@@ -39,6 +40,7 @@ const SECTIONS = [
       { href: "/admin/orders", label: "Orders", icon: ShoppingBag03Icon },
       { href: "/admin/products", label: "Inventory", icon: HangerIcon },
       { href: "/admin/categories", label: "Categories", icon: Tag01Icon },
+      { href: "/admin/customers", label: "Customers", icon: UserGroupIcon },
     ],
   },
   {

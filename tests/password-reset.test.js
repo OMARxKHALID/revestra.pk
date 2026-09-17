@@ -33,7 +33,10 @@ const collection = {
 };
 
 mock.module("server-only", () => ({}));
+const realDb = await import("@/lib/db");
+
 mock.module("@/lib/db", () => ({
+  ...realDb,
   getDb: async () => ({ collection: () => collection }),
 }));
 
