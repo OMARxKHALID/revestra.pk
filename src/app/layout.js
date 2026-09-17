@@ -9,6 +9,8 @@ import { fontVariables } from "@/lib/fonts";
 import cn from "@/lib/utils/cn";
 import { BRAND } from "@/lib/brand";
 
+export const revalidate = 3600;
+
 export const metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
