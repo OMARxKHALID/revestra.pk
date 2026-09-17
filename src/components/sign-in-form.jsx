@@ -13,6 +13,20 @@ import ErrorNotice from "@/components/ui/error-notice";
 import cn from "@/lib/utils/cn";
 import { BODY } from "@/lib/type";
 
+const localPath = (target) => {
+  if (!target) return "/account";
+
+  try {
+    const url = new URL(target, window.location.origin);
+
+    return url.origin === window.location.origin
+      ? `${url.pathname}${url.search}${url.hash}`
+      : "/account";
+  } catch {
+    return "/account";
+  }
+};
+
 const SignInForm = ({ available }) => {
   const router = useRouter();
   const params = useSearchParams();
@@ -38,9 +52,7 @@ const SignInForm = ({ available }) => {
       return;
     }
 
-    const target = params.get("callbackUrl") ?? "";
-
-    router.push(/^\/(?![/\\])/.test(target) ? target : "/account");
+    router.push(localPath(params.get("callbackUrl")));
     router.refresh();
   };
 
