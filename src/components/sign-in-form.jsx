@@ -38,7 +38,9 @@ const SignInForm = ({ available }) => {
       return;
     }
 
-    router.push(params.get("callbackUrl") ?? "/account");
+    const target = params.get("callbackUrl") ?? "";
+
+    router.push(/^\/(?![/\\])/.test(target) ? target : "/account");
     router.refresh();
   };
 

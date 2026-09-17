@@ -8,6 +8,7 @@ import { META, TITLE } from "@/lib/type";
 import { title } from "@/lib/brand";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { ROLE } from "@/lib/roles";
 
 export const metadata = {
   title: title("Account"),
@@ -28,6 +29,7 @@ const AccountPage = async () => {
   const session = await auth();
 
   if (!session?.user) redirect("/sign-in?callbackUrl=/account");
+  if (session.user.role === ROLE.admin) redirect("/admin");
 
   return (
     <InteriorPage
