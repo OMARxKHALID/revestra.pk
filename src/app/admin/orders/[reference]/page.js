@@ -6,6 +6,7 @@ import PageLayout from "@/components/admin/page-layout";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
 import OrderStatusForm from "@/components/admin/order-status-form";
+import RefundsCard from "@/components/admin/refunds-card";
 import {
   Card,
   CardContent,
@@ -190,6 +191,13 @@ const OrderDetailPage = async ({ params }) => {
               )}
             </CardContent>
           </Card>
+
+          <RefundsCard
+            reference={order.reference}
+            totalCents={order.totals.totalCents}
+            refunds={order.refunds}
+            refundedCents={order.refundedCents ?? 0}
+          />
         </div>
       </div>
     </PageLayout>

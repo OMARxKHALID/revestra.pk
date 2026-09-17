@@ -146,8 +146,26 @@ export const listQuerySchema = z.object({
   status: z.string().trim().max(24).default(""),
   category: z.string().trim().max(24).default(""),
   attention: z.string().trim().max(1).default(""),
+  refund: z.string().trim().max(8).default(""),
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(100).default(10),
+});
+
+export const REFUND_METHODS = {
+  original: "Original payment method",
+  bank_transfer: "Bank transfer",
+  wallet: "JazzCash or Easypaisa",
+  cash: "Cash",
+};
+
+export const refundSchema = z.object({
+  amount: z.coerce
+    .number()
+    .positive("Enter the amount refunded")
+    .max(10_000_000, "That amount is too large"),
+  method: z.enum(Object.keys(REFUND_METHODS)),
+  reference: z.string().trim().max(80).optional().or(z.literal("")),
+  note: z.string().trim().max(200).optional().or(z.literal("")),
 });
 
 export const staleReleaseSchema = z.object({

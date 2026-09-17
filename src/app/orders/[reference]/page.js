@@ -18,6 +18,7 @@ import {
 import { verifyOrderToken } from "@/lib/utils/order-token";
 import CancelOrderButton from "@/components/cancel-order-button";
 import TrackingLine from "@/components/tracking-line";
+import { formatPrice } from "@/lib/utils/price";
 import { CANCELLABLE_STATUSES } from "@/lib/api/orders";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +62,12 @@ const OrderPage = async ({ params, searchParams }) => {
       )}
 
       <TrackingLine tracking={order.tracking} />
+
+      {order.refundedCents > 0 && (
+        <p className={cn(META, "mt-4 text-ink-soft")}>
+          Refunded {formatPrice(order.refundedCents)}
+        </p>
+      )}
 
       <p className={cn(META, "mt-6")}>
         <Link

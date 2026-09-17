@@ -14,10 +14,20 @@ const NEEDS_ATTENTION = [
   { "payment.attempts.status": "unverified" },
 ];
 
-const buildFilter = ({ q, status, attention }) => {
+export const REFUND_DUE = {
+  status: ORDER_STATUS.cancelled,
+  "payment.status": "paid",
+  $expr: {
+    $lt: [{ $ifNull: ["$refundedCents", 0] }, "$totals.totalCents"],
+  },
+};
+
+const buildFilter = ({ q, status, attention, refund }) => {
   const filter = {};
 
   if (status) filter.status = status;
+
+  if (refund === "due") Object.assign(filter, REFUND_DUE);
 
   if (attention) filter.$and = [{ $or: NEEDS_ATTENTION }];
 
@@ -36,6 +46,7 @@ const buildFilter = ({ q, status, attention }) => {
 
 export const listOrders = async ({
   attention = "",
+  refund = "",
   q = "",
   status = "",
   page = 1,
@@ -45,7 +56,7 @@ export const listOrders = async ({
 
   if (!db) return { orders: [], total: 0, page, perPage };
 
-  const filter = buildFilter({ q, status, attention });
+  const filter = buildFilter({ q, status, attention, refund });
   const collection = db.collection(COLLECTION);
 
   const [orders, total] = await Promise.all([
@@ -166,4 +177,69 @@ export const countByStatus = async () => {
     .toArray();
 
   return rows.reduce((counts, row) => ({ ...counts, [row._id]: row.count }), {});
+};
+
+export const countAbandoned = async (minutes) => {
+  const db = await getDb();
+
+  if (!db) return 0;
+
+  return db.collection(COLLECTION).countDocuments({
+    status: ORDER_STATUS.pendingPayment,
+    stockReserved: true,
+    createdAt: { $lt: new Date(Date.now() - minutes * 60 * 1000) },
+  });
+};
+
+export const recordRefund = async ({
+  reference,
+  amountCents,
+  method,
+  refundReference,
+  note,
+  adminId,
+}) => {
+  const db = await getDb();
+
+  if (!db) return { ok: false, error: "No database is configured" };
+
+  const entry = {
+    amountCents,
+    method,
+    reference: refundReference || "",
+    note: note || "",
+    at: new Date(),
+    by: adminId ?? null,
+  };
+
+  const result = await db.collection(COLLECTION).findOneAndUpdate(
+    {
+      reference,
+      $expr: {
+        $lte: [
+          { $add: [{ $ifNull: ["$refundedCents", 0] }, amountCents] },
+          "$totals.totalCents",
+        ],
+      },
+    },
+    {
+      $push: { refunds: entry },
+      $inc: { refundedCents: amountCents },
+      $set: { updatedAt: new Date() },
+    },
+    { returnDocument: "after", projection: { _id: 0 } }
+  );
+
+  if (result) return { ok: true, order: result };
+
+  const exists = await db
+    .collection(COLLECTION)
+    .findOne({ reference }, { projection: { _id: 1 } });
+
+  return {
+    ok: false,
+    error: exists
+      ? "That would refund more than the order total"
+      : "No such order",
+  };
 };

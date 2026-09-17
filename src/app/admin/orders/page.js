@@ -5,6 +5,7 @@ import PageHeader from "@/components/admin/page-header";
 import FilterBar from "@/components/admin/filter-bar";
 import Pager from "@/components/admin/pager";
 import ExportButton from "@/components/admin/export-button";
+import ReleaseAbandonedButton from "@/components/admin/release-abandoned-button";
 import StatusBadge from "@/components/admin/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -15,7 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { listOrders } from "@/lib/api/admin/orders";
+import { countAbandoned, listOrders } from "@/lib/api/admin/orders";
+import { getSettings } from "@/lib/api/settings";
 import { paymentSummary } from "@/lib/schemas/order";
 import {
   listQuerySchema,
@@ -34,7 +36,11 @@ const STATUS_OPTIONS = ORDER_STATUSES.map((status) => ({
 
 const OrdersPage = async ({ searchParams }) => {
   const query = listQuerySchema.parse(await searchParams);
-  const { orders, total, page, perPage } = await listOrders(query);
+  const { commerce } = await getSettings();
+  const [{ orders, total, page, perPage }, abandoned] = await Promise.all([
+    listOrders(query),
+    countAbandoned(commerce.holdMinutes),
+  ]);
 
   return (
     <PageLayout>
@@ -43,7 +49,13 @@ const OrdersPage = async ({ searchParams }) => {
         description="Search by reference, email, name or phone."
         icon={ShoppingBag03Icon}
       >
-        <ExportButton href="/api/admin/orders/export" />
+        <div className="flex flex-wrap gap-2">
+          <ReleaseAbandonedButton
+            count={abandoned}
+            minutes={commerce.holdMinutes}
+          />
+          <ExportButton href="/api/admin/orders/export" />
+        </div>
       </PageHeader>
 
       <Card>
@@ -56,6 +68,11 @@ const OrdersPage = async ({ searchParams }) => {
                 key: "attention",
                 label: "Any condition",
                 options: [{ value: "1", label: "Needs attention" }],
+              },
+              {
+                key: "refund",
+                label: "Any refund state",
+                options: [{ value: "due", label: "Refund due" }],
               },
             ]}
           />
