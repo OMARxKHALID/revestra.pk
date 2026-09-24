@@ -53,7 +53,7 @@ const NewsletterForm = () => {
           aria-invalid={Boolean(errors.email)}
           aria-describedby="newsletter-status"
           {...register("email")}
-          className="w-full bg-transparent font-sans text-sm text-white placeholder:text-white/30 focus:outline-none"
+          className="min-h-11 w-full bg-transparent font-sans text-base text-white placeholder:text-white/30 focus:outline-none sm:min-h-0 sm:text-sm"
         />
 
         <button

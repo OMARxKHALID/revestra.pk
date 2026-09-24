@@ -7,7 +7,7 @@ const PILL =
 
 const SIZES = {
   base: cn(TITLE, "px-12 py-3"),
-  sm: cn(EYEBROW, "px-5 py-2.5"),
+  sm: cn(EYEBROW, "px-5 py-2.5 pointer-coarse:py-3.5"),
 };
 
 const PillButton = ({ href, size = "base", className, children, ...props }) =>

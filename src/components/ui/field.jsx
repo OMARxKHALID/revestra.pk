@@ -38,7 +38,7 @@ const Field = ({
         required={required}
         {...props}
         {...registration}
-        className="w-full bg-transparent font-sans text-sm text-ink placeholder:text-ink-faint focus:outline-none"
+        className="min-h-11 w-full bg-transparent font-sans text-base text-ink placeholder:text-ink-faint focus:outline-none sm:min-h-0 sm:text-sm"
       />
     </div>
 

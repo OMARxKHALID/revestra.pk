@@ -57,7 +57,7 @@ const AccountPage = async () => {
               <span className="flex items-center gap-3">
                 <span className={TITLE}>{label}</span>
 
-                <ArrowIcon className="h-4 w-4 text-brand opacity-0 transition duration-300 group-hover:translate-x-1 group-hover:opacity-100" />
+                <ArrowIcon className="h-4 w-4 text-brand transition duration-300 pointer-fine:opacity-0 group-hover:translate-x-1 pointer-fine:group-hover:opacity-100" />
               </span>
 
               <span

@@ -41,7 +41,7 @@ const SelectFilter = ({ id, label, value, options, onSelect }) => {
           id={id}
           value={value}
           onChange={(event) => onSelect(event.target.value)}
-          className="cursor-pointer bg-transparent font-sans text-sm text-ink focus:outline-none"
+          className="min-h-11 cursor-pointer bg-transparent font-sans text-base text-ink focus:outline-none sm:min-h-0 sm:text-sm"
         >
           <option value="">All</option>
 
@@ -199,7 +199,7 @@ const ProductBrowser = ({
                 value={queryInput}
                 onChange={handleSearch}
                 placeholder="Brand, size, anything"
-                className="w-full bg-transparent font-sans text-sm text-ink placeholder:text-ink-faint focus:outline-none"
+                className="min-h-11 w-full bg-transparent font-sans text-base text-ink placeholder:text-ink-faint focus:outline-none sm:min-h-0 sm:text-sm"
               />
             </div>
           </div>
@@ -255,7 +255,7 @@ const ProductBrowser = ({
                 value={filters.minCents === null ? "" : filters.minCents / 100}
                 onChange={handlePrice("minCents")}
                 placeholder={String(Math.floor(bounds.minCents / 100))}
-                className="w-14 bg-transparent font-sans text-sm text-ink tabular-nums placeholder:text-ink-faint focus:outline-none"
+                className="min-h-11 w-16 bg-transparent font-sans text-base text-ink tabular-nums placeholder:text-ink-faint focus:outline-none sm:min-h-0 sm:w-14 sm:text-sm"
               />
 
               <span className={cn(META, "text-ink-faint")}>to</span>
@@ -271,17 +271,17 @@ const ProductBrowser = ({
                 value={filters.maxCents === null ? "" : filters.maxCents / 100}
                 onChange={handlePrice("maxCents")}
                 placeholder={String(Math.ceil(bounds.maxCents / 100))}
-                className="w-14 bg-transparent font-sans text-sm text-ink tabular-nums placeholder:text-ink-faint focus:outline-none"
+                className="min-h-11 w-16 bg-transparent font-sans text-base text-ink tabular-nums placeholder:text-ink-faint focus:outline-none sm:min-h-0 sm:w-14 sm:text-sm"
               />
             </div>
           </div>
 
-          <label className="flex cursor-pointer items-center gap-2 pb-2">
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 pb-2 sm:min-h-0">
             <input
               type="checkbox"
               checked={filters.availableOnly}
               onChange={handleAvailable}
-              className="h-3.5 w-3.5 accent-brand"
+              className="size-5 accent-brand sm:size-3.5"
             />
             <span className={cn(META, "text-ink-muted")}>Available only</span>
           </label>

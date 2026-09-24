@@ -21,5 +21,5 @@ export const accountGuard = async (request, { mutation = true } = {}) => {
 
   if (!hit.ok) return { response: tooManyRequests(hit.resetAt) };
 
-  return { userId: session.user.id, email: session.user.email ?? "" };
+  return { userId: session.user.id };
 };

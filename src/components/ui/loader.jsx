@@ -1,8 +1,8 @@
 import cn from "@/lib/utils/cn";
 import { META } from "@/lib/type";
-import Spinner from "@/components/ui/spinner";
+import BrandMark from "@/components/brand-mark";
 
-const Loader = ({ label = "Loading", size = "lg", className }) => (
+const Loader = ({ label = "Loading", className }) => (
   <div
     role="status"
     aria-live="polite"
@@ -12,7 +12,10 @@ const Loader = ({ label = "Loading", size = "lg", className }) => (
       className
     )}
   >
-    <Spinner size={size} className="text-brand" />
+    <BrandMark
+      aria-hidden="true"
+      className="h-10 text-brand motion-safe:animate-[spin_2.4s_linear_infinite]"
+    />
     <p className={cn(META, "text-ink-soft")}>{label}</p>
   </div>
 );

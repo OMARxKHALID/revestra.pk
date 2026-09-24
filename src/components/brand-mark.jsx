@@ -1,7 +1,7 @@
 import { BRAND } from "@/lib/brand";
 import cn from "@/lib/utils/cn";
 
-const BrandMark = ({ className }) => (
+const BrandMark = ({ className, ...props }) => (
   <span
     role="img"
     aria-label={BRAND.name}
@@ -9,6 +9,7 @@ const BrandMark = ({ className }) => (
       "inline-block aspect-[552/530] h-10 bg-current mask-[url(/brand/revestra-spiral.svg)] mask-contain mask-center mask-no-repeat",
       className
     )}
+    {...props}
   />
 );
 

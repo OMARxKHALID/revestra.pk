@@ -24,7 +24,7 @@ const NavIcon = ({
   <Link
     href={href}
     className={cn(
-      "relative flex items-center gap-2 font-sans text-[11px] font-semibold leading-none tracking-[0.2em] transition focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-xs",
+      "relative flex items-center gap-2 before:absolute before:-inset-3 before:content-[''] font-sans text-[11px] font-semibold leading-none tracking-[0.2em] transition focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-xs",
       TONES[tone],
       className
     )}

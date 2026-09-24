@@ -10,8 +10,7 @@ const OPTIONS = {
   connectTimeoutMS: 10_000,
   socketTimeoutMS: 20_000,
   maxPoolSize: 10,
-  minPoolSize: 0,
-  maxIdleTimeMS: 60_000,
+  minPoolSize: 2,
   retryWrites: true,
   retryReads: true,
 };

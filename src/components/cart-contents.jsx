@@ -17,6 +17,7 @@ import { request } from "@/lib/api-client";
 import keys from "@/lib/query-keys";
 import { track } from "@/lib/track";
 import { ANALYTICS_EVENT, productProperties } from "@/lib/analytics";
+import SpiralTexture from "@/components/ui/spiral-texture";
 
 const fetchStock = ({ queryKey, signal }) => {
   const [, slugs] = queryKey;
@@ -97,7 +98,8 @@ const CartContents = () => {
 
   if (items.length === 0)
     return (
-      <div className="border-t border-rule py-16 text-center">
+      <div className="relative isolate overflow-hidden border-t border-rule py-24 text-center">
+        <SpiralTexture className="left-1/2 top-1/2 w-[280px] -translate-x-1/2 -translate-y-1/2 text-brand opacity-[0.06]" />
         <p className={cn(TITLE, "text-ink-muted")}>Nothing in the cart yet.</p>
         <PillButton href="/products" className="mt-8">
           Browse the store

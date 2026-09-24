@@ -1,5 +1,5 @@
 import "server-only";
-import { ORDER_STATUS } from "@/lib/schemas/order";
+import { ORDER_STATUS, PAYMENT_STATUS } from "@/lib/schemas/order";
 import { getDb } from "@/lib/db";
 import { markSold, releaseStock, reserveStock } from "@/lib/api/inventory";
 import { recordRedemption, releaseRedemption } from "@/lib/api/promos";
@@ -125,10 +125,19 @@ export const setOrderStatus = async ({
       return { ok: false, error: `Cannot reopen ${reference}: ${held.error}` };
   }
 
+  const voidsPayment =
+    status === ORDER_STATUS.cancelled &&
+    order.payment?.status === PAYMENT_STATUS.pending;
+
   const result = await db.collection(COLLECTION).findOneAndUpdate(
     { reference, status: order.status },
     {
-      $set: { status, updatedAt: now, ...(tracking ? { tracking } : {}) },
+      $set: {
+        status,
+        updatedAt: now,
+        ...(tracking ? { tracking } : {}),
+        ...(voidsPayment ? { "payment.status": PAYMENT_STATUS.failed } : {}),
+      },
       $push: {
         history: {
           status,

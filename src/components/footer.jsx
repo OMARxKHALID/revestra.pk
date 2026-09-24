@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import Ticker from "@/components/ticker";
 import BrandMark from "@/components/brand-mark";
+import SpiralTexture from "@/components/ui/spiral-texture";
 import NewsletterForm from "@/components/newsletter-form";
 import SocialIcon from "@/components/ui/social-icon";
 import cn from "@/lib/utils/cn";
@@ -17,7 +18,9 @@ const FooterBody = async () => {
   const settings = await getSettings();
 
   return (
-  <footer className="bg-black text-white">
+  <footer className="relative isolate overflow-hidden bg-black text-white">
+    <SpiralTexture className="-right-48 top-16 w-[720px] text-white opacity-[0.06] sm:-right-24" />
+
     <Ticker entries={settings.ticker} />
 
     <div className="mx-auto max-w-[1400px] px-6 py-14 sm:px-10 sm:py-16">
