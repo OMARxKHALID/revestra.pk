@@ -15,7 +15,7 @@ const UnsubscribedPage = async ({ searchParams }) => {
     <InteriorPage
       centered
       eyebrow="Newsletter"
-      eyebrowTone={done ? "text-blurple" : "text-sale"}
+      eyebrowTone={done ? "text-brand" : "text-sale"}
       heading={done ? "You are unsubscribed" : "That link did not work"}
       intro={
         done

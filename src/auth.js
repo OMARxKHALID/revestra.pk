@@ -25,6 +25,8 @@ const withFreshRole = async (token) => {
 
     if (!reachable) return token;
 
+    if (role === null) return null;
+
     if (passwordChangedAt && passwordChangedAt > (token.signedInAt ?? 0))
       return null;
 

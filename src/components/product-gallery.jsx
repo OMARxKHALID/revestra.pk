@@ -19,7 +19,7 @@ const ProductGallery = ({ frames, name, sold = false, label }) => {
             className={cn(
               META,
               "absolute left-0 top-0 z-10 px-3 py-2 text-white",
-              sold ? "bg-black" : "bg-blurple"
+              sold ? "bg-black" : "bg-brand"
             )}
           >
             {label}
@@ -55,9 +55,9 @@ const ProductGallery = ({ frames, name, sold = false, label }) => {
               aria-label={`${name} — view ${index + 1}`}
               aria-pressed={index === active}
               className={cn(
-                "flex h-16 w-16 items-center justify-center border transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple",
+                "flex h-16 w-16 items-center justify-center border transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
                 index === active
-                  ? "border-blurple"
+                  ? "border-brand"
                   : "border-rule hover:border-ink-muted"
               )}
             >

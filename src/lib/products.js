@@ -405,10 +405,3 @@ export const PRODUCTS = [
     soldAt: null,
   },
 ];
-
-export const HERO_LOGO = {
-  logo: "/brand/revestra-wordmark.png",
-  width: 1800,
-  height: 615,
-  bg: "/brand/space.webp",
-};

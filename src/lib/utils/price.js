@@ -20,6 +20,3 @@ export const formatPrice = (cents) =>
   (cents % 100 === 0 ? whole : fractional)
     .format(cents / 100)
     .replace(/ /g, " ");
-
-export const sumCents = (items) =>
-  items.reduce((total, item) => total + item.unitCents, 0);

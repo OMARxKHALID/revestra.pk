@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import Ticker from "@/components/ticker";
-import MonogramMark from "@/components/monogram-mark";
+import BrandMark from "@/components/brand-mark";
 import NewsletterForm from "@/components/newsletter-form";
 import SocialIcon from "@/components/ui/social-icon";
 import cn from "@/lib/utils/cn";
@@ -10,7 +10,7 @@ import { getSettings } from "@/lib/api/settings";
 
 const linkClass = cn(
   META,
-  "relative text-blurple transition before:absolute before:-inset-x-1 before:-inset-y-2 before:content-[''] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+  "relative text-brand-soft transition before:absolute before:-inset-x-1 before:-inset-y-2 before:content-[''] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
 );
 
 const FooterBody = async () => {
@@ -22,7 +22,7 @@ const FooterBody = async () => {
 
     <div className="mx-auto max-w-[1400px] px-6 py-14 sm:px-10 sm:py-16">
       <div className="grid grid-cols-1 items-center gap-12 sm:grid-cols-[1fr_auto_1fr] sm:gap-10">
-        <address className={cn(META, "not-italic leading-[1.75] text-blurple")}>
+        <address className={cn(META, "not-italic leading-[1.75] text-brand-soft")}>
           {settings.hours}
           <br />
           {settings.addressLine ? `${settings.addressLine}, ` : ""}
@@ -46,7 +46,7 @@ const FooterBody = async () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className={cn(META, "text-blurple")}>Follow us on:</span>
+            <span className={cn(META, "text-brand-soft")}>Follow us on:</span>
             {settings.socials.map(({ name, label, href }) => (
               <a
                 key={name}
@@ -54,7 +54,7 @@ const FooterBody = async () => {
                 target="_blank"
                 rel="noreferrer"
                 aria-label={label}
-                className="relative text-blurple transition before:absolute before:-inset-2 before:content-[''] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                className="relative text-brand-soft transition before:absolute before:-inset-2 before:content-[''] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
                 <SocialIcon name={name} />
               </a>
@@ -74,7 +74,7 @@ const FooterBody = async () => {
           </div>
         </div>
         <div className="flex justify-center sm:col-start-2 sm:row-start-1">
-          <MonogramMark className="h-20 w-auto invert sm:h-24" />
+          <BrandMark className="h-20 text-brand-soft sm:h-24" />
         </div>
       </div>
     </div>

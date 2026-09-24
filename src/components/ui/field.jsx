@@ -21,7 +21,7 @@ const Field = ({
         "mt-2 flex items-center gap-2.5 border-b pb-2 transition",
         error
           ? "border-sale focus-within:border-sale"
-          : "border-rule-strong focus-within:border-blurple"
+          : "border-rule-strong focus-within:border-brand"
       )}
     >
       {icon && (

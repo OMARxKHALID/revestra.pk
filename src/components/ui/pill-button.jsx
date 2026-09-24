@@ -3,7 +3,7 @@ import cn from "@/lib/utils/cn";
 import { EYEBROW, TITLE } from "@/lib/type";
 
 const PILL =
-  "inline-block rounded-full border border-blurple text-center text-blurple transition hover:bg-blurple hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blurple disabled:cursor-not-allowed disabled:border-rule disabled:text-ink-faint disabled:hover:bg-transparent disabled:hover:text-ink-faint";
+  "inline-block rounded-full border border-brand text-center text-brand transition hover:bg-brand hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand disabled:cursor-not-allowed disabled:border-rule disabled:text-ink-faint disabled:hover:bg-transparent disabled:hover:text-ink-faint";
 
 const SIZES = {
   base: cn(TITLE, "px-12 py-3"),

@@ -12,7 +12,7 @@ const Loader = ({ label = "Loading", size = "lg", className }) => (
       className
     )}
   >
-    <Spinner size={size} className="text-blurple" />
+    <Spinner size={size} className="text-brand" />
     <p className={cn(META, "text-ink-soft")}>{label}</p>
   </div>
 );

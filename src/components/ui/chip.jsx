@@ -7,9 +7,9 @@ const Chip = ({ selected = false, className, children, ...props }) => (
     aria-pressed={selected}
     className={cn(
       EYEBROW,
-      "rounded-full border px-4 py-2 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple disabled:cursor-not-allowed",
+      "rounded-full border px-4 py-2 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed",
       selected
-        ? "border-blurple bg-blurple text-white"
+        ? "border-brand bg-brand text-white"
         : "border-rule-strong text-ink-muted hover:border-ink-muted hover:text-ink",
       className
     )}

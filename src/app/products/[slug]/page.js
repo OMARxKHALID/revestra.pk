@@ -118,7 +118,7 @@ const ProductPage = async ({ params }) => {
 
         <div className="flex flex-col items-center justify-center px-6 py-16 sm:px-10 sm:py-20 lg:min-h-[calc(100svh-var(--spacing-header))] lg:py-16">
           <div className="w-full max-w-[420px] text-center">
-            <p className={cn(EYEBROW, "text-blurple")}>
+            <p className={cn(EYEBROW, "text-brand")}>
               {tagline}
             </p>
 

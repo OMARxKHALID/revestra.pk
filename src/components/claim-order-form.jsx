@@ -74,7 +74,7 @@ const ClaimOrderForm = () => {
 
       <p
         aria-live="polite"
-        className={cn(NOTICE, "mt-4", failed ? "text-sale" : "text-blurple")}
+        className={cn(NOTICE, "mt-4", failed ? "text-sale" : "text-brand")}
       >
         {message ?? " "}
       </p>

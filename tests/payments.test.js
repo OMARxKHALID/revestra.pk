@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
+import jazzcash, {
   attemptRefFor,
   buildFields,
   sanitizeDescription,
@@ -100,6 +100,14 @@ describe("jazzcash helpers", () => {
 
   test("the description drops characters the gateway rejects", () => {
     expect(sanitizeDescription('Order <a> "x" | y')).not.toMatch(/[<>"|]/);
+  });
+
+  test("a GET return reads its fields from the query string", async () => {
+    const fields = await jazzcash.parseCallback(
+      new Request("http://localhost/api/payments/jazzcash/callback?pp_TxnRefNo=RVABC1&pp_ResponseCode=000")
+    );
+
+    expect(fields).toEqual({ pp_TxnRefNo: "RVABC1", pp_ResponseCode: "000" });
   });
 });
 

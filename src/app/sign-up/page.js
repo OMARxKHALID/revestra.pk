@@ -27,7 +27,7 @@ const SignUpPage = () => (
 
     <p className={cn(META, "mt-8 text-ink-soft")}>
       Already have one?{" "}
-      <Link href="/sign-in" className="text-blurple hover:underline">
+      <Link href="/sign-in" className="text-brand hover:underline">
         Sign in
       </Link>
     </p>

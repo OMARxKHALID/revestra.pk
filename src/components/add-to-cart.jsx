@@ -100,7 +100,7 @@ const AddToCart = ({ product, whatsapp }) => {
 
       <p
         aria-live="polite"
-        className={cn(NOTICE, "mt-2", added ? "text-blurple" : "sr-only")}
+        className={cn(NOTICE, "mt-2", added ? "text-brand" : "sr-only")}
       >
         {added ? "Added to your cart" : ""}
       </p>

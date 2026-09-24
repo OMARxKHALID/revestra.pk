@@ -6,8 +6,8 @@ wishlist, discount codes, order tracking, and JazzCash / Easypaisa / cash on
 delivery checkout.
 
 > **Partly not original.** This started as a local rebuild of the storefront at
-> `companypolicy.studio`. The Revestra name, wordmark, monogram, tab icon and
-> hero background under `public/brand/` are this project's own. The product
+> `companypolicy.studio`. The Revestra name, spiral mark and tab icon under
+> `public/brand/` are this project's own. The product
 > photos under `public/assets/` still come from that site — see `ASSETS.txt`
 > for the download record and copyright notice. They are not licensed for
 > reuse, so keep this private or replace them before publishing.
@@ -24,9 +24,8 @@ delivery checkout.
   reviews and payment methods
 - Tailwind CSS 4 — CSS-first config, no `tailwind.config.js`
 - Lenis smooth scroll
-- lucide-react (theme-switcher icons)
-- Self-hosted fonts via `next/font/local` — Inter (400/500/600) and PT Serif
-  (400), latin subsets only
+- Hugeicons for UI icons
+- Space Grotesk via `next/font/google`, latin subset only
 
 ## Run
 
@@ -61,7 +60,7 @@ bun run seed
 ```
 
 ```bash
-bun run order-status CP-XXXXXX-XXXX shipped
+bun run order-status RV-XXXXXXXX-XXXXXX shipped
 ```
 
 ```bash
@@ -126,10 +125,10 @@ stay at the project root, per the Next.js `src` folder convention.
 src/
   auth.js                       Auth.js v5 — Credentials, bcryptjs, JWT (Node runtime)
   auth.config.js                Edge-safe half: pages + callbacks, no providers
-  middleware.js                 Redirects /account/* when signed out (UX, not a boundary)
+  proxy.js                      Redirects /account/* and /admin/* when signed out (UX, not a boundary)
   app/
     layout.js                   Root layout, fonts, Session + Query + Lenis providers
-    page.js                     Hero + ProductGrid + Footer
+    page.js                     Header + ProductGrid + Reviews + Footer
     error.js / global-error.js  Error boundaries in the interior shell
     loading.js                  Skeleton, reused per segment
     not-found.js                Branded 404
@@ -234,11 +233,8 @@ Filenames are kebab-case; components are `const` arrow functions.
   when the IntersectionObserver fires. The animation itself is `motion-safe:`
   only, and the stagger uses three literal `animation-delay` classes keyed off
   the card's column so Tailwind can extract them statically.
-- **The theme switcher** swaps the hero background and wordmark between three
-  variants (Jitter / Serif / Transparent). Each variant carries its own
-  intrinsic `width`/`height` so `next/image` gets the true aspect ratio.
 - **The scrollbar is part of the design.** `html` is white to match `body`, with
-  a thin blurple thumb on a light neutral track. It used to be a black track
+  a thin brand thumb on a light neutral track. It used to be a black track
   left over from when the whole site was dark, which ran as a black stripe down
   every white page.
 - **Space Mono is gone.** Once the footer and ticker moved to the dense sans
@@ -250,26 +246,8 @@ Filenames are kebab-case; components are `const` arrow functions.
   mismatch, and the counter is computed from New York's calendar date rather
   than UTC — the whole ticker is framed in NY time, so the day should roll over
   there. `motion-safe:` keeps the marquee still under reduced motion.
-- **The footer wordmark asset is broken.** `AVIF/…askey-blk@2x 1.avif` has a
-  well-formed container but no decoder will read it — the browser reports
-  `naturalWidth: 0` and Next's optimizer (sharp) returns 400 "not a valid
-  image", while the hero AVIF decodes fine in both. The `unoptimized` flag that
-  used to sit on it was a misdiagnosis of this. The footer now uses the
-  monogram SVG. On the live site that wordmark is not an image at all — it is a
-  looping video with a webp poster, which is where the chrome shimmer comes
-  from. Restoring it means sourcing that asset, not fixing a filter.
-- **Fonts are loaded by `next/font/local`** from `src/assets/fonts/`, which
-  emits `<link rel="preload">` per face and generates a metric-matched
-  `size-adjust` fallback so the swap causes no layout shift. Only the latin
-  subsets and the weights actually used in the markup are shipped. The woff2
-  files live in `public/assets/fonts/` and are pulled in by relative import,
-  not by URL — `next/font` needs a module path it can hash and bundle.
-- **Hero images.** The background and wordmark are `priority` (the LCP pair).
-  The five floating products are above the fold too, but `loading="eager"`
-  with `fetchPriority="low"` — eager so they do not wait on the observer,
-  low so their preloads do not compete with the wordmark.
 - **Focus styling.** Every interactive element carries a `focus-visible`
-  outline: white on the dark hero and footer, blurple on the white grid.
+  outline: white on the dark footer, brand on the white pages.
 - **Prices are integer paisa** everywhere. The field names still read
   `priceCents` / `unitCents` — a naming lie kept deliberately, because renaming
   them would churn the store, schemas, seed and four test files for no
@@ -326,8 +304,7 @@ Filenames are kebab-case; components are `const` arrow functions.
 - **Interior pages share one shell, literally.** `components/interior-page.jsx`
   renders every white page — catalogue, cart, checkout, account, orders, track,
   wishlist, sign-in, the 404 and the error boundary — with one heading
-  treatment. `centered` is the only variant, for the short message pages. The
-  dark hero belongs to the landing page alone; interior pages do not restage it.
+  treatment. `centered` is the only variant, for the short message pages.
 - **One CTA, one chip, one tile.** `ui/pill-button.jsx` is every action (`sm`
   for secondary ones); `ui/chip.jsx` is every small *selection* — sizes,
   ratings, wishlist toggle — and never an action; `ui/option-tile.jsx` is the
@@ -351,7 +328,7 @@ Filenames are kebab-case; components are `const` arrow functions.
   user, bag) with a count badge and a label that appears at `lg`; trash sits on
   both destructive cart actions, a check on the verified-buyer badge, and truck
   and wallet on the delivery and payment tiles.
-- **Ratings are not blurple.** Blurple means "you can act on this". Stars are
+- **Ratings are not brand.** Blurple means "you can act on this". Stars are
   `black/70` on `black/15`, and they sit under the price rather than above the
   name, so a card still reads name → price → evidence.
 - **One CTA and one chip.** Every primary action is `ui/pill-button.jsx`; every
@@ -407,10 +384,6 @@ not a fake reference.
 Every page is checked at 375, 768 and ≥1024 with no horizontal overflow
 anywhere. The parts that actually needed thought:
 
-- **The hero.** On mobile the wordmark cleared the header only by luck; it now
-  has `pt-[calc(var(--spacing-header)+2rem)]`, the floating products drop out of
-  absolute positioning and into flow, and the theme switcher centres at the
-  bottom instead of colliding with them.
 - **Checkout.** The order summary is `order-1` on mobile and `order-2` at `lg`,
   so a shopper sees what they are paying before ten form fields rather than
   after; at `lg` it becomes a sticky right column.

@@ -7,7 +7,7 @@ const BASE =
 const TONES = {
   light:
     "text-white/85 hover:text-white focus-visible:outline-white",
-  dark: "text-ink-muted hover:text-ink focus-visible:outline-blurple",
+  dark: "text-ink-muted hover:text-ink focus-visible:outline-brand",
 };
 
 export const navActionClass = (tone = "light", className) =>

@@ -20,14 +20,14 @@ const SignInPage = () => (
 
     <p className={cn(META, "mt-8 text-ink-soft")}>
       No account yet?{" "}
-      <Link href="/sign-up" className="text-blurple hover:underline">
+      <Link href="/sign-up" className="text-brand hover:underline">
         Create one
       </Link>
     </p>
 
     <p className={cn(META, "mt-3 text-ink-soft")}>
       Forgotten your password?{" "}
-      <Link href="/forgot-password" className="text-blurple hover:underline">
+      <Link href="/forgot-password" className="text-brand hover:underline">
         Email me a reset code
       </Link>
     </p>

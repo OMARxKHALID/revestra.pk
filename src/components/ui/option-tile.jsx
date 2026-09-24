@@ -15,9 +15,9 @@ const OptionTile = ({
     disabled={disabled}
     aria-pressed={selected}
     className={cn(
-      "border px-4 py-3.5 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple",
+      "border px-4 py-3.5 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
       selected
-        ? "border-blurple bg-blurple/5"
+        ? "border-brand bg-brand/5"
         : "border-rule-strong hover:border-ink-muted",
       disabled && "cursor-not-allowed opacity-40 hover:border-rule-strong",
       className

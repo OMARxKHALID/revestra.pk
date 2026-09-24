@@ -35,7 +35,7 @@ const LiveProductList = async () => {
       </div>
     );
 
-  return <ProductList products={products} />;
+  return <ProductList products={products} eager />;
 };
 
 const ProductGrid = () => (

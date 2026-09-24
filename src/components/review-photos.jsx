@@ -101,7 +101,7 @@ const ReviewPhotos = ({ value = [], onChange }) => {
               type="button"
               onClick={() => handleRemove(index)}
               aria-label={`Remove photo ${index + 1}`}
-              className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-white transition hover:bg-sale focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple"
+              className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-white transition hover:bg-sale focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               <CloseIcon className="h-3 w-3" />
             </button>
@@ -115,7 +115,7 @@ const ReviewPhotos = ({ value = [], onChange }) => {
             onClick={() => input.current?.click()}
             className={cn(
               META,
-              "flex h-20 w-20 items-center justify-center rounded border border-dashed border-rule-strong text-ink-soft transition hover:border-ink-muted hover:text-ink disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple"
+              "flex h-20 w-20 items-center justify-center rounded border border-dashed border-rule-strong text-ink-soft transition hover:border-ink-muted hover:text-ink disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             )}
           >
             {busy ? "…" : "Add"}

@@ -3,12 +3,12 @@ import cn from "@/lib/utils/cn";
 
 const TONES = {
   light: "text-white/85 hover:text-white focus-visible:outline-white",
-  dark: "text-ink-muted hover:text-ink focus-visible:outline-blurple",
+  dark: "text-ink-muted hover:text-ink focus-visible:outline-brand",
 };
 
 const COUNT_TONES = {
   light: "bg-white text-black",
-  dark: "bg-blurple text-white",
+  dark: "bg-brand text-white",
 };
 
 const NavIcon = ({

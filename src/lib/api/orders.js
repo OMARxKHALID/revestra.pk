@@ -1,18 +1,17 @@
 import "server-only";
+import { randomInt } from "node:crypto";
 import { ORDER_STATUS, PAYMENT_STATUS } from "@/lib/schemas/order";
 import { getDb, isDatabaseConfigured } from "@/lib/db";
 import { authSecret } from "@/lib/secrets";
 
 const COLLECTION = "orders";
 
-export const orderSecret = () =>
-  authSecret() ?? "development-order-token-secret";
+export const orderSecret = authSecret;
 
-export const buildReference = (now = Date.now(), random = Math.random) =>
-  `RV-${now.toString(36).toUpperCase()}-${random()
+export const buildReference = (now = Date.now()) =>
+  `RV-${now.toString(36).toUpperCase()}-${randomInt(36 ** 6)
     .toString(36)
-    .slice(2, 8)
-    .padEnd(6, "0")
+    .padStart(6, "0")
     .toUpperCase()}`;
 
 const DUPLICATE_KEY = 11000;

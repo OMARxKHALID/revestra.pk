@@ -26,7 +26,7 @@ const ReviewHighlights = async () => {
       <div className="mx-auto max-w-[1200px]">
         <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
           <div>
-            <p className={cn(EYEBROW, "text-blurple")}>What buyers say</p>
+            <p className={cn(EYEBROW, "text-brand")}>What buyers say</p>
 
             <h2 className={cn(HEADING, "mt-3 text-ink")}>
               {summary.average} out of 5, across {summary.count}{" "}
@@ -38,7 +38,7 @@ const ReviewHighlights = async () => {
             href="/reviews"
             className={cn(
               EYEBROW,
-              "text-blurple transition hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blurple"
+              "text-brand transition hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
             )}
           >
             Read them all
@@ -65,7 +65,7 @@ const ReviewHighlights = async () => {
                 {review.author}
 
                 {review.verified && (
-                  <span className="flex items-center gap-1 text-blurple">
+                  <span className="flex items-center gap-1 text-brand">
                     <CheckIcon className="h-3.5 w-3.5" />
                     Verified buyer
                   </span>

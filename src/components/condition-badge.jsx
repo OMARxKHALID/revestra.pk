@@ -2,7 +2,7 @@ import cn from "@/lib/utils/cn";
 import { META } from "@/lib/type";
 
 const TONES = {
-  Excellent: "border-blurple/40 bg-blurple/5 text-blurple",
+  Excellent: "border-brand/40 bg-brand/5 text-brand",
   Good: "border-rule-strong text-ink-muted",
   Fair: "border-rule-strong text-ink-muted",
   Worn: "border-sale/40 bg-sale/5 text-sale",

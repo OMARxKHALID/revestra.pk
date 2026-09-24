@@ -1,28 +1,5 @@
 import { CONDITIONS, SIZE_SYSTEMS, AVAILABILITY } from "@/lib/schemas/product";
 
-export const IMPORT_COLUMNS = [
-  "name",
-  "tagline",
-  "brand",
-  "category",
-  "sizesystem",
-  "sizelabel",
-  "condition",
-  "price",
-  "saleprice",
-  "cost",
-  "measurements",
-  "description",
-  "details",
-  "image",
-  "images",
-  "sku",
-  "slug",
-  "lot",
-  "conditionnotes",
-  "status",
-];
-
 export const IMPORT_TEMPLATE_HEADERS = [
   "name",
   "tagline",

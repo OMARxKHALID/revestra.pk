@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import Hero from "@/components/hero";
+import SiteHeader from "@/components/site-header";
 import AnnouncementBar from "@/components/announcement-bar";
 import ProductGrid from "@/components/product-grid";
 import ReviewHighlights from "@/components/review-highlights";
@@ -25,7 +25,7 @@ const Home = () => (
       <AnnouncementBar />
     </Suspense>
 
-    <Hero />
+    <SiteHeader />
     <ProductGrid />
 
     <Suspense fallback={null}>

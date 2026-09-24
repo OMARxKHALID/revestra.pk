@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { formatPrice, sumCents } from "../src/lib/utils/price.js";
+import { formatPrice } from "../src/lib/utils/price.js";
 
 describe("formatPrice", () => {
   test("renders whole rupees without decimals", () => {
@@ -22,14 +22,3 @@ describe("formatPrice", () => {
   });
 });
 
-describe("sumCents", () => {
-  test("adds one of each piece", () => {
-    expect(
-      sumCents([{ unitCents: 560000 }, { unitCents: 335000 }])
-    ).toBe(895000);
-  });
-
-  test("is zero for an empty cart", () => {
-    expect(sumCents([])).toBe(0);
-  });
-});

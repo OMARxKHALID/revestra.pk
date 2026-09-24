@@ -112,10 +112,6 @@ const adminProductFormBase = z
   }))
 ;
 
-export const adminProductFormSchema = adminProductFormBase.superRefine(
-  refineProduct
-);
-
 export const orderStatusSchema = z.object({
   status: z.enum(SETTABLE_ORDER_STATUSES),
   note: z.string().trim().max(200).optional().or(z.literal("")),

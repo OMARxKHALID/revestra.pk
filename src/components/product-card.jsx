@@ -27,7 +27,7 @@ const ProductCard = ({
     <Reveal index={index}>
       <Link
         href={`/products/${slug}`}
-        className="group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blurple"
+        className="group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
       >
         <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-white">
           {(sold || held) && (
@@ -35,7 +35,7 @@ const ProductCard = ({
               className={cn(
                 META,
                 "absolute left-0 top-0 z-10 px-2.5 py-1.5 text-white",
-                sold ? "bg-black" : "bg-blurple"
+                sold ? "bg-black" : "bg-brand"
               )}
             >
               {sold ? "Sold" : "On hold"}

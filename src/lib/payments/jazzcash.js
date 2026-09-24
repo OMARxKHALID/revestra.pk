@@ -81,8 +81,12 @@ const jazzcash = {
     };
   },
 
-  parseCallback: async (request) =>
-    Object.fromEntries(await request.formData()),
+  parseCallback: async (request) => {
+    if (request.method === "GET")
+      return Object.fromEntries(new URL(request.url).searchParams);
+
+    return Object.fromEntries(await request.formData());
+  },
 
   verifyCallback: async ({ fields, config = jazzcashConfig() }) => {
     const code = String(fields.pp_ResponseCode ?? "");

@@ -9,7 +9,7 @@ const InteriorPage = ({
   heading,
   intro,
   eyebrow,
-  eyebrowTone = "text-blurple",
+  eyebrowTone = "text-brand",
   centered = false,
   className,
   children,

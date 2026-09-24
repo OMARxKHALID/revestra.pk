@@ -95,7 +95,7 @@ const OrdersPage = async () => {
               {!demo && (
                 <Link
                   href={`/orders/${order.reference}`}
-                  className={cn(META, "text-blurple hover:underline")}
+                  className={cn(META, "text-brand hover:underline")}
                 >
                   View
                 </Link>

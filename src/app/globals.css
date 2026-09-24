@@ -7,7 +7,9 @@
 @theme {
   --font-sans: var(--font-space-grotesk), sans-serif;
 
-  --color-blurple: #3667f6;
+  --color-brand: #872532;
+  --color-brand-soft: #e8a3ab;
+  --color-scroll-track: #f3efef;
   --color-sale: #e0342a;
   --color-whatsapp: #25d366;
 
@@ -43,23 +45,6 @@
 
 html {
   background: #fff;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-blurple) #e9eaf1;
-}
-
-html::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-html::-webkit-scrollbar-track {
-  background: #e9eaf1;
-}
-
-html::-webkit-scrollbar-thumb {
-  background: var(--color-blurple);
-  border: 2px solid #e9eaf1;
-  border-radius: 999px;
 }
 
 body {

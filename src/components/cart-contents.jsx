@@ -118,7 +118,7 @@ const CartContents = () => {
             >
               <Link
                 href={`/products/${item.slug}`}
-                className="flex size-20 shrink-0 items-center justify-center bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple sm:size-28"
+                className="flex size-20 shrink-0 items-center justify-center bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:size-28"
               >
                 <Image
                   src={item.image}
@@ -136,7 +136,7 @@ const CartContents = () => {
                     href={`/products/${item.slug}`}
                     className={cn(
                       TITLE,
-                      "text-ink transition hover:text-blurple focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blurple"
+                      "text-ink transition hover:text-brand focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
                     )}
                   >
                     {item.name}
@@ -171,7 +171,7 @@ const CartContents = () => {
                     onClick={() => handleRemove(item)}
                     className={cn(
                       META,
-                      "relative flex items-center gap-1.5 text-ink-soft transition before:absolute before:-inset-x-1 before:-inset-y-2 before:content-[''] hover:text-sale focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blurple"
+                      "relative flex items-center gap-1.5 text-ink-soft transition before:absolute before:-inset-x-1 before:-inset-y-2 before:content-[''] hover:text-sale focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
                     )}
                   >
                     <TrashIcon className="h-3.5 w-3.5" />
@@ -190,7 +190,7 @@ const CartContents = () => {
           onClick={clear}
           className={cn(
             META,
-            "relative flex items-center gap-1.5 text-ink-soft transition before:absolute before:-inset-x-1 before:-inset-y-2 before:content-[''] hover:text-sale focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blurple"
+            "relative flex items-center gap-1.5 text-ink-soft transition before:absolute before:-inset-x-1 before:-inset-y-2 before:content-[''] hover:text-sale focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
           )}
         >
           <TrashIcon className="h-3.5 w-3.5" />

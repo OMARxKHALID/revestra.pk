@@ -5,7 +5,6 @@ const STATUSES = [
   "processing",
   "shipped",
   "delivered",
-  "cancelled",
 ];
 
 const [reference, status] = process.argv.slice(2);
@@ -19,7 +18,7 @@ if (!uri) {
 
 if (!reference || !STATUSES.includes(status)) {
   console.error(
-    `Usage: bun run scripts/order-status.js <reference> <${STATUSES.join("|")}>`
+    `Usage: bun run scripts/order-status.js <reference> <${STATUSES.join("|")}>. Cancel from /admin/orders so stock is released.`
   );
   process.exit(1);
 }

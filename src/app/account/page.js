@@ -52,18 +52,18 @@ const AccountPage = async () => {
           <li key={href}>
             <Link
               href={href}
-              className="group flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-6 transition-colors hover:text-blurple focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple"
+              className="group flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-6 transition-colors hover:text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               <span className="flex items-center gap-3">
                 <span className={TITLE}>{label}</span>
 
-                <ArrowIcon className="h-4 w-4 text-blurple opacity-0 transition duration-300 group-hover:translate-x-1 group-hover:opacity-100" />
+                <ArrowIcon className="h-4 w-4 text-brand opacity-0 transition duration-300 group-hover:translate-x-1 group-hover:opacity-100" />
               </span>
 
               <span
                 className={cn(
                   META,
-                  "text-ink-soft transition-colors group-hover:text-blurple"
+                  "text-ink-soft transition-colors group-hover:text-brand"
                 )}
               >
                 {note}

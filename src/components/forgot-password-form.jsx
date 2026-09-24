@@ -127,7 +127,7 @@ const ForgotPasswordForm = () => {
           ask.reset();
           confirm.reset();
         }}
-        className={cn(NOTICE, "mt-4 text-blurple hover:text-ink")}
+        className={cn(NOTICE, "mt-4 text-brand hover:text-ink")}
       >
         Use a different address
       </button>

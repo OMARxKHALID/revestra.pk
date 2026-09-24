@@ -36,7 +36,7 @@ const SelectFilter = ({ id, label, value, options, onSelect }) => {
         {label}
       </label>
 
-      <div className="mt-2 border-b border-rule-strong pb-2 focus-within:border-blurple">
+      <div className="mt-2 border-b border-rule-strong pb-2 focus-within:border-brand">
         <select
           id={id}
           value={value}
@@ -190,7 +190,7 @@ const ProductBrowser = ({
               Search
             </label>
 
-            <div className="mt-2 flex items-center gap-2 border-b border-rule-strong pb-2 focus-within:border-blurple">
+            <div className="mt-2 flex items-center gap-2 border-b border-rule-strong pb-2 focus-within:border-brand">
               <SearchIcon className="h-4 w-4 shrink-0 text-ink-faint" />
 
               <input
@@ -241,7 +241,7 @@ const ProductBrowser = ({
           <div>
             <span className={cn(META, "text-ink-soft")}>Price</span>
 
-            <div className="mt-2 flex items-center gap-2 border-b border-rule-strong pb-2 focus-within:border-blurple">
+            <div className="mt-2 flex items-center gap-2 border-b border-rule-strong pb-2 focus-within:border-brand">
               <span className={cn(META, "text-ink-faint")}>Rs</span>
 
               <label htmlFor="price-min" className="sr-only">
@@ -281,7 +281,7 @@ const ProductBrowser = ({
               type="checkbox"
               checked={filters.availableOnly}
               onChange={handleAvailable}
-              className="h-3.5 w-3.5 accent-blurple"
+              className="h-3.5 w-3.5 accent-brand"
             />
             <span className={cn(META, "text-ink-muted")}>Available only</span>
           </label>
@@ -297,7 +297,7 @@ const ProductBrowser = ({
                 aria-label={`Remove ${label} filter`}
                 className={cn(
                   META,
-                  "flex items-center gap-1.5 rounded-full border border-blurple bg-blurple/5 px-3 py-1.5 text-blurple transition hover:bg-blurple hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple"
+                  "flex items-center gap-1.5 rounded-full border border-brand bg-brand/5 px-3 py-1.5 text-brand transition hover:bg-brand hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 )}
               >
                 {label}: {value}
@@ -348,7 +348,7 @@ const ProductBrowser = ({
               onClick={handleReset}
               className={cn(
                 EYEBROW,
-                "mt-6 text-blurple transition hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blurple"
+                "mt-6 text-brand transition hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
               )}
             >
               Clear filters

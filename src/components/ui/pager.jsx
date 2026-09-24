@@ -35,7 +35,7 @@ const Pager = ({ page, pages, onSelect, className }) => {
         disabled={page === 1}
         className={cn(
           META,
-          "rounded-full border border-rule-strong px-4 py-2 text-ink-muted transition hover:border-ink-muted hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple"
+          "rounded-full border border-rule-strong px-4 py-2 text-ink-muted transition hover:border-ink-muted hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         )}
       >
         Previous
@@ -54,9 +54,9 @@ const Pager = ({ page, pages, onSelect, className }) => {
             aria-current={entry === page ? "page" : undefined}
             className={cn(
               META,
-              "min-w-9 rounded-full border px-3 py-2 tabular-nums transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple",
+              "min-w-9 rounded-full border px-3 py-2 tabular-nums transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
               entry === page
-                ? "border-blurple bg-blurple text-white"
+                ? "border-brand bg-brand text-white"
                 : "border-rule-strong text-ink-muted hover:border-ink-muted hover:text-ink"
             )}
           >
@@ -71,7 +71,7 @@ const Pager = ({ page, pages, onSelect, className }) => {
         disabled={page === pages}
         className={cn(
           META,
-          "rounded-full border border-rule-strong px-4 py-2 text-ink-muted transition hover:border-ink-muted hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blurple"
+          "rounded-full border border-rule-strong px-4 py-2 text-ink-muted transition hover:border-ink-muted hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         )}
       >
         Next

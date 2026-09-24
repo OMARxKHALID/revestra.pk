@@ -21,7 +21,7 @@ const TrackingLine = ({ tracking, className }) => {
             href={tracking.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blurple hover:underline"
+            className="text-brand hover:underline"
           >
             Track parcel
           </a>

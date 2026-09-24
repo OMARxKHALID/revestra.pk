@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
-  adminProductFormSchema,
+  makeAdminProductFormSchema,
   adminProductPatchSchema,
   adminProductSchema,
   adminPromoSchema,
@@ -115,6 +115,8 @@ describe("listQuerySchema", () => {
 });
 
 describe("adminProductFormSchema", () => {
+  const adminProductFormSchema = makeAdminProductFormSchema();
+
   const filled = (overrides = {}) => ({
     sku: "GS-0099",
     slug: "levis-501-w32",

@@ -51,6 +51,7 @@ const nextConfig = {
   devIndicators: false,
   poweredByHeader: false,
   skipTrailingSlashRedirect: true,
+  turbopack: { root: import.meta.dirname },
   rewrites: async () => [
     { source: "/ph/static/:path*", destination: `${POSTHOG_ASSETS}/static/:path*` },
     { source: "/ph/array/:path*", destination: `${POSTHOG_ASSETS}/array/:path*` },

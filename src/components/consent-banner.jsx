@@ -39,7 +39,7 @@ const ConsentBanner = () => {
         <p className={cn(NOTICE, "text-ink-soft")}>
           We measure how the shop is used so we can fix what is broken. Decline
           and we count you without cookies.{" "}
-          <Link href="/policies#privacy" className="text-blurple hover:underline">
+          <Link href="/policies#privacy" className="text-brand hover:underline">
             How we handle your data
           </Link>
           .
@@ -53,7 +53,7 @@ const ConsentBanner = () => {
           <PillButton
             size="sm"
             onClick={handleAccept}
-            className="bg-blurple text-white hover:bg-ink hover:text-white"
+            className="bg-brand text-white hover:bg-ink hover:text-white"
           >
             Accept
           </PillButton>

@@ -32,13 +32,17 @@ export const viewport = {
 const RootLayout = ({ children }) => (
   <html
     lang="en"
-    className={cn(...fontVariables)}
+    className={cn(
+      ...fontVariables,
+      "[scrollbar-color:var(--color-brand)_var(--color-scroll-track)] [scrollbar-width:thin]",
+      "[&::-webkit-scrollbar]:size-2.5 [&::-webkit-scrollbar-track]:bg-scroll-track [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-scroll-track [&::-webkit-scrollbar-thumb]:bg-brand"
+    )}
     suppressHydrationWarning
   >
     <body className="antialiased">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:outline-2 focus:outline-offset-2 focus:outline-blurple"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:outline-2 focus:outline-offset-2 focus:outline-brand"
       >
         Skip to content
       </a>

@@ -62,7 +62,7 @@ const PromoField = ({ subtotalCents, rateId, promo, onApply, onClear }) => {
   if (promo)
     return (
       <div className="mt-8 flex items-center justify-between gap-4 border-t border-rule pt-5">
-        <p className={cn(META, "text-blurple")}>{promo.code} applied</p>
+        <p className={cn(META, "text-brand")}>{promo.code} applied</p>
 
         <PillButton size="sm" onClick={handleClear}>
           Remove

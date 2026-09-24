@@ -37,6 +37,15 @@ export const POST = async (request) => {
 
   if (gated.response) return gated.response;
 
+  if (!orderSecret()) {
+    console.error("[orders] AUTH_SECRET is not set — refusing to take orders");
+
+    return Response.json(
+      { error: "Checkout is unavailable right now. Nothing was charged." },
+      { status: 503 }
+    );
+  }
+
   const { shipping, items, promoCode, rateId, method, distinctId } =
     gated.data;
 

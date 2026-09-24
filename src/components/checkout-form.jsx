@@ -167,14 +167,16 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
           distinctId: viewerId(),
         },
       }),
-    onSuccess: (order, shipping) => {
+    onSuccess: async (order, shipping) => {
       queryClient.invalidateQueries({ queryKey: keys.products.all });
       queryClient.invalidateQueries({ queryKey: keys.stock.all });
 
-      if (signedIn && saveAddress) saveShipping.mutate(shipping);
+      if (signedIn && saveAddress)
+        await saveShipping.mutateAsync(shipping).catch(() => null);
 
       if (order.payUrl) {
         window.location.assign(order.payUrl);
+        clear();
         return;
       }
 
@@ -203,7 +205,7 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
   if (confirmation)
     return (
       <div className="mt-12 border-t border-rule py-16 text-center">
-        <p className={cn(EYEBROW, "text-blurple")}>Order received</p>
+        <p className={cn(EYEBROW, "text-brand")}>Order received</p>
 
         <h2 className={cn(HEADING, "mt-4 text-ink")}>
           Thank you — we have it from here.
@@ -418,7 +420,7 @@ const CheckoutForm = ({ commerce = DEFAULT_COMMERCE }) => {
               type="checkbox"
               checked={saveAddress}
               onChange={(event) => setSaveAddress(event.target.checked)}
-              className="size-4 accent-blurple"
+              className="size-4 accent-brand"
             />
             Save this address to my account
           </label>

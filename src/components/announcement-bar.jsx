@@ -13,7 +13,7 @@ const AnnouncementBar = async () => {
   const text = <span className={cn(META, "text-white")}>{active.text}</span>;
 
   return (
-    <div className="bg-blurple px-5 py-2.5 text-center">
+    <div className="bg-brand px-5 py-2.5 text-center">
       {active.href ? (
         <Link
           href={active.href}

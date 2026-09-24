@@ -97,7 +97,7 @@ const StoreReviews = ({ initialReviews, initialSummary }) => {
                   {review.author}
 
                   {review.verified && (
-                    <span className="flex items-center gap-1 text-blurple">
+                    <span className="flex items-center gap-1 text-brand">
                       <CheckIcon className="h-3.5 w-3.5" />
                       verified buyer
                     </span>

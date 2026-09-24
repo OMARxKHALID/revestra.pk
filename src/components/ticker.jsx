@@ -115,7 +115,7 @@ const Ticker = ({ entries = [] }) => {
         {[...lane, ...lane].map(({ Icon, text }, index) => (
           <span
             key={index}
-            className={cn(META, "flex shrink-0 items-center gap-2 px-6 text-blurple")}
+            className={cn(META, "flex shrink-0 items-center gap-2 px-6 text-brand-soft")}
           >
             <Icon />
             <span className="whitespace-nowrap tabular-nums">{text}</span>

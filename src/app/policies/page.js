@@ -34,7 +34,7 @@ const PolicyBodies = async () => {
 
           <p className={cn(BODY, "mt-4 text-ink-soft")}>
             Questions about an order or a policy, write to{" "}
-            <a href={`mailto:${email}`} className="text-blurple hover:underline">
+            <a href={`mailto:${email}`} className="text-brand hover:underline">
               {email}
             </a>
             {phone ? (
@@ -43,7 +43,7 @@ const PolicyBodies = async () => {
                 or call{" "}
                 <a
                   href={`tel:${phone.replace(/\s/g, "")}`}
-                  className="text-blurple hover:underline"
+                  className="text-brand hover:underline"
                 >
                   {phone}
                 </a>

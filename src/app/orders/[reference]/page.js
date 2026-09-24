@@ -72,7 +72,7 @@ const OrderPage = async ({ params, searchParams }) => {
       <p className={cn(META, "mt-6")}>
         <Link
           href={`/orders/${order.reference}/invoice?t=${encodeURIComponent(t ?? "")}`}
-          className="text-blurple hover:underline"
+          className="text-brand hover:underline"
         >
           View invoice
         </Link>

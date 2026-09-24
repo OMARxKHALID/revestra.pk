@@ -29,7 +29,7 @@ const OrderStatus = ({ status }) => {
           EYEBROW,
           stalled && status !== ORDER_STATUS.pendingPayment
             ? "text-sale"
-            : "text-blurple"
+            : "text-brand"
         )}
       >
         {STATUS_LABELS[status] ?? status}
@@ -42,7 +42,7 @@ const OrderStatus = ({ status }) => {
               <div
                 className={cn(
                   "h-1 rounded-full",
-                  position <= index ? "bg-blurple" : "bg-rule"
+                  position <= index ? "bg-brand" : "bg-rule"
                 )}
               />
               <p

@@ -59,4 +59,4 @@ function Button({
   )
 }
 
-export { Button, buttonVariants, rendersNativeButton }
+export { Button, rendersNativeButton }

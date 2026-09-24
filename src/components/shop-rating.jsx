@@ -19,7 +19,7 @@ const ShopRating = async ({ className }) => {
     <Link
       href="/reviews"
       className={cn(
-        "inline-flex items-center gap-2 transition hover:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blurple",
+        "inline-flex items-center gap-2 transition hover:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand",
         className
       )}
     >

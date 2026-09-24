@@ -42,7 +42,7 @@ const NewsletterForm = () => {
         Sign up for our Substack
       </label>
 
-      <div className="mt-3 flex items-center gap-2.5 border-b border-white/20 pb-2 focus-within:border-blurple">
+      <div className="mt-3 flex items-center gap-2.5 border-b border-white/20 pb-2 focus-within:border-brand-soft">
         <MailIcon className="h-4 w-4 shrink-0 text-white/45" />
 
         <input
@@ -61,7 +61,7 @@ const NewsletterForm = () => {
           disabled={subscribe.isPending}
           className={cn(
             EYEBROW,
-            "relative shrink-0 text-blurple transition before:absolute before:-inset-2 before:content-[''] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:text-white/30"
+            "relative shrink-0 text-brand-soft transition before:absolute before:-inset-2 before:content-[''] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:text-white/30"
           )}
         >
           {subscribe.isPending ? "…" : "Join"}
@@ -74,7 +74,7 @@ const NewsletterForm = () => {
         className={cn(
           META,
           "mt-2",
-          errors.email ? "text-sale" : "text-blurple"
+          errors.email ? "text-sale" : "text-brand-soft"
         )}
       >
         {errors.email?.message ??
